@@ -5,6 +5,9 @@
       "page": "001",
       "duration": 95.03,
       "num_segments": 6,
+      "layout": "word_with_examples",
+      "word_count": 6,
+      "has_announce": true,
       "segments": [
         {
           "index": 0,
@@ -54,6 +57,9 @@
       "page": "002",
       "duration": 86.7,
       "num_segments": 6,
+      "layout": "word_with_examples",
+      "word_count": 6,
+      "has_announce": false,
       "segments": [
         {
           "index": 0,
@@ -103,6 +109,9 @@
       "page": "003",
       "duration": 82.65,
       "num_segments": 6,
+      "layout": "word_with_examples",
+      "word_count": 6,
+      "has_announce": false,
       "segments": [
         {
           "index": 0,
@@ -152,6 +161,9 @@
       "page": "004",
       "duration": 77.64,
       "num_segments": 6,
+      "layout": "word_with_examples",
+      "word_count": 6,
+      "has_announce": false,
       "segments": [
         {
           "index": 0,
@@ -201,6 +213,9 @@
       "page": "005",
       "duration": 82.94,
       "num_segments": 6,
+      "layout": "word_with_examples",
+      "word_count": 6,
+      "has_announce": false,
       "segments": [
         {
           "index": 0,
@@ -250,6 +265,9 @@
       "page": "006",
       "duration": 82.65,
       "num_segments": 6,
+      "layout": "word_with_examples",
+      "word_count": 6,
+      "has_announce": false,
       "segments": [
         {
           "index": 0,
@@ -299,6 +317,9 @@
       "page": "007",
       "duration": 80.64,
       "num_segments": 6,
+      "layout": "word_with_examples",
+      "word_count": 6,
+      "has_announce": false,
       "segments": [
         {
           "index": 0,
@@ -348,6 +369,9 @@
       "page": "008",
       "duration": 87.14,
       "num_segments": 6,
+      "layout": "word_with_examples",
+      "word_count": 6,
+      "has_announce": false,
       "segments": [
         {
           "index": 0,
@@ -397,6 +421,9 @@
       "page": "009",
       "duration": 85.5,
       "num_segments": 6,
+      "layout": "word_with_examples",
+      "word_count": 6,
+      "has_announce": false,
       "segments": [
         {
           "index": 0,
@@ -446,6 +473,9 @@
       "page": "010",
       "duration": 79.05,
       "num_segments": 6,
+      "layout": "word_with_examples",
+      "word_count": 6,
+      "has_announce": false,
       "segments": [
         {
           "index": 0,
@@ -495,6 +525,9 @@
       "page": "011",
       "duration": 78.37,
       "num_segments": 6,
+      "layout": "word_with_examples",
+      "word_count": 6,
+      "has_announce": false,
       "segments": [
         {
           "index": 0,
@@ -544,6 +577,9 @@
       "page": "012",
       "duration": 78.86,
       "num_segments": 6,
+      "layout": "word_with_examples",
+      "word_count": 6,
+      "has_announce": false,
       "segments": [
         {
           "index": 0,
@@ -593,6 +629,9 @@
       "page": "013",
       "duration": 83.88,
       "num_segments": 6,
+      "layout": "word_with_examples",
+      "word_count": 6,
+      "has_announce": false,
       "segments": [
         {
           "index": 0,
@@ -642,6 +681,9 @@
       "page": "014",
       "duration": 83.23,
       "num_segments": 6,
+      "layout": "word_with_examples",
+      "word_count": 6,
+      "has_announce": false,
       "segments": [
         {
           "index": 0,
@@ -691,6 +733,9 @@
       "page": "015",
       "duration": 88.63,
       "num_segments": 6,
+      "layout": "word_with_examples",
+      "word_count": 6,
+      "has_announce": false,
       "segments": [
         {
           "index": 0,
@@ -740,6 +785,9 @@
       "page": "016",
       "duration": 83.54,
       "num_segments": 6,
+      "layout": "word_with_examples",
+      "word_count": 6,
+      "has_announce": false,
       "segments": [
         {
           "index": 0,
@@ -789,6 +837,9 @@
       "page": "017",
       "duration": 86.65,
       "num_segments": 6,
+      "layout": "word_with_examples",
+      "word_count": 6,
+      "has_announce": false,
       "segments": [
         {
           "index": 0,
@@ -838,6 +889,9 @@
       "page": "018",
       "duration": 85.32,
       "num_segments": 6,
+      "layout": "word_with_examples",
+      "word_count": 6,
+      "has_announce": false,
       "segments": [
         {
           "index": 0,
@@ -887,6 +941,9 @@
       "page": "019",
       "duration": 83.46,
       "num_segments": 6,
+      "layout": "word_with_examples",
+      "word_count": 6,
+      "has_announce": false,
       "segments": [
         {
           "index": 0,
@@ -936,6 +993,9 @@
       "page": "020",
       "duration": 82.08,
       "num_segments": 6,
+      "layout": "word_with_examples",
+      "word_count": 6,
+      "has_announce": false,
       "segments": [
         {
           "index": 0,
@@ -985,13 +1045,16 @@
       "page": "021",
       "duration": 87.85,
       "num_segments": 6,
+      "layout": "word_with_examples",
+      "word_count": 6,
+      "has_announce": true,
       "segments": [
         {
           "index": 0,
           "start": 0.0,
           "end": 14.867,
           "length": 14.87,
-          "type": "word"
+          "type": "word+announce"
         },
         {
           "index": 1,
@@ -1034,6 +1097,9 @@
       "page": "022",
       "duration": 83.17,
       "num_segments": 6,
+      "layout": "word_with_examples",
+      "word_count": 6,
+      "has_announce": false,
       "segments": [
         {
           "index": 0,
@@ -1083,6 +1149,9 @@
       "page": "023",
       "duration": 86.44,
       "num_segments": 6,
+      "layout": "word_with_examples",
+      "word_count": 6,
+      "has_announce": false,
       "segments": [
         {
           "index": 0,
@@ -1132,6 +1201,9 @@
       "page": "024",
       "duration": 85.03,
       "num_segments": 6,
+      "layout": "word_with_examples",
+      "word_count": 6,
+      "has_announce": false,
       "segments": [
         {
           "index": 0,
@@ -1181,6 +1253,9 @@
       "page": "025",
       "duration": 80.9,
       "num_segments": 6,
+      "layout": "word_with_examples",
+      "word_count": 6,
+      "has_announce": false,
       "segments": [
         {
           "index": 0,
@@ -1230,6 +1305,9 @@
       "page": "026",
       "duration": 80.14,
       "num_segments": 6,
+      "layout": "word_with_examples",
+      "word_count": 6,
+      "has_announce": false,
       "segments": [
         {
           "index": 0,
@@ -1279,6 +1357,9 @@
       "page": "027",
       "duration": 86.07,
       "num_segments": 6,
+      "layout": "word_with_examples",
+      "word_count": 6,
+      "has_announce": false,
       "segments": [
         {
           "index": 0,
@@ -1328,6 +1409,9 @@
       "page": "028",
       "duration": 81.19,
       "num_segments": 6,
+      "layout": "word_with_examples",
+      "word_count": 6,
+      "has_announce": false,
       "segments": [
         {
           "index": 0,
@@ -1377,6 +1461,9 @@
       "page": "029",
       "duration": 84.51,
       "num_segments": 6,
+      "layout": "word_with_examples",
+      "word_count": 6,
+      "has_announce": false,
       "segments": [
         {
           "index": 0,
@@ -1426,6 +1513,9 @@
       "page": "030",
       "duration": 87.43,
       "num_segments": 6,
+      "layout": "word_with_examples",
+      "word_count": 6,
+      "has_announce": false,
       "segments": [
         {
           "index": 0,
@@ -1475,6 +1565,9 @@
       "page": "031",
       "duration": 86.36,
       "num_segments": 6,
+      "layout": "word_with_examples",
+      "word_count": 6,
+      "has_announce": false,
       "segments": [
         {
           "index": 0,
@@ -1524,6 +1617,9 @@
       "page": "032",
       "duration": 87.88,
       "num_segments": 6,
+      "layout": "word_with_examples",
+      "word_count": 6,
+      "has_announce": false,
       "segments": [
         {
           "index": 0,
@@ -1573,13 +1669,16 @@
       "page": "033",
       "duration": 89.03,
       "num_segments": 6,
+      "layout": "word_with_examples",
+      "word_count": 6,
+      "has_announce": true,
       "segments": [
         {
           "index": 0,
           "start": 0.0,
           "end": 17.848,
           "length": 17.85,
-          "type": "word"
+          "type": "word+announce"
         },
         {
           "index": 1,
@@ -1622,13 +1721,16 @@
       "page": "034",
       "duration": 92.6,
       "num_segments": 6,
+      "layout": "word_with_examples",
+      "word_count": 6,
+      "has_announce": true,
       "segments": [
         {
           "index": 0,
           "start": 0.0,
           "end": 16.71,
           "length": 16.71,
-          "type": "word"
+          "type": "word+announce"
         },
         {
           "index": 1,
@@ -1671,6 +1773,9 @@
       "page": "035",
       "duration": 84.9,
       "num_segments": 6,
+      "layout": "word_with_examples",
+      "word_count": 6,
+      "has_announce": false,
       "segments": [
         {
           "index": 0,
@@ -1720,6 +1825,9 @@
       "page": "036",
       "duration": 79.88,
       "num_segments": 6,
+      "layout": "word_with_examples",
+      "word_count": 6,
+      "has_announce": false,
       "segments": [
         {
           "index": 0,
@@ -1769,6 +1877,9 @@
       "page": "037",
       "duration": 84.17,
       "num_segments": 6,
+      "layout": "word_with_examples",
+      "word_count": 6,
+      "has_announce": false,
       "segments": [
         {
           "index": 0,
@@ -1818,6 +1929,9 @@
       "page": "038",
       "duration": 85.86,
       "num_segments": 6,
+      "layout": "word_with_examples",
+      "word_count": 6,
+      "has_announce": false,
       "segments": [
         {
           "index": 0,
@@ -1867,6 +1981,9 @@
       "page": "039",
       "duration": 86.57,
       "num_segments": 6,
+      "layout": "word_with_examples",
+      "word_count": 6,
+      "has_announce": false,
       "segments": [
         {
           "index": 0,
@@ -1916,13 +2033,16 @@
       "page": "040",
       "duration": 90.51,
       "num_segments": 6,
+      "layout": "word_with_examples",
+      "word_count": 6,
+      "has_announce": true,
       "segments": [
         {
           "index": 0,
           "start": 0.0,
           "end": 18.018,
           "length": 18.02,
-          "type": "word"
+          "type": "word+announce"
         },
         {
           "index": 1,
@@ -1965,13 +2085,16 @@
       "page": "041",
       "duration": 84.38,
       "num_segments": 6,
+      "layout": "word_with_examples",
+      "word_count": 6,
+      "has_announce": true,
       "segments": [
         {
           "index": 0,
           "start": 0.0,
           "end": 15.292,
           "length": 15.29,
-          "type": "word"
+          "type": "word+announce"
         },
         {
           "index": 1,
@@ -2014,6 +2137,9 @@
       "page": "042",
       "duration": 88.5,
       "num_segments": 6,
+      "layout": "word_with_examples",
+      "word_count": 6,
+      "has_announce": false,
       "segments": [
         {
           "index": 0,
@@ -2063,6 +2189,9 @@
       "page": "043",
       "duration": 90.91,
       "num_segments": 6,
+      "layout": "word_with_examples",
+      "word_count": 6,
+      "has_announce": false,
       "segments": [
         {
           "index": 0,
@@ -2112,13 +2241,16 @@
       "page": "044",
       "duration": 88.03,
       "num_segments": 6,
+      "layout": "word_with_examples",
+      "word_count": 6,
+      "has_announce": true,
       "segments": [
         {
           "index": 0,
           "start": 0.0,
           "end": 18.832,
           "length": 18.83,
-          "type": "word"
+          "type": "word+announce"
         },
         {
           "index": 1,
@@ -2161,13 +2293,16 @@
       "page": "045",
       "duration": 84.74,
       "num_segments": 6,
+      "layout": "word_with_examples",
+      "word_count": 6,
+      "has_announce": true,
       "segments": [
         {
           "index": 0,
           "start": 0.0,
           "end": 14.758,
           "length": 14.76,
-          "type": "word"
+          "type": "word+announce"
         },
         {
           "index": 1,
@@ -2210,13 +2345,16 @@
       "page": "046",
       "duration": 83.88,
       "num_segments": 6,
+      "layout": "word_with_examples",
+      "word_count": 6,
+      "has_announce": true,
       "segments": [
         {
           "index": 0,
           "start": 0.0,
           "end": 15.179,
           "length": 15.18,
-          "type": "word"
+          "type": "word+announce"
         },
         {
           "index": 1,
@@ -2259,13 +2397,16 @@
       "page": "047",
       "duration": 92.92,
       "num_segments": 6,
+      "layout": "word_with_examples",
+      "word_count": 6,
+      "has_announce": true,
       "segments": [
         {
           "index": 0,
           "start": 0.0,
           "end": 18.422,
           "length": 18.42,
-          "type": "word"
+          "type": "word+announce"
         },
         {
           "index": 1,
@@ -2308,13 +2449,16 @@
       "page": "048",
       "duration": 97.07,
       "num_segments": 6,
+      "layout": "word_with_examples",
+      "word_count": 6,
+      "has_announce": true,
       "segments": [
         {
           "index": 0,
           "start": 0.0,
           "end": 18.692,
           "length": 18.69,
-          "type": "word"
+          "type": "word+announce"
         },
         {
           "index": 1,
@@ -2357,13 +2501,16 @@
       "page": "049",
       "duration": 91.69,
       "num_segments": 6,
+      "layout": "word_with_examples",
+      "word_count": 6,
+      "has_announce": true,
       "segments": [
         {
           "index": 0,
           "start": 0.0,
           "end": 19.863,
           "length": 19.86,
-          "type": "word"
+          "type": "word+announce"
         },
         {
           "index": 1,
@@ -2406,13 +2553,16 @@
       "page": "050",
       "duration": 94.04,
       "num_segments": 7,
+      "layout": "word_with_examples",
+      "word_count": 7,
+      "has_announce": true,
       "segments": [
         {
           "index": 0,
           "start": 0.0,
           "end": 17.721,
           "length": 17.72,
-          "type": "word"
+          "type": "word+announce"
         },
         {
           "index": 1,
@@ -2462,13 +2612,16 @@
       "page": "051",
       "duration": 95.09,
       "num_segments": 6,
+      "layout": "word_with_examples",
+      "word_count": 6,
+      "has_announce": true,
       "segments": [
         {
           "index": 0,
           "start": 0.0,
           "end": 20.332,
           "length": 20.33,
-          "type": "word"
+          "type": "word+announce"
         },
         {
           "index": 1,
@@ -2511,6 +2664,9 @@
       "page": "052",
       "duration": 88.71,
       "num_segments": 6,
+      "layout": "word_with_examples",
+      "word_count": 6,
+      "has_announce": false,
       "segments": [
         {
           "index": 0,
@@ -2560,6 +2716,9 @@
       "page": "053",
       "duration": 89.6,
       "num_segments": 6,
+      "layout": "word_with_examples",
+      "word_count": 6,
+      "has_announce": false,
       "segments": [
         {
           "index": 0,
@@ -2609,6 +2768,9 @@
       "page": "054",
       "duration": 90.38,
       "num_segments": 6,
+      "layout": "word_with_examples",
+      "word_count": 6,
+      "has_announce": false,
       "segments": [
         {
           "index": 0,
@@ -2658,6 +2820,9 @@
       "page": "055",
       "duration": 92.53,
       "num_segments": 6,
+      "layout": "word_with_examples",
+      "word_count": 6,
+      "has_announce": false,
       "segments": [
         {
           "index": 0,
@@ -2707,6 +2872,9 @@
       "page": "056",
       "duration": 94.72,
       "num_segments": 6,
+      "layout": "word_with_examples",
+      "word_count": 6,
+      "has_announce": false,
       "segments": [
         {
           "index": 0,
@@ -2756,6 +2924,9 @@
       "page": "057",
       "duration": 86.47,
       "num_segments": 6,
+      "layout": "word_with_examples",
+      "word_count": 6,
+      "has_announce": false,
       "segments": [
         {
           "index": 0,
@@ -2805,6 +2976,9 @@
       "page": "058",
       "duration": 88.66,
       "num_segments": 6,
+      "layout": "word_with_examples",
+      "word_count": 6,
+      "has_announce": false,
       "segments": [
         {
           "index": 0,
@@ -2854,6 +3028,9 @@
       "page": "059",
       "duration": 94.59,
       "num_segments": 6,
+      "layout": "word_with_examples",
+      "word_count": 6,
+      "has_announce": false,
       "segments": [
         {
           "index": 0,
@@ -2903,13 +3080,16 @@
       "page": "060",
       "duration": 87.04,
       "num_segments": 6,
+      "layout": "word_with_examples",
+      "word_count": 6,
+      "has_announce": true,
       "segments": [
         {
           "index": 0,
           "start": 0.0,
           "end": 17.74,
           "length": 17.74,
-          "type": "word"
+          "type": "word+announce"
         },
         {
           "index": 1,
@@ -2952,13 +3132,16 @@
       "page": "061",
       "duration": 93.83,
       "num_segments": 6,
+      "layout": "word_with_examples",
+      "word_count": 6,
+      "has_announce": true,
       "segments": [
         {
           "index": 0,
           "start": 0.0,
           "end": 18.38,
           "length": 18.38,
-          "type": "word"
+          "type": "word+announce"
         },
         {
           "index": 1,
@@ -3001,6 +3184,9 @@
       "page": "062",
       "duration": 90.44,
       "num_segments": 6,
+      "layout": "word_with_examples",
+      "word_count": 6,
+      "has_announce": false,
       "segments": [
         {
           "index": 0,
@@ -3050,6 +3236,9 @@
       "page": "063",
       "duration": 82.81,
       "num_segments": 6,
+      "layout": "word_with_examples",
+      "word_count": 6,
+      "has_announce": false,
       "segments": [
         {
           "index": 0,
@@ -3099,6 +3288,9 @@
       "page": "064",
       "duration": 88.24,
       "num_segments": 6,
+      "layout": "word_with_examples",
+      "word_count": 6,
+      "has_announce": false,
       "segments": [
         {
           "index": 0,
@@ -3148,13 +3340,16 @@
       "page": "065",
       "duration": 88.27,
       "num_segments": 6,
+      "layout": "word_with_examples",
+      "word_count": 6,
+      "has_announce": true,
       "segments": [
         {
           "index": 0,
           "start": 0.0,
           "end": 15.854,
           "length": 15.85,
-          "type": "word"
+          "type": "word+announce"
         },
         {
           "index": 1,
@@ -3197,13 +3392,16 @@
       "page": "066",
       "duration": 97.54,
       "num_segments": 6,
+      "layout": "word_with_examples",
+      "word_count": 6,
+      "has_announce": true,
       "segments": [
         {
           "index": 0,
           "start": 0.0,
           "end": 18.117,
           "length": 18.12,
-          "type": "word"
+          "type": "word+announce"
         },
         {
           "index": 1,
@@ -3246,13 +3444,16 @@
       "page": "067",
       "duration": 92.21,
       "num_segments": 6,
+      "layout": "word_with_examples",
+      "word_count": 6,
+      "has_announce": true,
       "segments": [
         {
           "index": 0,
           "start": 0.0,
           "end": 16.211,
           "length": 16.21,
-          "type": "word"
+          "type": "word+announce"
         },
         {
           "index": 1,
@@ -3295,13 +3496,16 @@
       "page": "068",
       "duration": 90.85,
       "num_segments": 6,
+      "layout": "word_with_examples",
+      "word_count": 6,
+      "has_announce": true,
       "segments": [
         {
           "index": 0,
           "start": 0.0,
           "end": 16.073,
           "length": 16.07,
-          "type": "word"
+          "type": "word+announce"
         },
         {
           "index": 1,
@@ -3344,13 +3548,16 @@
       "page": "069",
       "duration": 93.78,
       "num_segments": 6,
+      "layout": "word_with_examples",
+      "word_count": 6,
+      "has_announce": true,
       "segments": [
         {
           "index": 0,
           "start": 0.0,
           "end": 19.217,
           "length": 19.22,
-          "type": "word"
+          "type": "word+announce"
         },
         {
           "index": 1,
@@ -3393,13 +3600,16 @@
       "page": "070",
       "duration": 93.75,
       "num_segments": 6,
+      "layout": "word_with_examples",
+      "word_count": 6,
+      "has_announce": true,
       "segments": [
         {
           "index": 0,
           "start": 0.0,
           "end": 20.617,
           "length": 20.62,
-          "type": "word"
+          "type": "word+announce"
         },
         {
           "index": 1,
@@ -3442,13 +3652,16 @@
       "page": "071",
       "duration": 90.72,
       "num_segments": 6,
+      "layout": "word_with_examples",
+      "word_count": 6,
+      "has_announce": true,
       "segments": [
         {
           "index": 0,
           "start": 0.0,
           "end": 19.076,
           "length": 19.08,
-          "type": "word"
+          "type": "word+announce"
         },
         {
           "index": 1,
@@ -3491,13 +3704,16 @@
       "page": "072",
       "duration": 98.32,
       "num_segments": 6,
+      "layout": "word_with_examples",
+      "word_count": 6,
+      "has_announce": true,
       "segments": [
         {
           "index": 0,
           "start": 0.0,
           "end": 20.198,
           "length": 20.2,
-          "type": "word"
+          "type": "word+announce"
         },
         {
           "index": 1,
@@ -3540,13 +3756,16 @@
       "page": "073",
       "duration": 95.82,
       "num_segments": 6,
+      "layout": "word_with_examples",
+      "word_count": 6,
+      "has_announce": true,
       "segments": [
         {
           "index": 0,
           "start": 0.0,
           "end": 17.16,
           "length": 17.16,
-          "type": "word"
+          "type": "word+announce"
         },
         {
           "index": 1,
@@ -3589,6 +3808,9 @@
       "page": "074",
       "duration": 91.9,
       "num_segments": 6,
+      "layout": "word_with_examples",
+      "word_count": 6,
+      "has_announce": false,
       "segments": [
         {
           "index": 0,
@@ -3638,6 +3860,9 @@
       "page": "075",
       "duration": 89.34,
       "num_segments": 6,
+      "layout": "word_with_examples",
+      "word_count": 6,
+      "has_announce": false,
       "segments": [
         {
           "index": 0,
@@ -3687,6 +3912,9 @@
       "page": "076",
       "duration": 72.7,
       "num_segments": 12,
+      "layout": "word_only",
+      "word_count": 12,
+      "has_announce": true,
       "segments": [
         {
           "index": 0,
@@ -3778,6 +4006,9 @@
       "page": "077",
       "duration": 56.53,
       "num_segments": 11,
+      "layout": "word_only",
+      "word_count": 11,
+      "has_announce": false,
       "segments": [
         {
           "index": 0,
@@ -3862,13 +4093,16 @@
       "page": "078",
       "duration": 91.59,
       "num_segments": 6,
+      "layout": "word_with_examples",
+      "word_count": 6,
+      "has_announce": true,
       "segments": [
         {
           "index": 0,
           "start": 0.0,
           "end": 21.755,
           "length": 21.75,
-          "type": "word"
+          "type": "word+announce"
         },
         {
           "index": 1,
@@ -3911,6 +4145,9 @@
       "page": "079",
       "duration": 90.51,
       "num_segments": 6,
+      "layout": "word_with_examples",
+      "word_count": 6,
+      "has_announce": false,
       "segments": [
         {
           "index": 0,
@@ -3960,6 +4197,9 @@
       "page": "080",
       "duration": 91.38,
       "num_segments": 6,
+      "layout": "word_with_examples",
+      "word_count": 6,
+      "has_announce": false,
       "segments": [
         {
           "index": 0,
@@ -4009,6 +4249,9 @@
       "page": "081",
       "duration": 85.34,
       "num_segments": 6,
+      "layout": "word_with_examples",
+      "word_count": 6,
+      "has_announce": false,
       "segments": [
         {
           "index": 0,
@@ -4058,6 +4301,9 @@
       "page": "082",
       "duration": 60.66,
       "num_segments": 4,
+      "layout": "word_with_examples",
+      "word_count": 4,
+      "has_announce": false,
       "segments": [
         {
           "index": 0,
@@ -4093,6 +4339,9 @@
       "page": "083",
       "duration": 77.27,
       "num_segments": 12,
+      "layout": "word_only",
+      "word_count": 12,
+      "has_announce": true,
       "segments": [
         {
           "index": 0,
@@ -4184,6 +4433,9 @@
       "page": "084",
       "duration": 65.46,
       "num_segments": 12,
+      "layout": "word_only",
+      "word_count": 12,
+      "has_announce": false,
       "segments": [
         {
           "index": 0,
@@ -4275,6 +4527,9 @@
       "page": "085",
       "duration": 11.91,
       "num_segments": 2,
+      "layout": "word_only",
+      "word_count": 2,
+      "has_announce": false,
       "segments": [
         {
           "index": 0,
@@ -4296,6 +4551,9 @@
       "page": "086",
       "duration": 84.14,
       "num_segments": 16,
+      "layout": "word_only",
+      "word_count": 16,
+      "has_announce": true,
       "segments": [
         {
           "index": 0,
@@ -4415,13 +4673,16 @@
       "page": "087",
       "duration": 85.21,
       "num_segments": 16,
+      "layout": "word_only",
+      "word_count": 16,
+      "has_announce": true,
       "segments": [
         {
           "index": 0,
           "start": 0.0,
           "end": 8.036,
           "length": 8.04,
-          "type": "word"
+          "type": "word+announce"
         },
         {
           "index": 1,
@@ -4534,6 +4795,9 @@
       "page": "088",
       "duration": 84.77,
       "num_segments": 16,
+      "layout": "word_only",
+      "word_count": 16,
+      "has_announce": true,
       "segments": [
         {
           "index": 0,
@@ -4653,6 +4917,9 @@
       "page": "089",
       "duration": 87.28,
       "num_segments": 16,
+      "layout": "word_only",
+      "word_count": 16,
+      "has_announce": true,
       "segments": [
         {
           "index": 0,
@@ -4772,6 +5039,9 @@
       "page": "090",
       "duration": 83.83,
       "num_segments": 16,
+      "layout": "word_only",
+      "word_count": 16,
+      "has_announce": true,
       "segments": [
         {
           "index": 0,
@@ -4891,6 +5161,9 @@
       "page": "091",
       "duration": 20.95,
       "num_segments": 4,
+      "layout": "word_only",
+      "word_count": 4,
+      "has_announce": true,
       "segments": [
         {
           "index": 0,
@@ -4926,13 +5199,16 @@
       "page": "092",
       "duration": 98.9,
       "num_segments": 6,
+      "layout": "word_with_examples",
+      "word_count": 6,
+      "has_announce": true,
       "segments": [
         {
           "index": 0,
           "start": 0.0,
           "end": 18.891,
           "length": 18.89,
-          "type": "word"
+          "type": "word+announce"
         },
         {
           "index": 1,
@@ -4975,13 +5251,16 @@
       "page": "093",
       "duration": 106.53,
       "num_segments": 6,
+      "layout": "word_with_examples",
+      "word_count": 6,
+      "has_announce": true,
       "segments": [
         {
           "index": 0,
           "start": 0.0,
           "end": 19.393,
           "length": 19.39,
-          "type": "word"
+          "type": "word+announce"
         },
         {
           "index": 1,
@@ -5024,13 +5303,16 @@
       "page": "094",
       "duration": 96.24,
       "num_segments": 6,
+      "layout": "word_with_examples",
+      "word_count": 6,
+      "has_announce": true,
       "segments": [
         {
           "index": 0,
           "start": 0.0,
           "end": 21.386,
           "length": 21.39,
-          "type": "word"
+          "type": "word+announce"
         },
         {
           "index": 1,
@@ -5073,13 +5355,16 @@
       "page": "095",
       "duration": 90.15,
       "num_segments": 7,
+      "layout": "word_with_examples",
+      "word_count": 7,
+      "has_announce": true,
       "segments": [
         {
           "index": 0,
           "start": 0.0,
           "end": 15.928,
           "length": 15.93,
-          "type": "word"
+          "type": "word+announce"
         },
         {
           "index": 1,
@@ -5129,13 +5414,16 @@
       "page": "096",
       "duration": 106.34,
       "num_segments": 7,
+      "layout": "word_with_examples",
+      "word_count": 7,
+      "has_announce": true,
       "segments": [
         {
           "index": 0,
           "start": 0.0,
           "end": 13.294,
           "length": 13.29,
-          "type": "word"
+          "type": "word+announce"
         },
         {
           "index": 1,
@@ -5185,13 +5473,16 @@
       "page": "097",
       "duration": 108.41,
       "num_segments": 6,
+      "layout": "word_with_examples",
+      "word_count": 6,
+      "has_announce": true,
       "segments": [
         {
           "index": 0,
           "start": 0.0,
           "end": 16.772,
           "length": 16.77,
-          "type": "word"
+          "type": "word+announce"
         },
         {
           "index": 1,
@@ -5234,6 +5525,9 @@
       "page": "098",
       "duration": 48.38,
       "num_segments": 4,
+      "layout": "word_with_examples",
+      "word_count": 4,
+      "has_announce": false,
       "segments": [
         {
           "index": 0,
