@@ -135,7 +135,7 @@ afplay audio/words/002_02.mp3
 ③ レビュー code-reviewer がコード・仕様をチェック → 指摘を実装者に戻す
 ④ 検証    verifier が自動テスト（数値検証）を実行 ＋ 実聴/実操作サンプルを提示
           → ユーザーが音・UXを最終確認
-⑤ マージ   品質ゲートを通過したら PR作成 → master へマージ
+⑤ マージ   品質ゲートを通過したら PR作成 → main へマージ
 ```
 
 ### サブエージェントと役割分担（.claude/agents/）
@@ -166,7 +166,7 @@ afplay audio/words/002_02.mp3
 ### ブランチ・並行開発
 - **ブランチ運用**: 機能ごとにブランチを切る。`feat/summary-audio`（機能B）, `feat/pwa-app`（機能C）。
 - **並行開発**: git worktree を使い、機能B/Cを別フォルダで並行実装。
-  - メイン: `dev/vocab-audio-separator`（master）
+  - メイン: `dev/vocab-audio-separator`（main）
   - 機能B: `dev/vocab-audio-separator-summary`（feat/summary-audio）
   - 機能C: `dev/vocab-audio-separator-pwa`（feat/pwa-app）
   - 各worktreeの `audio/` はメインへのシンボリックリンク（音声は1コピーで共有、gitは無視）
