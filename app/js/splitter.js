@@ -15,6 +15,13 @@ const Splitter = (() => {
   const WIN_MS = 10;         // RMS 計算窓（ミリ秒）。Python版(ffmpeg silencedetect)との一致率が最良
   const DB_FLOOR = -90;      // 完全無音の下限
 
+  // アナウンス自動判定（汎用ヒューリスティック）: 先頭が本体中央値+この秒以上ならアナウンス結合
+  const EXCESS_THRESHOLD = 1.0;
+  // 【修正②】短小セグメント結合: 本体中央値の45%未満のセグメントを直前に結合（例文分離の修正）
+  const SHORT_MERGE_RATIO = 0.45;
+  // 【修正①】アナウンス長がこれ未満なら low_confidence フラグ（実聴確認用）
+  const ANNOUNCE_LOW_CONF = 0.5;
+
   let sharedCtx = null;
   function audioCtx() {
     if (!sharedCtx) {
@@ -99,41 +106,139 @@ const Splitter = (() => {
     return a.length % 2 ? a[m] : (a[m - 1] + a[m]) / 2;
   }
 
+  const round2 = (x) => Math.round(x * 100) / 100;
+  const round3 = (x) => Math.round(x * 1000) / 1000;
+
+  /* 【修正②】本体(index1以降)の極端に短いセグメント（例文分離）を直前に結合する。
+   * Python版 merge_short_segments と同一ロジック。
+   * 戻り値: { bounds, segLengths, mergedFlags }
+   *   mergedFlags[i] = そのセグメントが結合を受けた(直後の短小を吸収した)なら true。
+   */
+  function mergeShortSegments(bounds, segLengths) {
+    const n = segLengths.length;
+    if (n < 3) return { bounds, segLengths, mergedFlags: new Array(n).fill(false) };
+    const body = segLengths.slice(1);
+    const med = median(body);
+    const drop = new Set();
+    for (let i = 1; i < n; i++) {
+      if (segLengths[i] < med * SHORT_MERGE_RATIO) drop.add(i);
+    }
+    if (drop.size === 0) return { bounds, segLengths, mergedFlags: new Array(n).fill(false) };
+    // bounds[i]（=セグメントiの開始）を消すとセグメントi-1とiが結合する
+    const newBounds = [bounds[0]];
+    for (let i = 1; i < bounds.length; i++) {
+      if (drop.has(i)) continue; // このセグメント境界を消す = 直前セグメントに吸収
+      newBounds.push(bounds[i]);
+    }
+    const newLengths = [];
+    for (let j = 0; j < newBounds.length - 1; j++) {
+      newLengths.push(round2(newBounds[j + 1] - newBounds[j]));
+    }
+    const mergedFlags = new Array(newLengths.length).fill(false);
+    const dropSorted = [...drop].sort((a, b) => a - b);
+    for (const di of dropSorted) {
+      // di の直前セグメント = 元index di-1。結合後もそのセグメントは残っている。
+      // 新indexは「di-1 以下で drop された数」を引く
+      let shift = 0;
+      for (const x of drop) if (x <= di - 1) shift++;
+      const ni = (di - 1) - shift;
+      if (ni >= 0 && ni < mergedFlags.length) mergedFlags[ni] = true;
+    }
+    return { bounds: newBounds, segLengths: newLengths, mergedFlags };
+  }
+
+  /* 【修正①】案①(a)中央値基準で先頭セグメント内のアナウンス/単語1境界を求める。
+   * 末尾から bodyMedian ぶん遡った目安時刻を、最も近い内部無音境界(中点)にスナップ。
+   * 目安が seg0 の始端より前なら先頭寄りの最初の境界。境界候補が無ければ null。
+   * silences: detectSilences の全無音区間 [{start,end,dur}]
+   */
+  function computeAnnounceEnd(seg0Start, seg0End, bodyMedian, silences) {
+    const inner = silences
+      .map((s) => round3((s.start + s.end) / 2))
+      .filter((mid) => seg0Start < mid && mid < seg0End)
+      .sort((a, b) => a - b);
+    if (inner.length === 0) return null;
+    const target = seg0End - bodyMedian;
+    if (target <= seg0Start) return inner[0];
+    let best = inner[0];
+    let bestD = Math.abs(inner[0] - target);
+    for (const b of inner) {
+      const d = Math.abs(b - target);
+      if (d < bestD) { bestD = d; best = b; }
+    }
+    return best;
+  }
+
   /* 1ページを解析してセグメント配列を返す（segments.json の1ページ分と同形式） */
   async function analyzePage(arrayBuffer, pageId) {
     const { samples, sampleRate, duration } = await decode(arrayBuffer);
-    const cuts = detectCuts(samples, sampleRate);
-    const bounds = [0.0, ...cuts, Math.round(duration * 1000) / 1000];
-    const segLengths = [];
+    return analyzeFromSamples(samples, sampleRate, duration, pageId);
+  }
+
+  /* サンプル配列から1ページ分のメタデータを組み立てる（Node検証と共有できるよう分離）。
+   * Python版 build_metadata.py の main ループと同一手順：
+   *   分割 → ②短小結合 → 結合後の本体中央値でラベル → ①アナウンス切り離し
+   */
+  function analyzeFromSamples(samples, sampleRate, duration, pageId) {
+    const silences = detectSilences(samples, sampleRate);
+    const cuts = silences
+      .filter((s) => s.dur >= WORD_GAP)
+      .map((s) => round3((s.start + s.end) / 2));
+    let bounds = [0.0, ...cuts, round3(duration)];
+    let segLengths = [];
     for (let i = 0; i < bounds.length - 1; i++) {
-      segLengths.push(Math.round((bounds[i + 1] - bounds[i]) * 100) / 100);
+      segLengths.push(round2(bounds[i + 1] - bounds[i]));
     }
 
-    // アナウンス自動判定（汎用ヒューリスティック：先頭が本体中央値+1.0秒以上なら結合）
+    // 【修正②】短小セグメント結合（例文分離の修正）を先に適用
+    const merged = mergeShortSegments(bounds, segLengths);
+    bounds = merged.bounds;
+    segLengths = merged.segLengths;
+    const mergedFlags = merged.mergedFlags;
+
+    // 結合を反映した後の本体中央値でラベル・アナウンス切り離しを行う
+    const body = segLengths.length > 1 ? segLengths.slice(1) : segLengths;
+    const med = median(body);
+
+    // アナウンス自動判定（汎用ヒューリスティック：先頭が本体中央値+EXCESS_THRESHOLD以上なら結合）
     const types = segLengths.map(() => 'word');
     if (segLengths.length >= 2) {
-      const bodyMedian = median(segLengths.slice(1));
-      if (segLengths[0] - bodyMedian >= 1.0) types[0] = 'word+announce';
+      if (segLengths[0] - med >= EXCESS_THRESHOLD) types[0] = 'word+announce';
+    }
+
+    // 【修正①】アナウンス切り離し: 先頭が word+announce のとき announce_end を算出
+    let announceEnd = null;
+    let announceLowConf = false;
+    if (types[0] === 'word+announce') {
+      announceEnd = computeAnnounceEnd(bounds[0], bounds[1], med, silences);
+      if (announceEnd !== null && (announceEnd - bounds[0]) < ANNOUNCE_LOW_CONF) {
+        announceLowConf = true;
+      }
     }
 
     const segments = [];
     for (let i = 0; i < bounds.length - 1; i++) {
-      segments.push({
+      const seg = {
         index: i,
-        start: Math.round(bounds[i] * 1000) / 1000,
-        end: Math.round(bounds[i + 1] * 1000) / 1000,
+        start: round3(bounds[i]),
+        end: round3(bounds[i + 1]),
         length: segLengths[i],
         type: types[i],
-      });
+      };
+      if (mergedFlags[i]) seg.merged = true; // 例文分離を結合して単語に戻したセグメント
+      if (i === 0 && announceEnd !== null) {
+        seg.announce_end = round3(announceEnd);
+        if (announceLowConf) seg.announce_low_confidence = true;
+      }
+      segments.push(seg);
     }
 
-    const body = segLengths.length > 1 ? segLengths.slice(1) : segLengths;
-    const layout = median(body) < 9 ? 'word_only' : 'word_with_examples';
-    const wordCount = types.filter(t => t === 'word' || t === 'word+announce').length;
+    const layout = med < 9 ? 'word_only' : 'word_with_examples';
+    const wordCount = types.filter((t) => t === 'word' || t === 'word+announce').length;
 
     return {
       page: pageId,
-      duration: Math.round(duration * 100) / 100,
+      duration: round2(duration),
       num_segments: segments.length,
       layout,
       word_count: wordCount,
@@ -142,5 +247,15 @@ const Splitter = (() => {
     };
   }
 
-  return { decode, detectSilences, detectCuts, analyzePage, NOISE_DB, MIN_SILENCE, WORD_GAP };
+  return {
+    decode, detectSilences, detectCuts, analyzePage, analyzeFromSamples,
+    mergeShortSegments, computeAnnounceEnd, median,
+    NOISE_DB, MIN_SILENCE, WORD_GAP, SHORT_MERGE_RATIO, EXCESS_THRESHOLD, ANNOUNCE_LOW_CONF,
+  };
 })();
+
+// Node（検証スクリプト）から同一ロジックを再利用するためのエクスポート。
+// ブラウザでは module が未定義なので影響しない。
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = Splitter;
+}
