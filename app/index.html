@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <title>単語帳プレーヤー</title>
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+  <header id="app-header">
+    <button id="back-btn" class="hidden" aria-label="戻る">‹</button>
+    <h1 id="header-title">単語帳</h1>
+  </header>
+
+  <main id="app-main">
+    <!-- ① 単語帳を選ぶ -->
+    <section id="view-books" class="view active">
+      <div class="list" id="books-list"></div>
+      <button id="add-book-btn" class="primary-btn">＋ 単語帳を追加</button>
+    </section>
+
+    <!-- 単語帳の新規追加（フォルダ読み込み・分割） -->
+    <section id="view-import" class="view">
+      <label class="field">
+        <span>単語帳の名前</span>
+        <input type="text" id="import-name" placeholder="例: HSK3級単語" />
+      </label>
+      <label class="field">
+        <span>音声ファイル（複数選択可・mp3）</span>
+        <input type="file" id="import-files" accept="audio/*,.mp3" multiple />
+      </label>
+      <button id="import-run-btn" class="primary-btn" disabled>読み込んで分割・保存</button>
+      <div id="import-progress" class="progress hidden">
+        <div class="progress-bar"><div class="progress-fill" id="import-fill"></div></div>
+        <div class="progress-text" id="import-text"></div>
+      </div>
+      <details id="import-debug" class="debug hidden">
+        <summary>分割結果（デバッグ）</summary>
+        <pre id="import-debug-out"></pre>
+      </details>
+    </section>
+
+    <!-- ② ページ/単語一覧 -->
+    <section id="view-pages" class="view">
+      <div class="toolbar">
+        <span id="pages-book-name"></span>
+      </div>
+      <div class="pages-grid" id="pages-grid"></div>
+    </section>
+
+    <!-- ③ 再生 -->
+    <section id="view-play" class="view">
+      <div class="play-header">
+        <div id="play-page-label"></div>
+      </div>
+      <div class="words-grid" id="words-grid"></div>
+    </section>
+  </main>
+
+  <!-- 再生バー -->
+  <div id="player-bar" class="hidden">
+    <div id="player-info"></div>
+    <button id="player-stop" aria-label="停止">■</button>
+  </div>
+
+  <audio id="audio-el" preload="auto"></audio>
+
+  <script src="js/db.js"></script>
+  <script src="js/splitter.js"></script>
+  <script src="js/player.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
