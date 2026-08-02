@@ -1,18 +1,31 @@
-/* アプリ本体：3階層ナビゲーション、単語帳の読み込み/管理、機能A（タップ再生）。 */
+/* Hearbit アプリ本体：3階層ナビ、単語帳の読み込み/管理、機能A（タップ再生）。
+ * デザインは DESIGN.md（Hearbit）準拠。ティール=通常/ブランド、オレンジ=再生中。
+ */
 (() => {
-  // --- DOM ---
+  // --- DOM: views ---
   const views = {
     books: document.getElementById('view-books'),
+    settings: document.getElementById('view-settings'),
     import: document.getElementById('view-import'),
     pages: document.getElementById('view-pages'),
-    play: document.getElementById('view-play'),
   };
-  const headerTitle = document.getElementById('header-title');
-  const backBtn = document.getElementById('back-btn');
 
+  // --- DOM: header ---
+  const headerBrand = document.getElementById('header-brand');
+  const headerContext = document.getElementById('header-context');
+  const ctxTitle = document.getElementById('ctx-title');
+  const ctxSub = document.getElementById('ctx-sub');
+  const backBtn = document.getElementById('back-btn');
+  const ctxAction = document.getElementById('ctx-action');
+  const settingsBtn = document.getElementById('settings-btn');
+  const tabBar = document.getElementById('tab-bar');
+
+  // --- DOM: books ---
   const booksList = document.getElementById('books-list');
+  const booksEmpty = document.getElementById('books-empty');
   const addBookBtn = document.getElementById('add-book-btn');
 
+  // --- DOM: import ---
   const importName = document.getElementById('import-name');
   const importFiles = document.getElementById('import-files');
   const importRunBtn = document.getElementById('import-run-btn');
@@ -22,68 +35,123 @@
   const importDebug = document.getElementById('import-debug');
   const importDebugOut = document.getElementById('import-debug-out');
 
-  const pagesBookName = document.getElementById('pages-book-name');
-  const pagesGrid = document.getElementById('pages-grid');
-
-  const playPageLabel = document.getElementById('play-page-label');
-  const wordsGrid = document.getElementById('words-grid');
+  // --- DOM: pages ---
+  const pagesGridWrap = document.getElementById('pages-grid-wrap');
 
   // --- ナビゲーション状態 ---
-  const stack = ['books'];
+  // 'books'/'settings' はルート階層（ブランドヘッダ+下部タブ）。
+  // 'import'/'pages' は下層（コンテキストヘッダ、下部タブ非表示）。
+  let stack = ['books'];
   let currentBook = null; // { id, name, book }
-  let currentPage = null; // segments.jsonの1ページ分
+  let playlist = [];      // フラットな単語リスト（Player 用）
+  let cellEls = [];       // playlist と同じ index のセルDOM（ハイライト用）
+
+  const ROOTS = ['books', 'settings'];
+
+  function isRoot(name) { return ROOTS.includes(name); }
 
   function showView(name) {
     Object.values(views).forEach(v => v.classList.remove('active'));
     views[name].classList.add('active');
-    backBtn.classList.toggle('hidden', name === 'books');
+
+    const root = isRoot(name);
+    headerBrand.classList.toggle('hidden', !root);
+    headerContext.classList.toggle('hidden', root);
+    tabBar.classList.toggle('hidden', !root);
+
+    if (root) {
+      tabBar.querySelectorAll('.tabbar-btn').forEach(b =>
+        b.classList.toggle('active', b.dataset.root === name));
+    }
   }
 
-  function navigate(name, title) {
+  function navigate(name, title, sub) {
     stack.push(name);
-    headerTitle.textContent = title;
+    ctxTitle.textContent = title || '';
+    ctxSub.textContent = sub || '';
+    ctxSub.classList.toggle('hidden', !sub);
     showView(name);
   }
 
   function goBack() {
-    Player.stop();
     stack.pop();
-    const prev = stack[stack.length - 1];
-    if (prev === 'books') { headerTitle.textContent = '単語帳'; renderBooks(); }
-    else if (prev === 'pages') { headerTitle.textContent = currentBook.name; }
-    showView(prev);
+    const prev = stack[stack.length - 1] || 'books';
+    if (prev === 'books') { renderBooks(); showView('books'); }
+    else if (prev === 'pages') {
+      ctxTitle.textContent = currentBook.name;
+      showView('pages');
+    } else { showView(prev); }
   }
   backBtn.addEventListener('click', goBack);
 
-  // --- ① 単語帳一覧 ---
+  // 下部タブ（ルート切替）
+  tabBar.querySelectorAll('.tabbar-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const root = btn.dataset.root;
+      stack = [root];
+      if (root === 'books') renderBooks();
+      showView(root);
+    });
+  });
+  settingsBtn.addEventListener('click', () => { stack = ['settings']; showView('settings'); });
+
+  // --- テーマ切替（設定） ---
+  const themeSeg = document.getElementById('theme-seg');
+  function applyTheme(mode) {
+    if (mode === 'system') document.documentElement.removeAttribute('data-theme');
+    else document.documentElement.setAttribute('data-theme', mode);
+    try { localStorage.setItem('hearbit-theme', mode); } catch (e) {}
+    themeSeg.querySelectorAll('.seg-btn').forEach(b =>
+      b.classList.toggle('active', b.dataset.theme === mode));
+  }
+  themeSeg.querySelectorAll('.seg-btn').forEach(b =>
+    b.addEventListener('click', () => applyTheme(b.dataset.theme)));
+  (function initTheme() {
+    let m = 'system';
+    try { m = localStorage.getItem('hearbit-theme') || 'system'; } catch (e) {}
+    applyTheme(m);
+  })();
+
+  // ================= ① 単語帳リスト =================
   async function renderBooks() {
     const books = await DB.listBooks();
     booksList.innerHTML = '';
-    if (!books.length) {
-      booksList.innerHTML = '<div style="color:var(--text-dim);font-size:14px">まだ単語帳がありません。「＋ 単語帳を追加」から音声を読み込んでください。</div>';
-    }
+    booksEmpty.classList.toggle('hidden', books.length > 0);
+
     books.sort((a, b) => a.createdAt - b.createdAt);
     for (const b of books) {
-      const el = document.createElement('div');
-      el.className = 'book-item';
       const pageCount = b.book.pages.length;
       const wordCount = b.book.pages.reduce((s, p) => s + p.word_count, 0);
-      const left = document.createElement('div');
-      left.innerHTML = `<div>${escapeHtml(b.name)}</div><div class="meta">${pageCount}ページ / ${wordCount}語</div>`;
-      left.style.flex = '1';
-      left.addEventListener('click', () => openBook(b));
-      const del = document.createElement('button');
-      del.className = 'del';
-      del.textContent = '🗑';
-      del.addEventListener('click', async (e) => {
+
+      const el = document.createElement('div');
+      el.className = 'book-item';
+      el.setAttribute('role', 'button');
+      el.innerHTML = `
+        <div class="book-chip" aria-hidden="true">
+          <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M4 4h11a3 3 0 0 1 3 3v13H7a3 3 0 0 1-3-3z"/><path d="M18 7a2 2 0 0 1 2-2v13"/>
+          </svg>
+        </div>
+        <div class="book-main">
+          <div class="book-name"></div>
+          <div class="book-meta">${pageCount}ページ · ${wordCount}単語</div>
+          <div class="book-offline">
+            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            オフライン
+          </div>
+        </div>
+        <button class="book-del" aria-label="削除">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2m2 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/></svg>
+        </button>
+        <div class="book-chevron" aria-hidden="true">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 6 15 12 9 18"/></svg>
+        </div>`;
+      el.querySelector('.book-name').textContent = b.name;
+      el.addEventListener('click', () => openBook(b));
+      el.querySelector('.book-del').addEventListener('click', async (e) => {
         e.stopPropagation();
-        if (confirm(`「${b.name}」を削除しますか？`)) {
-          await DB.deleteBook(b.id);
-          renderBooks();
-        }
+        if (confirm(`「${b.name}」を削除しますか？`)) { await DB.deleteBook(b.id); renderBooks(); }
       });
-      el.appendChild(left);
-      el.appendChild(del);
       booksList.appendChild(el);
     }
   }
@@ -94,20 +162,15 @@
     importRunBtn.disabled = true;
     importProgress.classList.add('hidden');
     importDebug.classList.add('hidden');
-    navigate('import', '単語帳を追加');
+    navigate('import', '音声を読み込む');
   });
 
-  // --- 単語帳の読み込み・分割・保存 ---
+  // ================= 読み込み・分割・保存 =================
   function updateImportBtn() {
     importRunBtn.disabled = !(importName.value.trim() && importFiles.files.length);
   }
   importName.addEventListener('input', updateImportBtn);
-  importFiles.addEventListener('change', () => {
-    if (!importName.value.trim() && importFiles.files.length) {
-      // ファイル名から推測しないが、空なら促す
-    }
-    updateImportBtn();
-  });
+  importFiles.addEventListener('change', updateImportBtn);
 
   importRunBtn.addEventListener('click', async () => {
     const name = importName.value.trim();
@@ -132,103 +195,128 @@
 
       const buf = await file.arrayBuffer();
       let pageMeta;
-      try {
-        pageMeta = await Splitter.analyzePage(buf, pageId);
-      } catch (err) {
-        debugLines.push(`${pageId}: 解析失敗 ${err.message}`);
-        continue;
-      }
+      try { pageMeta = await Splitter.analyzePage(buf, pageId); }
+      catch (err) { debugLines.push(`${pageId}: 解析失敗 ${err.message}`); continue; }
       pages.push(pageMeta);
-      audioMap[pageId] = file; // Blob(File)をそのまま保存
+      audioMap[pageId] = file;
       const flag = pageMeta.has_announce ? ' ★アナウンス' : '';
       debugLines.push(`${pageId}: ${pageMeta.num_segments}seg / ${pageMeta.layout} / ${pageMeta.word_count}語${flag}`);
-      await sleep(0); // UIに描画の隙を与える
+      await sleep(0);
     }
 
     importText.textContent = '保存中…';
     importFill.style.width = '100%';
 
-    const meta = {
-      id: 'book_' + Date.now(),
-      name,
-      createdAt: Date.now(),
-      book: { book: name, pages },
-    };
+    const meta = { id: 'book_' + Date.now(), name, createdAt: Date.now(), book: { book: name, pages } };
     await DB.saveBook(meta, audioMap);
 
-    // デバッグ表示（Python版との突き合わせ用）
     const totalSeg = pages.reduce((s, p) => s + p.num_segments, 0);
     const totalWord = pages.reduce((s, p) => s + p.word_count, 0);
     debugLines.unshift(`合計: ${pages.length}ページ / ${totalSeg}セグメント / ${totalWord}語\n`);
     importDebugOut.textContent = debugLines.join('\n');
     importDebug.classList.remove('hidden');
-
     importText.textContent = '完了。単語帳一覧に戻れます。';
-    // 追加完了 → 単語帳一覧へ。ナビスタックを books のみに正規化する。
-    headerTitle.textContent = '単語帳';
+
+    stack = ['books'];
     await renderBooks();
     showView('books');
-    stack.length = 1;
-    stack[0] = 'books';
   });
 
-  // --- ② ページ一覧 ---
+  // ================= ② ページ/単語一覧（番号グリッド） =================
   function openBook(book) {
     currentBook = book;
-    pagesBookName.textContent = `${book.book.pages.length}ページ`;
-    renderPages();
-    navigate('pages', book.name);
+    Player.stop();
+    const wordCount = book.book.pages.reduce((s, p) => s + p.word_count, 0);
+    buildPlaylist(book);
+    renderPages(book);
+    // タブは「単語」に戻す
+    document.querySelectorAll('#book-tabs .tab').forEach(t => t.classList.toggle('active', t.dataset.tab === 'words'));
+    document.getElementById('tab-words').classList.add('active');
+    document.getElementById('tab-listen').classList.remove('active');
+    navigate('pages', book.name, `${book.book.pages.length}ページ · ${wordCount}単語`);
   }
 
-  function renderPages() {
-    pagesGrid.innerHTML = '';
-    const pages = currentBook.book.pages;
-    pages.forEach((p, idx) => {
-      const cell = document.createElement('div');
-      cell.className = 'cell';
-      cell.innerHTML = `<div class="num">${idx + 1}</div><div class="sub">${p.word_count}語</div>`;
-      cell.addEventListener('click', () => openPage(p, idx));
-      pagesGrid.appendChild(cell);
-    });
-  }
-
-  // --- ③ 再生（機能A） ---
-  async function openPage(page, idx) {
-    currentPage = page;
-    playPageLabel.textContent = `ページ ${String(idx + 1).padStart(3, '0')} — ${page.word_count}語`;
-    renderWords(page);
-    navigate('play', currentBook.name);
-  }
-
-  function renderWords(page) {
-    wordsGrid.innerHTML = '';
-    // 各セグメント = 1単語として番号表示（word / word+announce のどちらも1単語扱い）。
-    // 本PJのアナウンスは「単語1に結合する型（word+announce）」のみを想定しているため
-    // セグメント数 = 単語数 となり番号は素直に振れる。将来 announce 単独型
-    // （アナウンスが独立セグメントになる単語帳）を扱う場合は、その分だけ番号が
-    // 1ずれるので type を見て番号付けを分岐させる必要がある。
-    let wordNo = 0;
-    page.segments.forEach((seg) => {
-      wordNo += 1;
-      const no = wordNo;
-      const cell = document.createElement('div');
-      cell.className = 'cell' + (seg.type === 'word+announce' ? ' announce' : '');
-      cell.innerHTML = `<div class="num">${no}</div><div class="sub">${seg.length.toFixed(1)}s</div>`;
-      cell.addEventListener('click', async () => {
-        document.querySelectorAll('#words-grid .cell.playing').forEach(c => c.classList.remove('playing'));
-        cell.classList.add('playing');
-        const blob = await DB.getAudio(currentBook.id, page.page);
-        if (!blob) { alert('音声が見つかりません'); return; }
-        try {
-          await Player.playSegment(blob, seg, `単語 ${no}`, () => cell.classList.remove('playing'));
-        } catch (e) {
-          console.warn('再生に失敗', e);
-          cell.classList.remove('playing');
-        }
+  // フラットな単語リストを構築（prev/next・Media Session のため）
+  function buildPlaylist(book) {
+    playlist = [];
+    cellEls = [];
+    let serial = 0;
+    book.book.pages.forEach((p, pageIdx) => {
+      const pageLabel = `ページ ${String(pageIdx + 1).padStart(3, '0')}`;
+      let wordNo = 0;
+      p.segments.forEach((seg) => {
+        wordNo += 1; serial += 1;
+        playlist.push({
+          page: p.page, segIndex: seg.index,
+          start: seg.start, end: seg.end, length: seg.length, type: seg.type,
+          wordNo, serial, pageLabel,
+        });
       });
-      wordsGrid.appendChild(cell);
+    });
+
+    Player.configure({
+      playlist,
+      bookName: book.name,
+      getBlobFor: (page) => DB.getAudio(book.id, page),
+      onCellChange: highlightCell,
     });
   }
+
+  function highlightCell(index) {
+    cellEls.forEach((c, i) => { if (c) c.classList.toggle('playing', i === index); });
+    const cell = cellEls[index];
+    if (cell && cell.scrollIntoView) cell.scrollIntoView({ block: 'nearest' });
+  }
+
+  function renderPages(book) {
+    pagesGridWrap.innerHTML = '';
+    cellEls = [];
+    let flatIndex = 0;
+
+    book.book.pages.forEach((p, pageIdx) => {
+      const section = document.createElement('div');
+      section.className = 'page-section';
+
+      const head = document.createElement('div');
+      head.className = 'page-section-head';
+      const announce = p.has_announce
+        ? '<span class="ph-announce" aria-label="アナウンス付き">📢</span>' : '';
+      head.innerHTML = `<span>ページ ${String(pageIdx + 1).padStart(3, '0')}</span>
+        <span class="ph-count">${announce}${p.word_count}単語</span>`;
+      section.appendChild(head);
+
+      const grid = document.createElement('div');
+      grid.className = 'words-grid';
+
+      let wordNo = 0;
+      p.segments.forEach((seg) => {
+        wordNo += 1;
+        const myFlatIndex = flatIndex++;
+        const w = playlist[myFlatIndex];
+        const cell = document.createElement('div');
+        cell.className = 'cell' + (seg.type === 'word+announce' ? ' announce' : '');
+        cell.setAttribute('role', 'button');
+        cell.setAttribute('aria-label', `ページ${pageIdx + 1} 単語${wordNo} 通し${w.serial}`);
+        cell.innerHTML = `<div class="num">${wordNo}</div><div class="serial">#${w.serial}</div>`;
+        cell.addEventListener('click', () => Player.playIndex(myFlatIndex));
+        cellEls[myFlatIndex] = cell;
+        grid.appendChild(cell);
+      });
+
+      section.appendChild(grid);
+      pagesGridWrap.appendChild(section);
+    });
+  }
+
+  // 上部タブ（単語 / 聞き流し）
+  document.getElementById('book-tabs').addEventListener('click', (e) => {
+    const btn = e.target.closest('.tab');
+    if (!btn) return;
+    document.querySelectorAll('#book-tabs .tab').forEach(t => t.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('tab-words').classList.toggle('active', btn.dataset.tab === 'words');
+    document.getElementById('tab-listen').classList.toggle('active', btn.dataset.tab === 'listen');
+  });
 
   // --- ユーティリティ ---
   function pageIdFromName(name, idx) {
@@ -237,11 +325,9 @@
     if (m) return m[1].padStart(3, '0');
     return String(idx + 1).padStart(3, '0');
   }
-  function escapeHtml(s) {
-    return s.replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
-  }
   const sleep = (ms) => new Promise(r => setTimeout(r, ms));
 
   // --- 起動 ---
+  showView('books');
   renderBooks();
 })();
