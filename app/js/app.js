@@ -164,13 +164,12 @@
     importDebug.classList.remove('hidden');
 
     importText.textContent = '完了。単語帳一覧に戻れます。';
-    // 一覧を更新しておく（戻れば反映）
-    stack.pop(); // import を抜けたことにする
+    // 追加完了 → 単語帳一覧へ。ナビスタックを books のみに正規化する。
     headerTitle.textContent = '単語帳';
     await renderBooks();
     showView('books');
-    // ナビスタックを books だけに戻す
     stack.length = 1;
+    stack[0] = 'books';
   });
 
   // --- ② ページ一覧 ---
@@ -203,20 +202,29 @@
 
   function renderWords(page) {
     wordsGrid.innerHTML = '';
-    // type が word / word+announce のセグメントを単語として番号表示
+    // 各セグメント = 1単語として番号表示（word / word+announce のどちらも1単語扱い）。
+    // 本PJのアナウンスは「単語1に結合する型（word+announce）」のみを想定しているため
+    // セグメント数 = 単語数 となり番号は素直に振れる。将来 announce 単独型
+    // （アナウンスが独立セグメントになる単語帳）を扱う場合は、その分だけ番号が
+    // 1ずれるので type を見て番号付けを分岐させる必要がある。
     let wordNo = 0;
     page.segments.forEach((seg) => {
       wordNo += 1;
+      const no = wordNo;
       const cell = document.createElement('div');
       cell.className = 'cell' + (seg.type === 'word+announce' ? ' announce' : '');
-      const label = seg.type === 'word+announce' ? 'アナウンス+単語' : `単語`;
-      cell.innerHTML = `<div class="num">${wordNo}</div><div class="sub">${seg.length.toFixed(1)}s</div>`;
+      cell.innerHTML = `<div class="num">${no}</div><div class="sub">${seg.length.toFixed(1)}s</div>`;
       cell.addEventListener('click', async () => {
         document.querySelectorAll('#words-grid .cell.playing').forEach(c => c.classList.remove('playing'));
         cell.classList.add('playing');
         const blob = await DB.getAudio(currentBook.id, page.page);
         if (!blob) { alert('音声が見つかりません'); return; }
-        Player.playSegment(blob, seg, `${label} ${wordNo}`, () => cell.classList.remove('playing'));
+        try {
+          await Player.playSegment(blob, seg, `単語 ${no}`, () => cell.classList.remove('playing'));
+        } catch (e) {
+          console.warn('再生に失敗', e);
+          cell.classList.remove('playing');
+        }
       });
       wordsGrid.appendChild(cell);
     });

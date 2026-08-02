@@ -5,8 +5,8 @@
  *   分割点 = 単語境界となる無音区間の中点。
  *
  * ffmpeg の silencedetect は「短い窓の RMS レベルが noise 閾値を下回る区間が
- * min_silence 以上続いたら無音」と判定する。ここでは 20ms 窓の RMS(dBFS) を計算し、
- * -30dBFS を下回る連続区間を無音とみなして同等に再現する。
+ * min_silence 以上続いたら無音」と判定する。ここでは 10ms 窓の RMS(dBFS) を計算し、
+ * -30dBFS を下回る連続区間を無音とみなして同等に再現する（窓幅は WIN_MS）。
  */
 const Splitter = (() => {
   const NOISE_DB = -30;      // dBFS 閾値

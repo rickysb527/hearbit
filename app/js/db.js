@@ -36,10 +36,24 @@ const DB = (() => {
       const t = db.transaction(store, mode);
       const s = t.objectStore(store);
       let result;
-      Promise.resolve(fn(s)).then(r => { result = r; });
-      t.oncomplete = () => resolve(result);
-      t.onerror = () => reject(t.error);
-      t.onabort = () => reject(t.error);
+      let fnDone = false;
+      let txDone = false;
+      let failed = false;
+
+      const settle = () => {
+        // fn（reqPの解決 = request値の確定）と oncomplete の両方が揃ってから解決する。
+        // これにより oncomplete が先に発火しても result を取りこぼさない。
+        if (fnDone && txDone && !failed) resolve(result);
+      };
+      const fail = (err) => { if (!failed) { failed = true; reject(err); } };
+
+      Promise.resolve(fn(s)).then(
+        r => { result = r; fnDone = true; settle(); },
+        err => fail(err)
+      );
+      t.oncomplete = () => { txDone = true; settle(); };
+      t.onerror = () => fail(t.error);
+      t.onabort = () => fail(t.error);
     }));
   }
 

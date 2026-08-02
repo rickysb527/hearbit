@@ -4,7 +4,7 @@
  * Python版 data/segments.json と分割結果（cut点・セグメント数）を突き合わせる。
  *
  * Web Audio API は Node に無いので、ffmpeg で mp3 → モノラルf32 raw PCM に変換し
- * 同じ RMS(20ms窓, -30dBFS, 0.4s無音, 2.0s単語境界) を適用する。
+ * 同じ RMS(10ms窓=WIN_MS, -30dBFS, 0.4s無音, 2.0s単語境界) を適用する。
  *
  * 使い方:
  *   node app/verify/verify_split.js            # 代表10ページ
