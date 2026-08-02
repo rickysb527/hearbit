@@ -54,3 +54,9 @@
 | silencedetect 最小無音長 | 0.4秒 |
 | 単語境界の閾値 (WORD_GAP) | 2.0秒 |
 | 分割点 | 単語境界となる無音区間の中点 |
+| RMS窓（JS版のみ） | 10ms |
+
+- **RMS窓=10ms** は JS版（Web Audio API, `app/js/splitter.js` の `WIN_MS`）専用のパラメータ。
+  ffmpeg silencedetect のレベル判定を素のJSで再現するための計算窓。全98ページで
+  Python版 segments.json とセグメント数・cut点（±0.15s）が 98/98 一致する値。
+  Python版（ffmpeg）は内部フィルタで判定するため、この項目は関係しない。
