@@ -10,7 +10,19 @@
  *   - セグメント数の一致
  *   - cut点（各セグメント開始）の一致（±0.15s）
  *   - 【修正②】merged フラグの一致（050/095/096/098）
- *   - 【修正①】announce_end の一致（±0.3s 目安）と has_announce の一致
+ *   - 【修正①】announce_end の一致（±0.3s 目安）
+ *   - has_announce の一致 …ただし「正解データ(announce_pages.json)を外した Python 汎用
+ *     ヒューリスティック」を基準に比較する（下記の注意を参照）。
+ *
+ * has_announce の比較基準について（重要）:
+ *   segments.json の has_announce は HSK3級の正解データ(announce_pages.json)を優先して
+ *   確定されている。一方 JS版(splitter.js)はアプリに正解データを持たない汎用プレーヤー
+ *   前提で、「先頭セグメントが本体中央値+EXCESS_THRESHOLD秒以上なら announce」という
+ *   汎用ヒューリスティックのみで判定する。両者は設計上ズレて当然（HSK3級で約10ページ）。
+ *   よってここでは segments.json ではなく、同じ汎用ルールを Python のセグメント長へ適用した
+ *   期待値（expectedGenericAnnounce）と JS を比較する。これで「正解データが無い当然の差」を
+ *   誤って FAIL にせず、移植（汎用ロジック）の正しさだけを検証できる。
+ *   正解データとの最終的な突き合わせ・手動修正は Issue #4（手動修正UI）の範囲。
  *
  * 使い方:
  *   node app/verify/verify_split.js            # 代表10ページ
@@ -29,6 +41,21 @@ const SR = 44100;
 
 const CUT_TOL = 0.15;       // cut点許容差（秒）
 const ANNOUNCE_TOL = 0.3;   // announce_end 許容差（秒）
+
+// splitter.js と同一の汎用ヒューリスティック（正解データを使わない）で has_announce を再計算。
+// segments.json は正解データ優先で確定しているため、比較基準にはこの汎用期待値を使う。
+function median(arr) {
+  if (!arr.length) return 0;
+  const s = [...arr].sort((a, b) => a - b);
+  const m = Math.floor(s.length / 2);
+  return s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2;
+}
+function genericHasAnnounce(segLengths) {
+  if (segLengths.length < 2) return false;
+  const body = segLengths.slice(1);
+  const med = median(body);
+  return (segLengths[0] - med) >= Splitter.EXCESS_THRESHOLD;
+}
 
 function decodeToFloat32(mp3Path) {
   const buf = execFileSync(FFMPEG, [
@@ -99,10 +126,17 @@ function main() {
     }
 
     // --- has_announce フラグ ---
+    // 基準は segments.json（正解データ優先）ではなく、同じ「汎用ヒューリスティック」を
+    // Python版のセグメント長へ適用した期待値。splitter.js と同一ルールで再計算する:
+    //   body = segLengths[1:], med = median(body),
+    //   announce = (len>=2) && (segLengths[0] - med >= EXCESS_THRESHOLD)
+    // これで正解データ由来の当然のズレ（約10ページ）を誤FAILにせず移植の正しさを検証する。
+    const pyLens = p.segments.map((s) => s.length);
+    const expectedGenericAnnounce = genericHasAnnounce(pyLens);
     annTotal++;
-    const annFlagMatch = js.has_announce === p.has_announce;
+    const annFlagMatch = js.has_announce === expectedGenericAnnounce;
     if (annFlagMatch) okAnnounceFlag++;
-    else issues.push(`${p.page}: has_announce JS=${js.has_announce} PY=${p.has_announce}`);
+    else issues.push(`${p.page}: has_announce(汎用) JS=${js.has_announce} 期待=${expectedGenericAnnounce}`);
 
     // --- 修正①: announce_end（両方がアナウンス有りのときのみ数値比較）---
     const jsAnn = js.segments[0].announce_end;

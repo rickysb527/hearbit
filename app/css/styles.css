@@ -357,6 +357,7 @@ body {
   display: flex; align-items: center; justify-content: center; cursor: pointer;
 }
 .fp-side:active { background: var(--surface-2); }
+.fp-side:disabled { opacity: 0.32; cursor: default; }
 .fp-main {
   width: 76px; height: 76px; border-radius: 50%; border: none; cursor: pointer;
   display: flex; align-items: center; justify-content: center;

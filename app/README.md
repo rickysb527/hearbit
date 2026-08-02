@@ -37,10 +37,12 @@ app/
 
 ## PWA機能
 
-- **manifest.json**: `name/short_name: Hearbit`, `theme_color: #0E7C86`(ティール), `background_color: #F7F8FA`, `display: standalone`, アイコン（192/512/maskable/svg）。
-- **Service Worker（sw.js）**: App Shell（HTML/CSS/JS/アイコン）を `cache-first` でキャッシュ → オフライン起動可。音声Blobは IndexedDB 側に保存（SWキャッシュ対象外）。
+- **manifest.json**: `name/short_name: Hearbit`, `theme_color: #0E7C86`(ティール), `background_color: #F7F8FA`, `display: standalone`, アイコン（PNG 192/512/maskable）。
+- **Service Worker（sw.js）**: App Shell を保持。**ナビゲーション(HTML)は network-first**（オンライン時は最新を取得・失敗時のみキャッシュ）、**静的アセット(CSS/JS/アイコン)は stale-while-revalidate**（キャッシュを即返しつつ裏で更新）。音声Blobは IndexedDB 側に保存（SWキャッシュ対象外）。
+  - **SW更新運用**: `sw.js` の `CACHE`（現在 `hearbit-v1`）を、アセットを変更したコミットで**必ず1つ上げる**（例: `hearbit-v2`）。`activate` で旧キャッシュを削除するため、名前を上げれば総入れ替えで確実に反映される。日常の CSS/JS 変更は stale-while-revalidate で次回アクセス時に自動更新される。
 - **iOS standalone**: `apple-mobile-web-app-capable` / `apple-mobile-web-app-title` / `apple-touch-icon` を用意。ホーム画面に追加でフルスクリーン起動。
 - **Media Session API**（`js/player.js`）: `play` / `pause` / `previoustrack`（前の単語）/ `nexttrack`（次の単語）/ `seekbackward` / `seekforward` を登録。メタデータは `title=単語 N (#通し)`, `artist=単語帳名`, `album=ページNNN`。ロック画面・イヤホン操作に対応。単語はページを跨いで連続移動する（フラットな単語リストで管理）。
+  - **末尾/先頭の扱い**: 先頭の単語では `previoustrack` を、末尾の単語では `nexttrack` を `null` にして OS 側でボタンを無効表示（グレーアウト）にする。全画面プレーヤーの ◀◀/▶▶ も同様に無効化。これで「最後で次を押しても無反応でフリーズに見える」問題を防ぐ。
 
 ## ローカルで動かす
 

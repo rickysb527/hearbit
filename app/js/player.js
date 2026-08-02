@@ -83,6 +83,9 @@ const Player = (() => {
     fpSerial.textContent = `#${w.serial}`;
     fpBlocks.textContent = (w.length >= 8) ? '単語 → 訳 → 例文' : '単語 → 訳';
     fpDur.textContent = fmt(w.length);
+    // 全画面プレーヤーの ◀◀/▶▶ も先頭/末尾で無効化（ロック画面と挙動を揃える）
+    fpPrev.disabled = currentIndex <= 0;
+    fpNext.disabled = currentIndex >= playlist.length - 1;
     updateMediaMetadata();
   }
 
@@ -115,21 +118,34 @@ const Player = (() => {
     } catch (e) { /* MediaMetadata 未対応環境 */ }
   }
 
+  function msSet(action, handler) {
+    if (!('mediaSession' in navigator)) return;
+    try { navigator.mediaSession.setActionHandler(action, handler); }
+    catch (e) { /* 未対応アクションは無視 */ }
+  }
+
   function setupMediaSession() {
     if (!('mediaSession' in navigator)) return;
-    const ms = navigator.mediaSession;
-    const set = (action, handler) => {
-      try { ms.setActionHandler(action, handler); }
-      catch (e) { /* 未対応アクションは無視 */ }
-    };
-    set('play', () => resume());
-    set('pause', () => pause());
-    set('previoustrack', () => prev());
-    set('nexttrack', () => next());
-    set('seekbackward', (d) => seekBy(-(d && d.seekOffset ? d.seekOffset : 5)));
-    set('seekforward', (d) => seekBy(d && d.seekOffset ? d.seekOffset : 5));
-    set('stop', () => stop());
+    msSet('play', () => resume());
+    msSet('pause', () => pause());
+    msSet('previoustrack', () => prev());
+    msSet('nexttrack', () => next());
+    msSet('seekbackward', (d) => seekBy(-(d && d.seekOffset ? d.seekOffset : 5)));
+    msSet('seekforward', (d) => seekBy(d && d.seekOffset ? d.seekOffset : 5));
+    msSet('stop', () => stop());
     console.log('[Hearbit] Media Session handlers set');
+  }
+
+  /* 末尾/先頭ではロック画面の前/次ボタンを OS 側で無効表示にする。
+   * 仕様: 先頭の単語では「前へ」を無効化、末尾の単語では「次へ」を無効化。
+   * ハンドラを null にすると iOS/Android はそのボタンをグレーアウト（無効）表示する。
+   * これにより「最後で次を押しても無反応でフリーズに見える」問題を防ぐ。 */
+  function updateNavHandlers() {
+    if (!('mediaSession' in navigator)) return;
+    const atFirst = currentIndex <= 0;
+    const atLast = currentIndex >= playlist.length - 1;
+    msSet('previoustrack', atFirst ? null : () => prev());
+    msSet('nexttrack', atLast ? null : () => next());
   }
 
   // ---------- end 監視 ----------
@@ -170,6 +186,7 @@ const Player = (() => {
     currentIndex = index;
     if (onCellChange) onCellChange(index);
     updateLabels();
+    updateNavHandlers(); // 末尾/先頭でロック画面の前/次ボタンを無効化
     showMini();
 
     // 同じページ音声なら src を再利用（seek のみ）。ページが変わる時だけ差し替える。
@@ -235,13 +252,15 @@ const Player = (() => {
 
   function toggle() { if (isPlaying) pause(); else resume(); }
 
+  /* 仕様（末尾/先頭の扱い）:
+   *   - 先頭(index 0)での prev は no-op（ロック画面ではボタン自体を無効化済み）。
+   *     アプリ内の ◀◀ を押した場合も何もしない（同じ単語の頭出しはしない＝挙動を対称に）。
+   *   - 末尾での next は no-op（同上）。onEnded は timeupdate 監視からのみ呼ぶ。 */
   function prev() {
     if (currentIndex > 0) playIndex(currentIndex - 1);
-    else { const w = playlist[currentIndex]; if (w) { audio.currentTime = w.start; resume(); } }
   }
   function next() {
-    if (currentIndex < playlist.length - 1) playIndex(currentIndex + 1);
-    else onEnded();
+    if (currentIndex >= 0 && currentIndex < playlist.length - 1) playIndex(currentIndex + 1);
   }
 
   function seekBy(delta) {
