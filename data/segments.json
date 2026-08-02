@@ -14,7 +14,8 @@
           "start": 0.0,
           "end": 25.867,
           "length": 25.87,
-          "type": "word+announce"
+          "type": "word+announce",
+          "announce_end": 12.453
         },
         {
           "index": 1,
@@ -1054,7 +1055,9 @@
           "start": 0.0,
           "end": 14.867,
           "length": 14.87,
-          "type": "word+announce"
+          "type": "word+announce",
+          "announce_end": 0.228,
+          "announce_low_confidence": true
         },
         {
           "index": 1,
@@ -1678,7 +1681,8 @@
           "start": 0.0,
           "end": 17.848,
           "length": 17.85,
-          "type": "word+announce"
+          "type": "word+announce",
+          "announce_end": 2.959
         },
         {
           "index": 1,
@@ -1730,7 +1734,9 @@
           "start": 0.0,
           "end": 16.71,
           "length": 16.71,
-          "type": "word+announce"
+          "type": "word+announce",
+          "announce_end": 0.226,
+          "announce_low_confidence": true
         },
         {
           "index": 1,
@@ -2042,7 +2048,8 @@
           "start": 0.0,
           "end": 18.018,
           "length": 18.02,
-          "type": "word+announce"
+          "type": "word+announce",
+          "announce_end": 3.198
         },
         {
           "index": 1,
@@ -2094,7 +2101,8 @@
           "start": 0.0,
           "end": 15.292,
           "length": 15.29,
-          "type": "word+announce"
+          "type": "word+announce",
+          "announce_end": 1.915
         },
         {
           "index": 1,
@@ -2250,7 +2258,8 @@
           "start": 0.0,
           "end": 18.832,
           "length": 18.83,
-          "type": "word+announce"
+          "type": "word+announce",
+          "announce_end": 5.1
         },
         {
           "index": 1,
@@ -2302,7 +2311,9 @@
           "start": 0.0,
           "end": 14.758,
           "length": 14.76,
-          "type": "word+announce"
+          "type": "word+announce",
+          "announce_end": 0.229,
+          "announce_low_confidence": true
         },
         {
           "index": 1,
@@ -2354,7 +2365,8 @@
           "start": 0.0,
           "end": 15.179,
           "length": 15.18,
-          "type": "word+announce"
+          "type": "word+announce",
+          "announce_end": 1.365
         },
         {
           "index": 1,
@@ -2406,7 +2418,8 @@
           "start": 0.0,
           "end": 18.422,
           "length": 18.42,
-          "type": "word+announce"
+          "type": "word+announce",
+          "announce_end": 3.025
         },
         {
           "index": 1,
@@ -2458,7 +2471,8 @@
           "start": 0.0,
           "end": 18.692,
           "length": 18.69,
-          "type": "word+announce"
+          "type": "word+announce",
+          "announce_end": 4.293
         },
         {
           "index": 1,
@@ -2510,7 +2524,8 @@
           "start": 0.0,
           "end": 19.863,
           "length": 19.86,
-          "type": "word+announce"
+          "type": "word+announce",
+          "announce_end": 5.132
         },
         {
           "index": 1,
@@ -2552,9 +2567,9 @@
     {
       "page": "050",
       "duration": 94.04,
-      "num_segments": 7,
+      "num_segments": 6,
       "layout": "word_with_examples",
-      "word_count": 7,
+      "word_count": 6,
       "has_announce": true,
       "segments": [
         {
@@ -2562,7 +2577,8 @@
           "start": 0.0,
           "end": 17.721,
           "length": 17.72,
-          "type": "word+announce"
+          "type": "word+announce",
+          "announce_end": 1.959
         },
         {
           "index": 1,
@@ -2595,16 +2611,10 @@
         {
           "index": 5,
           "start": 76.076,
-          "end": 92.968,
-          "length": 16.89,
-          "type": "word"
-        },
-        {
-          "index": 6,
-          "start": 92.968,
           "end": 94.041,
-          "length": 1.07,
-          "type": "word"
+          "length": 17.97,
+          "type": "word",
+          "merged": true
         }
       ]
     },
@@ -2621,7 +2631,8 @@
           "start": 0.0,
           "end": 20.332,
           "length": 20.33,
-          "type": "word+announce"
+          "type": "word+announce",
+          "announce_end": 5.605
         },
         {
           "index": 1,
@@ -3089,7 +3100,8 @@
           "start": 0.0,
           "end": 17.74,
           "length": 17.74,
-          "type": "word+announce"
+          "type": "word+announce",
+          "announce_end": 5.18
         },
         {
           "index": 1,
@@ -3141,7 +3153,8 @@
           "start": 0.0,
           "end": 18.38,
           "length": 18.38,
-          "type": "word+announce"
+          "type": "word+announce",
+          "announce_end": 3.642
         },
         {
           "index": 1,
@@ -3349,7 +3362,8 @@
           "start": 0.0,
           "end": 15.854,
           "length": 15.85,
-          "type": "word+announce"
+          "type": "word+announce",
+          "announce_end": 2.299
         },
         {
           "index": 1,
@@ -3401,7 +3415,8 @@
           "start": 0.0,
           "end": 18.117,
           "length": 18.12,
-          "type": "word+announce"
+          "type": "word+announce",
+          "announce_end": 1.765
         },
         {
           "index": 1,
@@ -3453,7 +3468,8 @@
           "start": 0.0,
           "end": 16.211,
           "length": 16.21,
-          "type": "word+announce"
+          "type": "word+announce",
+          "announce_end": 2.177
         },
         {
           "index": 1,
@@ -3505,7 +3521,8 @@
           "start": 0.0,
           "end": 16.073,
           "length": 16.07,
-          "type": "word+announce"
+          "type": "word+announce",
+          "announce_end": 1.577
         },
         {
           "index": 1,
@@ -3557,7 +3574,8 @@
           "start": 0.0,
           "end": 19.217,
           "length": 19.22,
-          "type": "word+announce"
+          "type": "word+announce",
+          "announce_end": 3.275
         },
         {
           "index": 1,
@@ -3609,7 +3627,8 @@
           "start": 0.0,
           "end": 20.617,
           "length": 20.62,
-          "type": "word+announce"
+          "type": "word+announce",
+          "announce_end": 6.275
         },
         {
           "index": 1,
@@ -3661,7 +3680,8 @@
           "start": 0.0,
           "end": 19.076,
           "length": 19.08,
-          "type": "word+announce"
+          "type": "word+announce",
+          "announce_end": 5.302
         },
         {
           "index": 1,
@@ -3713,7 +3733,8 @@
           "start": 0.0,
           "end": 20.198,
           "length": 20.2,
-          "type": "word+announce"
+          "type": "word+announce",
+          "announce_end": 4.961
         },
         {
           "index": 1,
@@ -3765,7 +3786,8 @@
           "start": 0.0,
           "end": 17.16,
           "length": 17.16,
-          "type": "word+announce"
+          "type": "word+announce",
+          "announce_end": 2.031
         },
         {
           "index": 1,
@@ -3921,7 +3943,8 @@
           "start": 0.0,
           "end": 13.148,
           "length": 13.15,
-          "type": "word+announce"
+          "type": "word+announce",
+          "announce_end": 8.338
         },
         {
           "index": 1,
@@ -4102,7 +4125,8 @@
           "start": 0.0,
           "end": 21.755,
           "length": 21.75,
-          "type": "word+announce"
+          "type": "word+announce",
+          "announce_end": 8.108
         },
         {
           "index": 1,
@@ -4348,7 +4372,8 @@
           "start": 0.0,
           "end": 11.115,
           "length": 11.12,
-          "type": "word+announce"
+          "type": "word+announce",
+          "announce_end": 5.178
         },
         {
           "index": 1,
@@ -4560,7 +4585,8 @@
           "start": 0.0,
           "end": 8.923,
           "length": 8.92,
-          "type": "word+announce"
+          "type": "word+announce",
+          "announce_end": 4.148
         },
         {
           "index": 1,
@@ -4682,7 +4708,8 @@
           "start": 0.0,
           "end": 8.036,
           "length": 8.04,
-          "type": "word+announce"
+          "type": "word+announce",
+          "announce_end": 3.795
         },
         {
           "index": 1,
@@ -4804,7 +4831,8 @@
           "start": 0.0,
           "end": 9.779,
           "length": 9.78,
-          "type": "word+announce"
+          "type": "word+announce",
+          "announce_end": 5.579
         },
         {
           "index": 1,
@@ -4926,7 +4954,8 @@
           "start": 0.0,
           "end": 9.789,
           "length": 9.79,
-          "type": "word+announce"
+          "type": "word+announce",
+          "announce_end": 4.8
         },
         {
           "index": 1,
@@ -5048,7 +5077,8 @@
           "start": 0.0,
           "end": 8.317,
           "length": 8.32,
-          "type": "word+announce"
+          "type": "word+announce",
+          "announce_end": 3.923
         },
         {
           "index": 1,
@@ -5170,7 +5200,8 @@
           "start": 0.0,
           "end": 6.994,
           "length": 6.99,
-          "type": "word+announce"
+          "type": "word+announce",
+          "announce_end": 2.555
         },
         {
           "index": 1,
@@ -5208,7 +5239,8 @@
           "start": 0.0,
           "end": 18.891,
           "length": 18.89,
-          "type": "word+announce"
+          "type": "word+announce",
+          "announce_end": 3.591
         },
         {
           "index": 1,
@@ -5260,7 +5292,8 @@
           "start": 0.0,
           "end": 19.393,
           "length": 19.39,
-          "type": "word+announce"
+          "type": "word+announce",
+          "announce_end": 3.102
         },
         {
           "index": 1,
@@ -5312,7 +5345,8 @@
           "start": 0.0,
           "end": 21.386,
           "length": 21.39,
-          "type": "word+announce"
+          "type": "word+announce",
+          "announce_end": 7.423
         },
         {
           "index": 1,
@@ -5354,9 +5388,9 @@
     {
       "page": "095",
       "duration": 90.15,
-      "num_segments": 7,
+      "num_segments": 6,
       "layout": "word_with_examples",
-      "word_count": 7,
+      "word_count": 6,
       "has_announce": true,
       "segments": [
         {
@@ -5364,45 +5398,41 @@
           "start": 0.0,
           "end": 15.928,
           "length": 15.93,
-          "type": "word+announce"
+          "type": "word+announce",
+          "announce_end": 0.245,
+          "announce_low_confidence": true
         },
         {
           "index": 1,
           "start": 15.928,
-          "end": 26.268,
-          "length": 10.34,
-          "type": "word"
+          "end": 32.068,
+          "length": 16.14,
+          "type": "word",
+          "merged": true
         },
         {
           "index": 2,
-          "start": 26.268,
-          "end": 32.068,
-          "length": 5.8,
-          "type": "word"
-        },
-        {
-          "index": 3,
           "start": 32.068,
           "end": 47.991,
           "length": 15.92,
           "type": "word"
         },
         {
-          "index": 4,
+          "index": 3,
           "start": 47.991,
           "end": 63.251,
           "length": 15.26,
           "type": "word"
         },
         {
-          "index": 5,
+          "index": 4,
           "start": 63.251,
           "end": 76.045,
           "length": 12.79,
           "type": "word"
         },
         {
-          "index": 6,
+          "index": 5,
           "start": 76.045,
           "end": 90.149,
           "length": 14.1,
@@ -5413,55 +5443,50 @@
     {
       "page": "096",
       "duration": 106.34,
-      "num_segments": 7,
+      "num_segments": 6,
       "layout": "word_with_examples",
-      "word_count": 7,
+      "word_count": 6,
       "has_announce": true,
       "segments": [
         {
           "index": 0,
           "start": 0.0,
-          "end": 13.294,
-          "length": 13.29,
-          "type": "word+announce"
+          "end": 18.584,
+          "length": 18.58,
+          "type": "word+announce",
+          "merged": true,
+          "announce_end": 2.519
         },
         {
           "index": 1,
-          "start": 13.294,
-          "end": 18.584,
-          "length": 5.29,
-          "type": "word"
-        },
-        {
-          "index": 2,
           "start": 18.584,
           "end": 33.656,
           "length": 15.07,
           "type": "word"
         },
         {
-          "index": 3,
+          "index": 2,
           "start": 33.656,
           "end": 52.732,
           "length": 19.08,
           "type": "word"
         },
         {
-          "index": 4,
+          "index": 3,
           "start": 52.732,
           "end": 69.663,
           "length": 16.93,
           "type": "word"
         },
         {
-          "index": 5,
+          "index": 4,
           "start": 69.663,
           "end": 86.228,
           "length": 16.56,
           "type": "word"
         },
         {
-          "index": 6,
+          "index": 5,
           "start": 86.228,
           "end": 106.344,
           "length": 20.12,
@@ -5482,7 +5507,9 @@
           "start": 0.0,
           "end": 16.772,
           "length": 16.77,
-          "type": "word+announce"
+          "type": "word+announce",
+          "announce_end": 0.239,
+          "announce_low_confidence": true
         },
         {
           "index": 1,
@@ -5524,9 +5551,9 @@
     {
       "page": "098",
       "duration": 48.38,
-      "num_segments": 4,
+      "num_segments": 3,
       "layout": "word_with_examples",
-      "word_count": 4,
+      "word_count": 3,
       "has_announce": false,
       "segments": [
         {
@@ -5546,16 +5573,10 @@
         {
           "index": 2,
           "start": 30.595,
-          "end": 47.31,
-          "length": 16.72,
-          "type": "word"
-        },
-        {
-          "index": 3,
-          "start": 47.31,
           "end": 48.379,
-          "length": 1.07,
-          "type": "word"
+          "length": 17.78,
+          "type": "word",
+          "merged": true
         }
       ]
     }
