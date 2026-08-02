@@ -101,12 +101,55 @@ afplay audio/words/002_02.mp3
 
 分割音声のファイル名は `<page>_<seg2桁>.mp3`（例: `001_02.mp3` = 001ページの2セグメント目）。
 
-## 開発運用
+## 開発手法
 
+### 開発フロー（段階式）
+各機能は **設計 → 実装 → レビュー → 検証 → マージ** の順で進める。
+
+```
+① 設計    メイン(or Planエージェント)が仕様・段取りを決める
+② 実装    担当エージェントが領域を実装（audio-engineer / frontend-dev / ui-designer）
+③ レビュー code-reviewer がコード・仕様をチェック → 指摘を実装者に戻す
+④ 検証    verifier が自動テスト（数値検証）を実行 ＋ 実聴/実操作サンプルを提示
+          → ユーザーが音・UXを最終確認
+⑤ マージ   品質ゲートを通過したら PR作成 → master へマージ
+```
+
+### サブエージェントと役割分担（.claude/agents/）
+| エージェント | 役割 | モデル | 担当 |
+|---|---|---|---|
+| `audio-engineer` | 音声処理（ffmpeg/Python）実装 | opus | 機能B・分割ロジック |
+| `frontend-dev` | PWA（HTML/CSS/JS）実装 | opus | 機能C |
+| `ui-designer` | UI/UXデザイン | opus | 機能Cの見た目 |
+| `code-reviewer` | コード・仕様レビュー | opus | 全機能（マージ前） |
+| `verifier` | 動作検証・自動テスト | sonnet | 全機能（マージ前） |
+
+- モデルは**役割で使い分け**（実装・レビューはopus、検証はsonnet）。
+- 独立した実装（機能B/C）は複数エージェントで**並行**して進めてよい。
+
+### 品質ゲート（マージ前に3つとも必須）
+1. **レビュー**: code-reviewer が「マージ可」と判定
+2. **自動テスト**: verifier の数値検証がPASS（ファイル数・命名・JSON整合・尺など）
+3. **実聴/実操作確認**: ユーザーが代表サンプルを聴く/操作して問題なし
+
+> このPJの核心（音が正しく切れているか）は自動テストでは判定できず、人間の耳が必要。
+> よって「数値で検証できる部分は自動テスト」「音・UXの最終判断は人間」と役割分担する。
+
+### テストの考え方
+- **自動テスト**: 単語数・境界・ファイル数・JSON整合性など数値化できるもの → verifier
+- **実聴テスト**: 音がちゃんと切れているか → ユーザーが数サンプル確認
+- **実操作テスト**: タップ再生・ロック画面操作 → ユーザーが実機で確認
+
+### ブランチ・並行開発
 - **ブランチ運用**: 機能ごとにブランチを切る。`feat/summary-audio`（機能B）, `feat/pwa-app`（機能C）。
 - **並行開発**: git worktree を使い、機能B/Cを別フォルダで並行実装。
-- **Issue**: GitHub Issue でタスク管理（機能B/Cを起票）。
+  - メイン: `dev/vocab-audio-separator`（master）
+  - 機能B: `dev/vocab-audio-separator-summary`（feat/summary-audio）
+  - 機能C: `dev/vocab-audio-separator-pwa`（feat/pwa-app）
+  - 各worktreeの `audio/` はメインへのシンボリックリンク（音声は1コピーで共有、gitは無視）
+- **Issue**: GitHub Issue でタスク管理（#1 機能B, #2 機能C）。
 - **コミット**: 音声はコミットされない前提。スクリプト・メタデータ・アプリコードを対象に。
+  - コミットメッセージ末尾に `Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>`
 - リモート: `origin`（GitHub, private, rickysb527/vocab-audio-separator）
 
 ## 現在の状況
