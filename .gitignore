@@ -1,0 +1,41 @@
+# === 音声ファイル（著作物・大容量。リポジトリには含めない）===
+# 元ページ音声・分割後の単語音声・まとめ音声はすべて手元管理とする
+audio/raw/
+audio/words/
+audio/chunks/
+*.mp3
+*.m4a
+*.wav
+*.aac
+*.flac
+*.ogg
+
+# フォルダ自体は残したいので .gitkeep は追跡する（下の否定パターン参照）
+!audio/raw/.gitkeep
+!audio/words/.gitkeep
+!audio/chunks/.gitkeep
+
+# === Python ===
+__pycache__/
+*.pyc
+.venv/
+venv/
+env/
+.python-version
+
+# === Node（アプリ側で使う場合）===
+node_modules/
+dist/
+build/
+.vite/
+
+# === OS / エディタ ===
+.DS_Store
+.vscode/
+.idea/
+*.swp
+Thumbs.db
+
+# === 生成される単語メタデータ（大きくなる場合。必要なら後で追跡に変更）===
+# data/*.json は基本追跡するが、巨大な一時ファイルは除外
+data/tmp/
