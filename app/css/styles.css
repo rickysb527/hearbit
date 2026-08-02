@@ -259,11 +259,70 @@ body {
   width: 4px; border-radius: 2px; background: var(--active);
 }
 
-/* placeholder (聞き流しタブ) */
-.placeholder { text-align: center; padding: 48px 16px; color: var(--text-sub); }
-.placeholder svg { color: var(--accent); }
-.placeholder-title { font-size: 18px; font-weight: 700; color: var(--text); margin: 14px 0 10px; }
-.placeholder-text { font-size: 14px; line-height: 1.7; max-width: 320px; margin: 0 auto; }
+/* ===== 聞き流しタブ（機能B: 範囲/語数の選択） ===== */
+.listen-lead { font-size: 14px; line-height: 1.7; color: var(--text-sub); margin: 10px 2px 20px; }
+.listen-lead b { color: var(--text); }
+.listen-opt { margin: 0 2px 22px; }
+.listen-opt-label { font-size: 13px; font-weight: 700; color: var(--text-sub); margin-bottom: 10px; }
+.listen-size .seg-btn { padding: 9px 18px; font-size: 14px; }
+.listen-ranges { display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 10px; }
+.listen-range-chip {
+  min-height: 60px; padding: 8px;
+  background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px;
+  cursor: pointer; color: var(--text);
+}
+.listen-range-chip:active { background: var(--accent-weak); border-color: var(--accent); }
+.listen-range-chip .lr-range { font-size: 17px; font-weight: 800; }
+.listen-range-chip .lr-count { font-size: 12px; color: var(--text-sub); }
+
+/* ===== 聞き流し 全画面プレーヤー（円形プログレス） ===== */
+#listen-player {
+  position: fixed; inset: 0; z-index: 55;
+  background: var(--bg);
+  display: flex; flex-direction: column;
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: calc(24px + env(safe-area-inset-bottom));
+  animation: fp-in 0.22s ease;
+}
+.lp-title { flex: 1; text-align: center; font-size: 17px; font-weight: 700; color: var(--text); }
+.lp-body { flex: 1; position: relative; display: flex; flex-direction: column; align-items: center;
+  justify-content: center; padding: 0 24px; text-align: center; gap: 6px; }
+.lp-sub { font-size: 14px; color: var(--text-sub); margin-bottom: 18px; }
+
+.lp-ring-wrap { position: relative; width: 240px; height: 240px; transition: opacity 0.2s; }
+.lp-ring-wrap.dim { opacity: 0.25; }
+.lp-ring { width: 240px; height: 240px; display: block; }
+.lp-ring-bg { stroke: var(--accent-weak); }
+.lp-ring-fg { stroke: var(--active); transition: stroke-dashoffset 0.12s linear; }
+.lp-ring-dot { fill: var(--active); transition: cx 0.12s linear, cy 0.12s linear; }
+.lp-ring-center {
+  position: absolute; inset: 0;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px;
+}
+.lp-wave { height: 20px; }
+.lp-word { font-size: 34px; font-weight: 800; color: var(--text); line-height: 1.1;
+  max-width: 180px; overflow: hidden; text-overflow: ellipsis; }
+#listen-player.paused .lp-wave span { animation: none !important; height: 30% !important; opacity: 0.5; }
+
+.lp-count { font-size: 22px; font-weight: 700; color: var(--text); margin: 20px 0 6px; }
+.lp-count #lp-cur { color: var(--active); }
+
+#listen-player .fp-controls { margin-top: 24px; }
+#listen-player.paused .fp-main { background: var(--accent); color: var(--accent-on); }
+
+.lp-offline { display: inline-flex; align-items: center; gap: 6px;
+  font-size: 13px; color: var(--text-sub); margin-top: 22px; }
+.lp-offline svg { color: var(--accent); }
+
+/* トラック構築中のスピナー */
+.lp-loading { position: absolute; z-index: 2; display: flex; flex-direction: column;
+  align-items: center; gap: 12px; }
+.lp-spinner { width: 40px; height: 40px; border-radius: 50%;
+  border: 4px solid var(--accent-weak); border-top-color: var(--accent);
+  animation: lp-spin 0.8s linear infinite; }
+.lp-loading-text { font-size: 14px; color: var(--text-sub); }
+@keyframes lp-spin { to { transform: rotate(360deg); } }
 
 /* ===== 再生波形アニメ（共通） ===== */
 .wave, .fp-wave { display: inline-flex; align-items: flex-end; gap: 3px; height: 22px; }

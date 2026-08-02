@@ -137,18 +137,25 @@ const Player = (() => {
   // ハンドラは module-level の prev/next/resume/pause/seekBy/stop クロージャを参照し、
   // playlist / currentIndex はハンドラ内で毎回ライブに読むため、初回登録だけで単語帳を
   // 切り替えても正しく動く。
+  // Media Session は機能A(Player)と機能B(Listen)で【共有】する。ハンドラは Player が
+  // 一度だけ登録し、Listen が鳴っている間（Listen.isActive()）は Listen へ委譲する。
+  // これにより「先に登録した方だけが操作できる」問題を避け、ロック画面の play/pause/prev/next
+  // が常に「いま鳴っているモード」を操作する。metadata / playbackState は各モードが直接更新する。
+  function listenActive() {
+    return typeof Listen !== 'undefined' && Listen.isActive && Listen.isActive();
+  }
   let mediaSessionReady = false;
   function setupMediaSession() {
     if (!('mediaSession' in navigator)) return;
     if (mediaSessionReady) return; // 二重登録防止（冪等）
     mediaSessionReady = true;
-    msSet('play', () => resume());
-    msSet('pause', () => pause());
-    msSet('previoustrack', () => prev());
-    msSet('nexttrack', () => next());
-    msSet('seekbackward', (d) => seekBy(-(d && d.seekOffset ? d.seekOffset : 5)));
-    msSet('seekforward', (d) => seekBy(d && d.seekOffset ? d.seekOffset : 5));
-    msSet('stop', () => stop());
+    msSet('play', () => listenActive() ? Listen.resume() : resume());
+    msSet('pause', () => listenActive() ? Listen.pause() : pause());
+    msSet('previoustrack', () => listenActive() ? Listen.prev() : prev());
+    msSet('nexttrack', () => listenActive() ? Listen.next() : next());
+    msSet('seekbackward', (d) => { if (!listenActive()) seekBy(-(d && d.seekOffset ? d.seekOffset : 5)); });
+    msSet('seekforward', (d) => { if (!listenActive()) seekBy(d && d.seekOffset ? d.seekOffset : 5); });
+    msSet('stop', () => listenActive() ? Listen.stop() : stop());
     console.log('[Hearbit] Media Session handlers set (once)');
   }
 
@@ -192,6 +199,8 @@ const Player = (() => {
   // ---------- 再生コア ----------
   async function loadAndPlay(index, { autoplay = true } = {}) {
     if (index < 0 || index >= playlist.length) return;
+    // 排他制御: 機能B(聞き流し)が鳴っていたら停止する（同時に鳴らさない）。
+    if (typeof Listen !== 'undefined' && Listen.isActive && Listen.isActive()) Listen.stop();
     const w = playlist[index];
     const myToken = ++playToken;
     stopWatch();
