@@ -1,0 +1,5269 @@
+{
+  "book": "HSK3級単語",
+  "pages": [
+    {
+      "page": "001",
+      "duration": 95.03,
+      "num_segments": 6,
+      "segments": [
+        {
+          "index": 0,
+          "start": 0.0,
+          "end": 25.867,
+          "length": 25.87,
+          "type": "word+announce"
+        },
+        {
+          "index": 1,
+          "start": 25.867,
+          "end": 39.837,
+          "length": 13.97,
+          "type": "word"
+        },
+        {
+          "index": 2,
+          "start": 39.837,
+          "end": 51.554,
+          "length": 11.72,
+          "type": "word"
+        },
+        {
+          "index": 3,
+          "start": 51.554,
+          "end": 66.136,
+          "length": 14.58,
+          "type": "word"
+        },
+        {
+          "index": 4,
+          "start": 66.136,
+          "end": 81.133,
+          "length": 15.0,
+          "type": "word"
+        },
+        {
+          "index": 5,
+          "start": 81.133,
+          "end": 95.033,
+          "length": 13.9,
+          "type": "word"
+        }
+      ]
+    },
+    {
+      "page": "002",
+      "duration": 86.7,
+      "num_segments": 6,
+      "segments": [
+        {
+          "index": 0,
+          "start": 0.0,
+          "end": 14.389,
+          "length": 14.39,
+          "type": "word"
+        },
+        {
+          "index": 1,
+          "start": 14.389,
+          "end": 29.606,
+          "length": 15.22,
+          "type": "word"
+        },
+        {
+          "index": 2,
+          "start": 29.606,
+          "end": 43.969,
+          "length": 14.36,
+          "type": "word"
+        },
+        {
+          "index": 3,
+          "start": 43.969,
+          "end": 58.545,
+          "length": 14.58,
+          "type": "word"
+        },
+        {
+          "index": 4,
+          "start": 58.545,
+          "end": 73.148,
+          "length": 14.6,
+          "type": "word"
+        },
+        {
+          "index": 5,
+          "start": 73.148,
+          "end": 86.7,
+          "length": 13.55,
+          "type": "word"
+        }
+      ]
+    },
+    {
+      "page": "003",
+      "duration": 82.65,
+      "num_segments": 6,
+      "segments": [
+        {
+          "index": 0,
+          "start": 0.0,
+          "end": 11.076,
+          "length": 11.08,
+          "type": "word"
+        },
+        {
+          "index": 1,
+          "start": 11.076,
+          "end": 25.788,
+          "length": 14.71,
+          "type": "word"
+        },
+        {
+          "index": 2,
+          "start": 25.788,
+          "end": 39.341,
+          "length": 13.55,
+          "type": "word"
+        },
+        {
+          "index": 3,
+          "start": 39.341,
+          "end": 53.42,
+          "length": 14.08,
+          "type": "word"
+        },
+        {
+          "index": 4,
+          "start": 53.42,
+          "end": 67.661,
+          "length": 14.24,
+          "type": "word"
+        },
+        {
+          "index": 5,
+          "start": 67.661,
+          "end": 82.651,
+          "length": 14.99,
+          "type": "word"
+        }
+      ]
+    },
+    {
+      "page": "004",
+      "duration": 77.64,
+      "num_segments": 6,
+      "segments": [
+        {
+          "index": 0,
+          "start": 0.0,
+          "end": 12.942,
+          "length": 12.94,
+          "type": "word"
+        },
+        {
+          "index": 1,
+          "start": 12.942,
+          "end": 26.226,
+          "length": 13.28,
+          "type": "word"
+        },
+        {
+          "index": 2,
+          "start": 26.226,
+          "end": 38.791,
+          "length": 12.56,
+          "type": "word"
+        },
+        {
+          "index": 3,
+          "start": 38.791,
+          "end": 49.463,
+          "length": 10.67,
+          "type": "word"
+        },
+        {
+          "index": 4,
+          "start": 49.463,
+          "end": 62.364,
+          "length": 12.9,
+          "type": "word"
+        },
+        {
+          "index": 5,
+          "start": 62.364,
+          "end": 77.636,
+          "length": 15.27,
+          "type": "word"
+        }
+      ]
+    },
+    {
+      "page": "005",
+      "duration": 82.94,
+      "num_segments": 6,
+      "segments": [
+        {
+          "index": 0,
+          "start": 0.0,
+          "end": 13.742,
+          "length": 13.74,
+          "type": "word"
+        },
+        {
+          "index": 1,
+          "start": 13.742,
+          "end": 27.6,
+          "length": 13.86,
+          "type": "word"
+        },
+        {
+          "index": 2,
+          "start": 27.6,
+          "end": 41.188,
+          "length": 13.59,
+          "type": "word"
+        },
+        {
+          "index": 3,
+          "start": 41.188,
+          "end": 53.888,
+          "length": 12.7,
+          "type": "word"
+        },
+        {
+          "index": 4,
+          "start": 53.888,
+          "end": 67.137,
+          "length": 13.25,
+          "type": "word"
+        },
+        {
+          "index": 5,
+          "start": 67.137,
+          "end": 82.939,
+          "length": 15.8,
+          "type": "word"
+        }
+      ]
+    },
+    {
+      "page": "006",
+      "duration": 82.65,
+      "num_segments": 6,
+      "segments": [
+        {
+          "index": 0,
+          "start": 0.0,
+          "end": 12.868,
+          "length": 12.87,
+          "type": "word"
+        },
+        {
+          "index": 1,
+          "start": 12.868,
+          "end": 25.867,
+          "length": 13.0,
+          "type": "word"
+        },
+        {
+          "index": 2,
+          "start": 25.867,
+          "end": 39.069,
+          "length": 13.2,
+          "type": "word"
+        },
+        {
+          "index": 3,
+          "start": 39.069,
+          "end": 52.667,
+          "length": 13.6,
+          "type": "word"
+        },
+        {
+          "index": 4,
+          "start": 52.667,
+          "end": 69.296,
+          "length": 16.63,
+          "type": "word"
+        },
+        {
+          "index": 5,
+          "start": 69.296,
+          "end": 82.651,
+          "length": 13.35,
+          "type": "word"
+        }
+      ]
+    },
+    {
+      "page": "007",
+      "duration": 80.64,
+      "num_segments": 6,
+      "segments": [
+        {
+          "index": 0,
+          "start": 0.0,
+          "end": 12.239,
+          "length": 12.24,
+          "type": "word"
+        },
+        {
+          "index": 1,
+          "start": 12.239,
+          "end": 26.808,
+          "length": 14.57,
+          "type": "word"
+        },
+        {
+          "index": 2,
+          "start": 26.808,
+          "end": 39.615,
+          "length": 12.81,
+          "type": "word"
+        },
+        {
+          "index": 3,
+          "start": 39.615,
+          "end": 54.364,
+          "length": 14.75,
+          "type": "word"
+        },
+        {
+          "index": 4,
+          "start": 54.364,
+          "end": 67.241,
+          "length": 12.88,
+          "type": "word"
+        },
+        {
+          "index": 5,
+          "start": 67.241,
+          "end": 80.64,
+          "length": 13.4,
+          "type": "word"
+        }
+      ]
+    },
+    {
+      "page": "008",
+      "duration": 87.14,
+      "num_segments": 6,
+      "segments": [
+        {
+          "index": 0,
+          "start": 0.0,
+          "end": 13.732,
+          "length": 13.73,
+          "type": "word"
+        },
+        {
+          "index": 1,
+          "start": 13.732,
+          "end": 31.853,
+          "length": 18.12,
+          "type": "word"
+        },
+        {
+          "index": 2,
+          "start": 31.853,
+          "end": 44.633,
+          "length": 12.78,
+          "type": "word"
+        },
+        {
+          "index": 3,
+          "start": 44.633,
+          "end": 57.911,
+          "length": 13.28,
+          "type": "word"
+        },
+        {
+          "index": 4,
+          "start": 57.911,
+          "end": 72.284,
+          "length": 14.37,
+          "type": "word"
+        },
+        {
+          "index": 5,
+          "start": 72.284,
+          "end": 87.144,
+          "length": 14.86,
+          "type": "word"
+        }
+      ]
+    },
+    {
+      "page": "009",
+      "duration": 85.5,
+      "num_segments": 6,
+      "segments": [
+        {
+          "index": 0,
+          "start": 0.0,
+          "end": 13.154,
+          "length": 13.15,
+          "type": "word"
+        },
+        {
+          "index": 1,
+          "start": 13.154,
+          "end": 28.184,
+          "length": 15.03,
+          "type": "word"
+        },
+        {
+          "index": 2,
+          "start": 28.184,
+          "end": 42.374,
+          "length": 14.19,
+          "type": "word"
+        },
+        {
+          "index": 3,
+          "start": 42.374,
+          "end": 56.967,
+          "length": 14.59,
+          "type": "word"
+        },
+        {
+          "index": 4,
+          "start": 56.967,
+          "end": 71.093,
+          "length": 14.13,
+          "type": "word"
+        },
+        {
+          "index": 5,
+          "start": 71.093,
+          "end": 85.499,
+          "length": 14.41,
+          "type": "word"
+        }
+      ]
+    },
+    {
+      "page": "010",
+      "duration": 79.05,
+      "num_segments": 6,
+      "segments": [
+        {
+          "index": 0,
+          "start": 0.0,
+          "end": 12.84,
+          "length": 12.84,
+          "type": "word"
+        },
+        {
+          "index": 1,
+          "start": 12.84,
+          "end": 24.98,
+          "length": 12.14,
+          "type": "word"
+        },
+        {
+          "index": 2,
+          "start": 24.98,
+          "end": 38.197,
+          "length": 13.22,
+          "type": "word"
+        },
+        {
+          "index": 3,
+          "start": 38.197,
+          "end": 50.834,
+          "length": 12.64,
+          "type": "word"
+        },
+        {
+          "index": 4,
+          "start": 50.834,
+          "end": 64.503,
+          "length": 13.67,
+          "type": "word"
+        },
+        {
+          "index": 5,
+          "start": 64.503,
+          "end": 79.046,
+          "length": 14.54,
+          "type": "word"
+        }
+      ]
+    },
+    {
+      "page": "011",
+      "duration": 78.37,
+      "num_segments": 6,
+      "segments": [
+        {
+          "index": 0,
+          "start": 0.0,
+          "end": 12.248,
+          "length": 12.25,
+          "type": "word"
+        },
+        {
+          "index": 1,
+          "start": 12.248,
+          "end": 24.418,
+          "length": 12.17,
+          "type": "word"
+        },
+        {
+          "index": 2,
+          "start": 24.418,
+          "end": 37.353,
+          "length": 12.94,
+          "type": "word"
+        },
+        {
+          "index": 3,
+          "start": 37.353,
+          "end": 51.34,
+          "length": 13.99,
+          "type": "word"
+        },
+        {
+          "index": 4,
+          "start": 51.34,
+          "end": 64.133,
+          "length": 12.79,
+          "type": "word"
+        },
+        {
+          "index": 5,
+          "start": 64.133,
+          "end": 78.367,
+          "length": 14.23,
+          "type": "word"
+        }
+      ]
+    },
+    {
+      "page": "012",
+      "duration": 78.86,
+      "num_segments": 6,
+      "segments": [
+        {
+          "index": 0,
+          "start": 0.0,
+          "end": 12.234,
+          "length": 12.23,
+          "type": "word"
+        },
+        {
+          "index": 1,
+          "start": 12.234,
+          "end": 26.037,
+          "length": 13.8,
+          "type": "word"
+        },
+        {
+          "index": 2,
+          "start": 26.037,
+          "end": 38.691,
+          "length": 12.65,
+          "type": "word"
+        },
+        {
+          "index": 3,
+          "start": 38.691,
+          "end": 51.825,
+          "length": 13.13,
+          "type": "word"
+        },
+        {
+          "index": 4,
+          "start": 51.825,
+          "end": 64.61,
+          "length": 12.78,
+          "type": "word"
+        },
+        {
+          "index": 5,
+          "start": 64.61,
+          "end": 78.864,
+          "length": 14.25,
+          "type": "word"
+        }
+      ]
+    },
+    {
+      "page": "013",
+      "duration": 83.88,
+      "num_segments": 6,
+      "segments": [
+        {
+          "index": 0,
+          "start": 0.0,
+          "end": 14.728,
+          "length": 14.73,
+          "type": "word"
+        },
+        {
+          "index": 1,
+          "start": 14.728,
+          "end": 27.469,
+          "length": 12.74,
+          "type": "word"
+        },
+        {
+          "index": 2,
+          "start": 27.469,
+          "end": 42.074,
+          "length": 14.6,
+          "type": "word"
+        },
+        {
+          "index": 3,
+          "start": 42.074,
+          "end": 56.837,
+          "length": 14.76,
+          "type": "word"
+        },
+        {
+          "index": 4,
+          "start": 56.837,
+          "end": 70.067,
+          "length": 13.23,
+          "type": "word"
+        },
+        {
+          "index": 5,
+          "start": 70.067,
+          "end": 83.879,
+          "length": 13.81,
+          "type": "word"
+        }
+      ]
+    },
+    {
+      "page": "014",
+      "duration": 83.23,
+      "num_segments": 6,
+      "segments": [
+        {
+          "index": 0,
+          "start": 0.0,
+          "end": 13.771,
+          "length": 13.77,
+          "type": "word"
+        },
+        {
+          "index": 1,
+          "start": 13.771,
+          "end": 28.75,
+          "length": 14.98,
+          "type": "word"
+        },
+        {
+          "index": 2,
+          "start": 28.75,
+          "end": 41.871,
+          "length": 13.12,
+          "type": "word"
+        },
+        {
+          "index": 3,
+          "start": 41.871,
+          "end": 55.174,
+          "length": 13.3,
+          "type": "word"
+        },
+        {
+          "index": 4,
+          "start": 55.174,
+          "end": 68.05,
+          "length": 12.88,
+          "type": "word"
+        },
+        {
+          "index": 5,
+          "start": 68.05,
+          "end": 83.226,
+          "length": 15.18,
+          "type": "word"
+        }
+      ]
+    },
+    {
+      "page": "015",
+      "duration": 88.63,
+      "num_segments": 6,
+      "segments": [
+        {
+          "index": 0,
+          "start": 0.0,
+          "end": 12.602,
+          "length": 12.6,
+          "type": "word"
+        },
+        {
+          "index": 1,
+          "start": 12.602,
+          "end": 27.937,
+          "length": 15.34,
+          "type": "word"
+        },
+        {
+          "index": 2,
+          "start": 27.937,
+          "end": 43.834,
+          "length": 15.9,
+          "type": "word"
+        },
+        {
+          "index": 3,
+          "start": 43.834,
+          "end": 57.995,
+          "length": 14.16,
+          "type": "word"
+        },
+        {
+          "index": 4,
+          "start": 57.995,
+          "end": 73.271,
+          "length": 15.28,
+          "type": "word"
+        },
+        {
+          "index": 5,
+          "start": 73.271,
+          "end": 88.633,
+          "length": 15.36,
+          "type": "word"
+        }
+      ]
+    },
+    {
+      "page": "016",
+      "duration": 83.54,
+      "num_segments": 6,
+      "segments": [
+        {
+          "index": 0,
+          "start": 0.0,
+          "end": 12.412,
+          "length": 12.41,
+          "type": "word"
+        },
+        {
+          "index": 1,
+          "start": 12.412,
+          "end": 25.9,
+          "length": 13.49,
+          "type": "word"
+        },
+        {
+          "index": 2,
+          "start": 25.9,
+          "end": 39.016,
+          "length": 13.12,
+          "type": "word"
+        },
+        {
+          "index": 3,
+          "start": 39.016,
+          "end": 52.083,
+          "length": 13.07,
+          "type": "word"
+        },
+        {
+          "index": 4,
+          "start": 52.083,
+          "end": 68.004,
+          "length": 15.92,
+          "type": "word"
+        },
+        {
+          "index": 5,
+          "start": 68.004,
+          "end": 83.54,
+          "length": 15.54,
+          "type": "word"
+        }
+      ]
+    },
+    {
+      "page": "017",
+      "duration": 86.65,
+      "num_segments": 6,
+      "segments": [
+        {
+          "index": 0,
+          "start": 0.0,
+          "end": 12.353,
+          "length": 12.35,
+          "type": "word"
+        },
+        {
+          "index": 1,
+          "start": 12.353,
+          "end": 26.96,
+          "length": 14.61,
+          "type": "word"
+        },
+        {
+          "index": 2,
+          "start": 26.96,
+          "end": 40.247,
+          "length": 13.29,
+          "type": "word"
+        },
+        {
+          "index": 3,
+          "start": 40.247,
+          "end": 55.23,
+          "length": 14.98,
+          "type": "word"
+        },
+        {
+          "index": 4,
+          "start": 55.23,
+          "end": 71.71,
+          "length": 16.48,
+          "type": "word"
+        },
+        {
+          "index": 5,
+          "start": 71.71,
+          "end": 86.648,
+          "length": 14.94,
+          "type": "word"
+        }
+      ]
+    },
+    {
+      "page": "018",
+      "duration": 85.32,
+      "num_segments": 6,
+      "segments": [
+        {
+          "index": 0,
+          "start": 0.0,
+          "end": 13.668,
+          "length": 13.67,
+          "type": "word"
+        },
+        {
+          "index": 1,
+          "start": 13.668,
+          "end": 28.422,
+          "length": 14.75,
+          "type": "word"
+        },
+        {
+          "index": 2,
+          "start": 28.422,
+          "end": 41.536,
+          "length": 13.11,
+          "type": "word"
+        },
+        {
+          "index": 3,
+          "start": 41.536,
+          "end": 55.452,
+          "length": 13.92,
+          "type": "word"
+        },
+        {
+          "index": 4,
+          "start": 55.452,
+          "end": 71.445,
+          "length": 15.99,
+          "type": "word"
+        },
+        {
+          "index": 5,
+          "start": 71.445,
+          "end": 85.316,
+          "length": 13.87,
+          "type": "word"
+        }
+      ]
+    },
+    {
+      "page": "019",
+      "duration": 83.46,
+      "num_segments": 6,
+      "segments": [
+        {
+          "index": 0,
+          "start": 0.0,
+          "end": 12.377,
+          "length": 12.38,
+          "type": "word"
+        },
+        {
+          "index": 1,
+          "start": 12.377,
+          "end": 25.514,
+          "length": 13.14,
+          "type": "word"
+        },
+        {
+          "index": 2,
+          "start": 25.514,
+          "end": 39.005,
+          "length": 13.49,
+          "type": "word"
+        },
+        {
+          "index": 3,
+          "start": 39.005,
+          "end": 52.344,
+          "length": 13.34,
+          "type": "word"
+        },
+        {
+          "index": 4,
+          "start": 52.344,
+          "end": 66.305,
+          "length": 13.96,
+          "type": "word"
+        },
+        {
+          "index": 5,
+          "start": 66.305,
+          "end": 83.461,
+          "length": 17.16,
+          "type": "word"
+        }
+      ]
+    },
+    {
+      "page": "020",
+      "duration": 82.08,
+      "num_segments": 6,
+      "segments": [
+        {
+          "index": 0,
+          "start": 0.0,
+          "end": 13.05,
+          "length": 13.05,
+          "type": "word"
+        },
+        {
+          "index": 1,
+          "start": 13.05,
+          "end": 26.026,
+          "length": 12.98,
+          "type": "word"
+        },
+        {
+          "index": 2,
+          "start": 26.026,
+          "end": 39.408,
+          "length": 13.38,
+          "type": "word"
+        },
+        {
+          "index": 3,
+          "start": 39.408,
+          "end": 54.312,
+          "length": 14.9,
+          "type": "word"
+        },
+        {
+          "index": 4,
+          "start": 54.312,
+          "end": 66.397,
+          "length": 12.09,
+          "type": "word"
+        },
+        {
+          "index": 5,
+          "start": 66.397,
+          "end": 82.077,
+          "length": 15.68,
+          "type": "word"
+        }
+      ]
+    },
+    {
+      "page": "021",
+      "duration": 87.85,
+      "num_segments": 6,
+      "segments": [
+        {
+          "index": 0,
+          "start": 0.0,
+          "end": 14.867,
+          "length": 14.87,
+          "type": "word"
+        },
+        {
+          "index": 1,
+          "start": 14.867,
+          "end": 30.421,
+          "length": 15.55,
+          "type": "word"
+        },
+        {
+          "index": 2,
+          "start": 30.421,
+          "end": 44.825,
+          "length": 14.4,
+          "type": "word"
+        },
+        {
+          "index": 3,
+          "start": 44.825,
+          "end": 58.936,
+          "length": 14.11,
+          "type": "word"
+        },
+        {
+          "index": 4,
+          "start": 58.936,
+          "end": 72.343,
+          "length": 13.41,
+          "type": "word"
+        },
+        {
+          "index": 5,
+          "start": 72.343,
+          "end": 87.85,
+          "length": 15.51,
+          "type": "word"
+        }
+      ]
+    },
+    {
+      "page": "022",
+      "duration": 83.17,
+      "num_segments": 6,
+      "segments": [
+        {
+          "index": 0,
+          "start": 0.0,
+          "end": 12.622,
+          "length": 12.62,
+          "type": "word"
+        },
+        {
+          "index": 1,
+          "start": 12.622,
+          "end": 27.636,
+          "length": 15.01,
+          "type": "word"
+        },
+        {
+          "index": 2,
+          "start": 27.636,
+          "end": 42.244,
+          "length": 14.61,
+          "type": "word"
+        },
+        {
+          "index": 3,
+          "start": 42.244,
+          "end": 55.509,
+          "length": 13.27,
+          "type": "word"
+        },
+        {
+          "index": 4,
+          "start": 55.509,
+          "end": 67.69,
+          "length": 12.18,
+          "type": "word"
+        },
+        {
+          "index": 5,
+          "start": 67.69,
+          "end": 83.174,
+          "length": 15.48,
+          "type": "word"
+        }
+      ]
+    },
+    {
+      "page": "023",
+      "duration": 86.44,
+      "num_segments": 6,
+      "segments": [
+        {
+          "index": 0,
+          "start": 0.0,
+          "end": 16.265,
+          "length": 16.27,
+          "type": "word"
+        },
+        {
+          "index": 1,
+          "start": 16.265,
+          "end": 28.46,
+          "length": 12.2,
+          "type": "word"
+        },
+        {
+          "index": 2,
+          "start": 28.46,
+          "end": 43.401,
+          "length": 14.94,
+          "type": "word"
+        },
+        {
+          "index": 3,
+          "start": 43.401,
+          "end": 57.45,
+          "length": 14.05,
+          "type": "word"
+        },
+        {
+          "index": 4,
+          "start": 57.45,
+          "end": 71.538,
+          "length": 14.09,
+          "type": "word"
+        },
+        {
+          "index": 5,
+          "start": 71.538,
+          "end": 86.439,
+          "length": 14.9,
+          "type": "word"
+        }
+      ]
+    },
+    {
+      "page": "024",
+      "duration": 85.03,
+      "num_segments": 6,
+      "segments": [
+        {
+          "index": 0,
+          "start": 0.0,
+          "end": 14.386,
+          "length": 14.39,
+          "type": "word"
+        },
+        {
+          "index": 1,
+          "start": 14.386,
+          "end": 28.401,
+          "length": 14.02,
+          "type": "word"
+        },
+        {
+          "index": 2,
+          "start": 28.401,
+          "end": 41.376,
+          "length": 12.97,
+          "type": "word"
+        },
+        {
+          "index": 3,
+          "start": 41.376,
+          "end": 56.788,
+          "length": 15.41,
+          "type": "word"
+        },
+        {
+          "index": 4,
+          "start": 56.788,
+          "end": 71.551,
+          "length": 14.76,
+          "type": "word"
+        },
+        {
+          "index": 5,
+          "start": 71.551,
+          "end": 85.029,
+          "length": 13.48,
+          "type": "word"
+        }
+      ]
+    },
+    {
+      "page": "025",
+      "duration": 80.9,
+      "num_segments": 6,
+      "segments": [
+        {
+          "index": 0,
+          "start": 0.0,
+          "end": 14.748,
+          "length": 14.75,
+          "type": "word"
+        },
+        {
+          "index": 1,
+          "start": 14.748,
+          "end": 28.016,
+          "length": 13.27,
+          "type": "word"
+        },
+        {
+          "index": 2,
+          "start": 28.016,
+          "end": 39.637,
+          "length": 11.62,
+          "type": "word"
+        },
+        {
+          "index": 3,
+          "start": 39.637,
+          "end": 52.703,
+          "length": 13.07,
+          "type": "word"
+        },
+        {
+          "index": 4,
+          "start": 52.703,
+          "end": 65.885,
+          "length": 13.18,
+          "type": "word"
+        },
+        {
+          "index": 5,
+          "start": 65.885,
+          "end": 80.901,
+          "length": 15.02,
+          "type": "word"
+        }
+      ]
+    },
+    {
+      "page": "026",
+      "duration": 80.14,
+      "num_segments": 6,
+      "segments": [
+        {
+          "index": 0,
+          "start": 0.0,
+          "end": 11.801,
+          "length": 11.8,
+          "type": "word"
+        },
+        {
+          "index": 1,
+          "start": 11.801,
+          "end": 25.194,
+          "length": 13.39,
+          "type": "word"
+        },
+        {
+          "index": 2,
+          "start": 25.194,
+          "end": 40.144,
+          "length": 14.95,
+          "type": "word"
+        },
+        {
+          "index": 3,
+          "start": 40.144,
+          "end": 53.768,
+          "length": 13.62,
+          "type": "word"
+        },
+        {
+          "index": 4,
+          "start": 53.768,
+          "end": 67.004,
+          "length": 13.24,
+          "type": "word"
+        },
+        {
+          "index": 5,
+          "start": 67.004,
+          "end": 80.144,
+          "length": 13.14,
+          "type": "word"
+        }
+      ]
+    },
+    {
+      "page": "027",
+      "duration": 86.07,
+      "num_segments": 6,
+      "segments": [
+        {
+          "index": 0,
+          "start": 0.0,
+          "end": 14.29,
+          "length": 14.29,
+          "type": "word"
+        },
+        {
+          "index": 1,
+          "start": 14.29,
+          "end": 29.167,
+          "length": 14.88,
+          "type": "word"
+        },
+        {
+          "index": 2,
+          "start": 29.167,
+          "end": 43.751,
+          "length": 14.58,
+          "type": "word"
+        },
+        {
+          "index": 3,
+          "start": 43.751,
+          "end": 58.941,
+          "length": 15.19,
+          "type": "word"
+        },
+        {
+          "index": 4,
+          "start": 58.941,
+          "end": 71.777,
+          "length": 12.84,
+          "type": "word"
+        },
+        {
+          "index": 5,
+          "start": 71.777,
+          "end": 86.073,
+          "length": 14.3,
+          "type": "word"
+        }
+      ]
+    },
+    {
+      "page": "028",
+      "duration": 81.19,
+      "num_segments": 6,
+      "segments": [
+        {
+          "index": 0,
+          "start": 0.0,
+          "end": 13.247,
+          "length": 13.25,
+          "type": "word"
+        },
+        {
+          "index": 1,
+          "start": 13.247,
+          "end": 23.964,
+          "length": 10.72,
+          "type": "word"
+        },
+        {
+          "index": 2,
+          "start": 23.964,
+          "end": 36.475,
+          "length": 12.51,
+          "type": "word"
+        },
+        {
+          "index": 3,
+          "start": 36.475,
+          "end": 49.891,
+          "length": 13.42,
+          "type": "word"
+        },
+        {
+          "index": 4,
+          "start": 49.891,
+          "end": 65.967,
+          "length": 16.08,
+          "type": "word"
+        },
+        {
+          "index": 5,
+          "start": 65.967,
+          "end": 81.189,
+          "length": 15.22,
+          "type": "word"
+        }
+      ]
+    },
+    {
+      "page": "029",
+      "duration": 84.51,
+      "num_segments": 6,
+      "segments": [
+        {
+          "index": 0,
+          "start": 0.0,
+          "end": 14.899,
+          "length": 14.9,
+          "type": "word"
+        },
+        {
+          "index": 1,
+          "start": 14.899,
+          "end": 28.871,
+          "length": 13.97,
+          "type": "word"
+        },
+        {
+          "index": 2,
+          "start": 28.871,
+          "end": 42.22,
+          "length": 13.35,
+          "type": "word"
+        },
+        {
+          "index": 3,
+          "start": 42.22,
+          "end": 55.246,
+          "length": 13.03,
+          "type": "word"
+        },
+        {
+          "index": 4,
+          "start": 55.246,
+          "end": 70.292,
+          "length": 15.05,
+          "type": "word"
+        },
+        {
+          "index": 5,
+          "start": 70.292,
+          "end": 84.506,
+          "length": 14.21,
+          "type": "word"
+        }
+      ]
+    },
+    {
+      "page": "030",
+      "duration": 87.43,
+      "num_segments": 6,
+      "segments": [
+        {
+          "index": 0,
+          "start": 0.0,
+          "end": 15.302,
+          "length": 15.3,
+          "type": "word"
+        },
+        {
+          "index": 1,
+          "start": 15.302,
+          "end": 27.89,
+          "length": 12.59,
+          "type": "word"
+        },
+        {
+          "index": 2,
+          "start": 27.89,
+          "end": 43.089,
+          "length": 15.2,
+          "type": "word"
+        },
+        {
+          "index": 3,
+          "start": 43.089,
+          "end": 58.626,
+          "length": 15.54,
+          "type": "word"
+        },
+        {
+          "index": 4,
+          "start": 58.626,
+          "end": 72.462,
+          "length": 13.84,
+          "type": "word"
+        },
+        {
+          "index": 5,
+          "start": 72.462,
+          "end": 87.432,
+          "length": 14.97,
+          "type": "word"
+        }
+      ]
+    },
+    {
+      "page": "031",
+      "duration": 86.36,
+      "num_segments": 6,
+      "segments": [
+        {
+          "index": 0,
+          "start": 0.0,
+          "end": 12.113,
+          "length": 12.11,
+          "type": "word"
+        },
+        {
+          "index": 1,
+          "start": 12.113,
+          "end": 27.399,
+          "length": 15.29,
+          "type": "word"
+        },
+        {
+          "index": 2,
+          "start": 27.399,
+          "end": 41.667,
+          "length": 14.27,
+          "type": "word"
+        },
+        {
+          "index": 3,
+          "start": 41.667,
+          "end": 56.967,
+          "length": 15.3,
+          "type": "word"
+        },
+        {
+          "index": 4,
+          "start": 56.967,
+          "end": 70.551,
+          "length": 13.58,
+          "type": "word"
+        },
+        {
+          "index": 5,
+          "start": 70.551,
+          "end": 86.361,
+          "length": 15.81,
+          "type": "word"
+        }
+      ]
+    },
+    {
+      "page": "032",
+      "duration": 87.88,
+      "num_segments": 6,
+      "segments": [
+        {
+          "index": 0,
+          "start": 0.0,
+          "end": 14.004,
+          "length": 14.0,
+          "type": "word"
+        },
+        {
+          "index": 1,
+          "start": 14.004,
+          "end": 28.578,
+          "length": 14.57,
+          "type": "word"
+        },
+        {
+          "index": 2,
+          "start": 28.578,
+          "end": 43.364,
+          "length": 14.79,
+          "type": "word"
+        },
+        {
+          "index": 3,
+          "start": 43.364,
+          "end": 58.062,
+          "length": 14.7,
+          "type": "word"
+        },
+        {
+          "index": 4,
+          "start": 58.062,
+          "end": 72.037,
+          "length": 13.98,
+          "type": "word"
+        },
+        {
+          "index": 5,
+          "start": 72.037,
+          "end": 87.876,
+          "length": 15.84,
+          "type": "word"
+        }
+      ]
+    },
+    {
+      "page": "033",
+      "duration": 89.03,
+      "num_segments": 6,
+      "segments": [
+        {
+          "index": 0,
+          "start": 0.0,
+          "end": 17.848,
+          "length": 17.85,
+          "type": "word"
+        },
+        {
+          "index": 1,
+          "start": 17.848,
+          "end": 32.559,
+          "length": 14.71,
+          "type": "word"
+        },
+        {
+          "index": 2,
+          "start": 32.559,
+          "end": 48.003,
+          "length": 15.44,
+          "type": "word"
+        },
+        {
+          "index": 3,
+          "start": 48.003,
+          "end": 60.823,
+          "length": 12.82,
+          "type": "word"
+        },
+        {
+          "index": 4,
+          "start": 60.823,
+          "end": 74.255,
+          "length": 13.43,
+          "type": "word"
+        },
+        {
+          "index": 5,
+          "start": 74.255,
+          "end": 89.025,
+          "length": 14.77,
+          "type": "word"
+        }
+      ]
+    },
+    {
+      "page": "034",
+      "duration": 92.6,
+      "num_segments": 6,
+      "segments": [
+        {
+          "index": 0,
+          "start": 0.0,
+          "end": 16.71,
+          "length": 16.71,
+          "type": "word"
+        },
+        {
+          "index": 1,
+          "start": 16.71,
+          "end": 31.644,
+          "length": 14.93,
+          "type": "word"
+        },
+        {
+          "index": 2,
+          "start": 31.644,
+          "end": 47.252,
+          "length": 15.61,
+          "type": "word"
+        },
+        {
+          "index": 3,
+          "start": 47.252,
+          "end": 60.867,
+          "length": 13.61,
+          "type": "word"
+        },
+        {
+          "index": 4,
+          "start": 60.867,
+          "end": 77.063,
+          "length": 16.2,
+          "type": "word"
+        },
+        {
+          "index": 5,
+          "start": 77.063,
+          "end": 92.604,
+          "length": 15.54,
+          "type": "word"
+        }
+      ]
+    },
+    {
+      "page": "035",
+      "duration": 84.9,
+      "num_segments": 6,
+      "segments": [
+        {
+          "index": 0,
+          "start": 0.0,
+          "end": 12.939,
+          "length": 12.94,
+          "type": "word"
+        },
+        {
+          "index": 1,
+          "start": 12.939,
+          "end": 28.489,
+          "length": 15.55,
+          "type": "word"
+        },
+        {
+          "index": 2,
+          "start": 28.489,
+          "end": 42.434,
+          "length": 13.94,
+          "type": "word"
+        },
+        {
+          "index": 3,
+          "start": 42.434,
+          "end": 54.829,
+          "length": 12.4,
+          "type": "word"
+        },
+        {
+          "index": 4,
+          "start": 54.829,
+          "end": 69.501,
+          "length": 14.67,
+          "type": "word"
+        },
+        {
+          "index": 5,
+          "start": 69.501,
+          "end": 84.898,
+          "length": 15.4,
+          "type": "word"
+        }
+      ]
+    },
+    {
+      "page": "036",
+      "duration": 79.88,
+      "num_segments": 6,
+      "segments": [
+        {
+          "index": 0,
+          "start": 0.0,
+          "end": 12.516,
+          "length": 12.52,
+          "type": "word"
+        },
+        {
+          "index": 1,
+          "start": 12.516,
+          "end": 25.306,
+          "length": 12.79,
+          "type": "word"
+        },
+        {
+          "index": 2,
+          "start": 25.306,
+          "end": 40.024,
+          "length": 14.72,
+          "type": "word"
+        },
+        {
+          "index": 3,
+          "start": 40.024,
+          "end": 53.161,
+          "length": 13.14,
+          "type": "word"
+        },
+        {
+          "index": 4,
+          "start": 53.161,
+          "end": 65.876,
+          "length": 12.72,
+          "type": "word"
+        },
+        {
+          "index": 5,
+          "start": 65.876,
+          "end": 79.882,
+          "length": 14.01,
+          "type": "word"
+        }
+      ]
+    },
+    {
+      "page": "037",
+      "duration": 84.17,
+      "num_segments": 6,
+      "segments": [
+        {
+          "index": 0,
+          "start": 0.0,
+          "end": 13.426,
+          "length": 13.43,
+          "type": "word"
+        },
+        {
+          "index": 1,
+          "start": 13.426,
+          "end": 27.098,
+          "length": 13.67,
+          "type": "word"
+        },
+        {
+          "index": 2,
+          "start": 27.098,
+          "end": 40.814,
+          "length": 13.72,
+          "type": "word"
+        },
+        {
+          "index": 3,
+          "start": 40.814,
+          "end": 53.543,
+          "length": 12.73,
+          "type": "word"
+        },
+        {
+          "index": 4,
+          "start": 53.543,
+          "end": 66.85,
+          "length": 13.31,
+          "type": "word"
+        },
+        {
+          "index": 5,
+          "start": 66.85,
+          "end": 84.166,
+          "length": 17.32,
+          "type": "word"
+        }
+      ]
+    },
+    {
+      "page": "038",
+      "duration": 85.86,
+      "num_segments": 6,
+      "segments": [
+        {
+          "index": 0,
+          "start": 0.0,
+          "end": 14.763,
+          "length": 14.76,
+          "type": "word"
+        },
+        {
+          "index": 1,
+          "start": 14.763,
+          "end": 29.187,
+          "length": 14.42,
+          "type": "word"
+        },
+        {
+          "index": 2,
+          "start": 29.187,
+          "end": 44.416,
+          "length": 15.23,
+          "type": "word"
+        },
+        {
+          "index": 3,
+          "start": 44.416,
+          "end": 58.186,
+          "length": 13.77,
+          "type": "word"
+        },
+        {
+          "index": 4,
+          "start": 58.186,
+          "end": 71.577,
+          "length": 13.39,
+          "type": "word"
+        },
+        {
+          "index": 5,
+          "start": 71.577,
+          "end": 85.864,
+          "length": 14.29,
+          "type": "word"
+        }
+      ]
+    },
+    {
+      "page": "039",
+      "duration": 86.57,
+      "num_segments": 6,
+      "segments": [
+        {
+          "index": 0,
+          "start": 0.0,
+          "end": 12.6,
+          "length": 12.6,
+          "type": "word"
+        },
+        {
+          "index": 1,
+          "start": 12.6,
+          "end": 28.18,
+          "length": 15.58,
+          "type": "word"
+        },
+        {
+          "index": 2,
+          "start": 28.18,
+          "end": 43.581,
+          "length": 15.4,
+          "type": "word"
+        },
+        {
+          "index": 3,
+          "start": 43.581,
+          "end": 57.269,
+          "length": 13.69,
+          "type": "word"
+        },
+        {
+          "index": 4,
+          "start": 57.269,
+          "end": 70.076,
+          "length": 12.81,
+          "type": "word"
+        },
+        {
+          "index": 5,
+          "start": 70.076,
+          "end": 86.57,
+          "length": 16.49,
+          "type": "word"
+        }
+      ]
+    },
+    {
+      "page": "040",
+      "duration": 90.51,
+      "num_segments": 6,
+      "segments": [
+        {
+          "index": 0,
+          "start": 0.0,
+          "end": 18.018,
+          "length": 18.02,
+          "type": "word"
+        },
+        {
+          "index": 1,
+          "start": 18.018,
+          "end": 33.207,
+          "length": 15.19,
+          "type": "word"
+        },
+        {
+          "index": 2,
+          "start": 33.207,
+          "end": 46.763,
+          "length": 13.56,
+          "type": "word"
+        },
+        {
+          "index": 3,
+          "start": 46.763,
+          "end": 62.622,
+          "length": 15.86,
+          "type": "word"
+        },
+        {
+          "index": 4,
+          "start": 62.622,
+          "end": 76.071,
+          "length": 13.45,
+          "type": "word"
+        },
+        {
+          "index": 5,
+          "start": 76.071,
+          "end": 90.514,
+          "length": 14.44,
+          "type": "word"
+        }
+      ]
+    },
+    {
+      "page": "041",
+      "duration": 84.38,
+      "num_segments": 6,
+      "segments": [
+        {
+          "index": 0,
+          "start": 0.0,
+          "end": 15.292,
+          "length": 15.29,
+          "type": "word"
+        },
+        {
+          "index": 1,
+          "start": 15.292,
+          "end": 28.69,
+          "length": 13.4,
+          "type": "word"
+        },
+        {
+          "index": 2,
+          "start": 28.69,
+          "end": 42.771,
+          "length": 14.08,
+          "type": "word"
+        },
+        {
+          "index": 3,
+          "start": 42.771,
+          "end": 55.758,
+          "length": 12.99,
+          "type": "word"
+        },
+        {
+          "index": 4,
+          "start": 55.758,
+          "end": 68.618,
+          "length": 12.86,
+          "type": "word"
+        },
+        {
+          "index": 5,
+          "start": 68.618,
+          "end": 84.376,
+          "length": 15.76,
+          "type": "word"
+        }
+      ]
+    },
+    {
+      "page": "042",
+      "duration": 88.5,
+      "num_segments": 6,
+      "segments": [
+        {
+          "index": 0,
+          "start": 0.0,
+          "end": 16.728,
+          "length": 16.73,
+          "type": "word"
+        },
+        {
+          "index": 1,
+          "start": 16.728,
+          "end": 30.404,
+          "length": 13.68,
+          "type": "word"
+        },
+        {
+          "index": 2,
+          "start": 30.404,
+          "end": 44.651,
+          "length": 14.25,
+          "type": "word"
+        },
+        {
+          "index": 3,
+          "start": 44.651,
+          "end": 60.21,
+          "length": 15.56,
+          "type": "word"
+        },
+        {
+          "index": 4,
+          "start": 60.21,
+          "end": 73.325,
+          "length": 13.12,
+          "type": "word"
+        },
+        {
+          "index": 5,
+          "start": 73.325,
+          "end": 88.503,
+          "length": 15.18,
+          "type": "word"
+        }
+      ]
+    },
+    {
+      "page": "043",
+      "duration": 90.91,
+      "num_segments": 6,
+      "segments": [
+        {
+          "index": 0,
+          "start": 0.0,
+          "end": 13.501,
+          "length": 13.5,
+          "type": "word"
+        },
+        {
+          "index": 1,
+          "start": 13.501,
+          "end": 29.033,
+          "length": 15.53,
+          "type": "word"
+        },
+        {
+          "index": 2,
+          "start": 29.033,
+          "end": 44.332,
+          "length": 15.3,
+          "type": "word"
+        },
+        {
+          "index": 3,
+          "start": 44.332,
+          "end": 58.558,
+          "length": 14.23,
+          "type": "word"
+        },
+        {
+          "index": 4,
+          "start": 58.558,
+          "end": 74.436,
+          "length": 15.88,
+          "type": "word"
+        },
+        {
+          "index": 5,
+          "start": 74.436,
+          "end": 90.906,
+          "length": 16.47,
+          "type": "word"
+        }
+      ]
+    },
+    {
+      "page": "044",
+      "duration": 88.03,
+      "num_segments": 6,
+      "segments": [
+        {
+          "index": 0,
+          "start": 0.0,
+          "end": 18.832,
+          "length": 18.83,
+          "type": "word"
+        },
+        {
+          "index": 1,
+          "start": 18.832,
+          "end": 30.902,
+          "length": 12.07,
+          "type": "word"
+        },
+        {
+          "index": 2,
+          "start": 30.902,
+          "end": 45.742,
+          "length": 14.84,
+          "type": "word"
+        },
+        {
+          "index": 3,
+          "start": 45.742,
+          "end": 60.27,
+          "length": 14.53,
+          "type": "word"
+        },
+        {
+          "index": 4,
+          "start": 60.27,
+          "end": 73.258,
+          "length": 12.99,
+          "type": "word"
+        },
+        {
+          "index": 5,
+          "start": 73.258,
+          "end": 88.033,
+          "length": 14.78,
+          "type": "word"
+        }
+      ]
+    },
+    {
+      "page": "045",
+      "duration": 84.74,
+      "num_segments": 6,
+      "segments": [
+        {
+          "index": 0,
+          "start": 0.0,
+          "end": 14.758,
+          "length": 14.76,
+          "type": "word"
+        },
+        {
+          "index": 1,
+          "start": 14.758,
+          "end": 27.499,
+          "length": 12.74,
+          "type": "word"
+        },
+        {
+          "index": 2,
+          "start": 27.499,
+          "end": 41.402,
+          "length": 13.9,
+          "type": "word"
+        },
+        {
+          "index": 3,
+          "start": 41.402,
+          "end": 54.837,
+          "length": 13.44,
+          "type": "word"
+        },
+        {
+          "index": 4,
+          "start": 54.837,
+          "end": 70.024,
+          "length": 15.19,
+          "type": "word"
+        },
+        {
+          "index": 5,
+          "start": 70.024,
+          "end": 84.741,
+          "length": 14.72,
+          "type": "word"
+        }
+      ]
+    },
+    {
+      "page": "046",
+      "duration": 83.88,
+      "num_segments": 6,
+      "segments": [
+        {
+          "index": 0,
+          "start": 0.0,
+          "end": 15.179,
+          "length": 15.18,
+          "type": "word"
+        },
+        {
+          "index": 1,
+          "start": 15.179,
+          "end": 28.916,
+          "length": 13.74,
+          "type": "word"
+        },
+        {
+          "index": 2,
+          "start": 28.916,
+          "end": 43.241,
+          "length": 14.32,
+          "type": "word"
+        },
+        {
+          "index": 3,
+          "start": 43.241,
+          "end": 55.874,
+          "length": 12.63,
+          "type": "word"
+        },
+        {
+          "index": 4,
+          "start": 55.874,
+          "end": 67.897,
+          "length": 12.02,
+          "type": "word"
+        },
+        {
+          "index": 5,
+          "start": 67.897,
+          "end": 83.879,
+          "length": 15.98,
+          "type": "word"
+        }
+      ]
+    },
+    {
+      "page": "047",
+      "duration": 92.92,
+      "num_segments": 6,
+      "segments": [
+        {
+          "index": 0,
+          "start": 0.0,
+          "end": 18.422,
+          "length": 18.42,
+          "type": "word"
+        },
+        {
+          "index": 1,
+          "start": 18.422,
+          "end": 32.79,
+          "length": 14.37,
+          "type": "word"
+        },
+        {
+          "index": 2,
+          "start": 32.79,
+          "end": 48.581,
+          "length": 15.79,
+          "type": "word"
+        },
+        {
+          "index": 3,
+          "start": 48.581,
+          "end": 61.541,
+          "length": 12.96,
+          "type": "word"
+        },
+        {
+          "index": 4,
+          "start": 61.541,
+          "end": 76.214,
+          "length": 14.67,
+          "type": "word"
+        },
+        {
+          "index": 5,
+          "start": 76.214,
+          "end": 92.918,
+          "length": 16.7,
+          "type": "word"
+        }
+      ]
+    },
+    {
+      "page": "048",
+      "duration": 97.07,
+      "num_segments": 6,
+      "segments": [
+        {
+          "index": 0,
+          "start": 0.0,
+          "end": 18.692,
+          "length": 18.69,
+          "type": "word"
+        },
+        {
+          "index": 1,
+          "start": 18.692,
+          "end": 34.463,
+          "length": 15.77,
+          "type": "word"
+        },
+        {
+          "index": 2,
+          "start": 34.463,
+          "end": 50.097,
+          "length": 15.63,
+          "type": "word"
+        },
+        {
+          "index": 3,
+          "start": 50.097,
+          "end": 66.163,
+          "length": 16.07,
+          "type": "word"
+        },
+        {
+          "index": 4,
+          "start": 66.163,
+          "end": 81.051,
+          "length": 14.89,
+          "type": "word"
+        },
+        {
+          "index": 5,
+          "start": 81.051,
+          "end": 97.071,
+          "length": 16.02,
+          "type": "word"
+        }
+      ]
+    },
+    {
+      "page": "049",
+      "duration": 91.69,
+      "num_segments": 6,
+      "segments": [
+        {
+          "index": 0,
+          "start": 0.0,
+          "end": 19.863,
+          "length": 19.86,
+          "type": "word"
+        },
+        {
+          "index": 1,
+          "start": 19.863,
+          "end": 31.974,
+          "length": 12.11,
+          "type": "word"
+        },
+        {
+          "index": 2,
+          "start": 31.974,
+          "end": 46.019,
+          "length": 14.04,
+          "type": "word"
+        },
+        {
+          "index": 3,
+          "start": 46.019,
+          "end": 58.199,
+          "length": 12.18,
+          "type": "word"
+        },
+        {
+          "index": 4,
+          "start": 58.199,
+          "end": 73.099,
+          "length": 14.9,
+          "type": "word"
+        },
+        {
+          "index": 5,
+          "start": 73.099,
+          "end": 91.69,
+          "length": 18.59,
+          "type": "word"
+        }
+      ]
+    },
+    {
+      "page": "050",
+      "duration": 94.04,
+      "num_segments": 7,
+      "segments": [
+        {
+          "index": 0,
+          "start": 0.0,
+          "end": 17.721,
+          "length": 17.72,
+          "type": "word"
+        },
+        {
+          "index": 1,
+          "start": 17.721,
+          "end": 33.534,
+          "length": 15.81,
+          "type": "word"
+        },
+        {
+          "index": 2,
+          "start": 33.534,
+          "end": 47.275,
+          "length": 13.74,
+          "type": "word"
+        },
+        {
+          "index": 3,
+          "start": 47.275,
+          "end": 61.844,
+          "length": 14.57,
+          "type": "word"
+        },
+        {
+          "index": 4,
+          "start": 61.844,
+          "end": 76.076,
+          "length": 14.23,
+          "type": "word"
+        },
+        {
+          "index": 5,
+          "start": 76.076,
+          "end": 92.968,
+          "length": 16.89,
+          "type": "word"
+        },
+        {
+          "index": 6,
+          "start": 92.968,
+          "end": 94.041,
+          "length": 1.07,
+          "type": "word"
+        }
+      ]
+    },
+    {
+      "page": "051",
+      "duration": 95.09,
+      "num_segments": 6,
+      "segments": [
+        {
+          "index": 0,
+          "start": 0.0,
+          "end": 20.332,
+          "length": 20.33,
+          "type": "word"
+        },
+        {
+          "index": 1,
+          "start": 20.332,
+          "end": 34.764,
+          "length": 14.43,
+          "type": "word"
+        },
+        {
+          "index": 2,
+          "start": 34.764,
+          "end": 48.915,
+          "length": 14.15,
+          "type": "word"
+        },
+        {
+          "index": 3,
+          "start": 48.915,
+          "end": 63.784,
+          "length": 14.87,
+          "type": "word"
+        },
+        {
+          "index": 4,
+          "start": 63.784,
+          "end": 78.548,
+          "length": 14.76,
+          "type": "word"
+        },
+        {
+          "index": 5,
+          "start": 78.548,
+          "end": 95.086,
+          "length": 16.54,
+          "type": "word"
+        }
+      ]
+    },
+    {
+      "page": "052",
+      "duration": 88.71,
+      "num_segments": 6,
+      "segments": [
+        {
+          "index": 0,
+          "start": 0.0,
+          "end": 13.402,
+          "length": 13.4,
+          "type": "word"
+        },
+        {
+          "index": 1,
+          "start": 13.402,
+          "end": 29.175,
+          "length": 15.77,
+          "type": "word"
+        },
+        {
+          "index": 2,
+          "start": 29.175,
+          "end": 43.227,
+          "length": 14.05,
+          "type": "word"
+        },
+        {
+          "index": 3,
+          "start": 43.227,
+          "end": 57.615,
+          "length": 14.39,
+          "type": "word"
+        },
+        {
+          "index": 4,
+          "start": 57.615,
+          "end": 73.635,
+          "length": 16.02,
+          "type": "word"
+        },
+        {
+          "index": 5,
+          "start": 73.635,
+          "end": 88.712,
+          "length": 15.08,
+          "type": "word"
+        }
+      ]
+    },
+    {
+      "page": "053",
+      "duration": 89.6,
+      "num_segments": 6,
+      "segments": [
+        {
+          "index": 0,
+          "start": 0.0,
+          "end": 14.08,
+          "length": 14.08,
+          "type": "word"
+        },
+        {
+          "index": 1,
+          "start": 14.08,
+          "end": 29.831,
+          "length": 15.75,
+          "type": "word"
+        },
+        {
+          "index": 2,
+          "start": 29.831,
+          "end": 44.834,
+          "length": 15.0,
+          "type": "word"
+        },
+        {
+          "index": 3,
+          "start": 44.834,
+          "end": 60.027,
+          "length": 15.19,
+          "type": "word"
+        },
+        {
+          "index": 4,
+          "start": 60.027,
+          "end": 74.688,
+          "length": 14.66,
+          "type": "word"
+        },
+        {
+          "index": 5,
+          "start": 74.688,
+          "end": 89.6,
+          "length": 14.91,
+          "type": "word"
+        }
+      ]
+    },
+    {
+      "page": "054",
+      "duration": 90.38,
+      "num_segments": 6,
+      "segments": [
+        {
+          "index": 0,
+          "start": 0.0,
+          "end": 15.281,
+          "length": 15.28,
+          "type": "word"
+        },
+        {
+          "index": 1,
+          "start": 15.281,
+          "end": 28.051,
+          "length": 12.77,
+          "type": "word"
+        },
+        {
+          "index": 2,
+          "start": 28.051,
+          "end": 43.078,
+          "length": 15.03,
+          "type": "word"
+        },
+        {
+          "index": 3,
+          "start": 43.078,
+          "end": 59.951,
+          "length": 16.87,
+          "type": "word"
+        },
+        {
+          "index": 4,
+          "start": 59.951,
+          "end": 75.646,
+          "length": 15.7,
+          "type": "word"
+        },
+        {
+          "index": 5,
+          "start": 75.646,
+          "end": 90.384,
+          "length": 14.74,
+          "type": "word"
+        }
+      ]
+    },
+    {
+      "page": "055",
+      "duration": 92.53,
+      "num_segments": 6,
+      "segments": [
+        {
+          "index": 0,
+          "start": 0.0,
+          "end": 14.648,
+          "length": 14.65,
+          "type": "word"
+        },
+        {
+          "index": 1,
+          "start": 14.648,
+          "end": 29.254,
+          "length": 14.61,
+          "type": "word"
+        },
+        {
+          "index": 2,
+          "start": 29.254,
+          "end": 46.849,
+          "length": 17.59,
+          "type": "word"
+        },
+        {
+          "index": 3,
+          "start": 46.849,
+          "end": 62.917,
+          "length": 16.07,
+          "type": "word"
+        },
+        {
+          "index": 4,
+          "start": 62.917,
+          "end": 78.897,
+          "length": 15.98,
+          "type": "word"
+        },
+        {
+          "index": 5,
+          "start": 78.897,
+          "end": 92.526,
+          "length": 13.63,
+          "type": "word"
+        }
+      ]
+    },
+    {
+      "page": "056",
+      "duration": 94.72,
+      "num_segments": 6,
+      "segments": [
+        {
+          "index": 0,
+          "start": 0.0,
+          "end": 15.887,
+          "length": 15.89,
+          "type": "word"
+        },
+        {
+          "index": 1,
+          "start": 15.887,
+          "end": 32.474,
+          "length": 16.59,
+          "type": "word"
+        },
+        {
+          "index": 2,
+          "start": 32.474,
+          "end": 48.314,
+          "length": 15.84,
+          "type": "word"
+        },
+        {
+          "index": 3,
+          "start": 48.314,
+          "end": 63.94,
+          "length": 15.63,
+          "type": "word"
+        },
+        {
+          "index": 4,
+          "start": 63.94,
+          "end": 79.747,
+          "length": 15.81,
+          "type": "word"
+        },
+        {
+          "index": 5,
+          "start": 79.747,
+          "end": 94.72,
+          "length": 14.97,
+          "type": "word"
+        }
+      ]
+    },
+    {
+      "page": "057",
+      "duration": 86.47,
+      "num_segments": 6,
+      "segments": [
+        {
+          "index": 0,
+          "start": 0.0,
+          "end": 13.138,
+          "length": 13.14,
+          "type": "word"
+        },
+        {
+          "index": 1,
+          "start": 13.138,
+          "end": 26.735,
+          "length": 13.6,
+          "type": "word"
+        },
+        {
+          "index": 2,
+          "start": 26.735,
+          "end": 41.584,
+          "length": 14.85,
+          "type": "word"
+        },
+        {
+          "index": 3,
+          "start": 41.584,
+          "end": 56.532,
+          "length": 14.95,
+          "type": "word"
+        },
+        {
+          "index": 4,
+          "start": 56.532,
+          "end": 71.227,
+          "length": 14.7,
+          "type": "word"
+        },
+        {
+          "index": 5,
+          "start": 71.227,
+          "end": 86.465,
+          "length": 15.24,
+          "type": "word"
+        }
+      ]
+    },
+    {
+      "page": "058",
+      "duration": 88.66,
+      "num_segments": 6,
+      "segments": [
+        {
+          "index": 0,
+          "start": 0.0,
+          "end": 15.272,
+          "length": 15.27,
+          "type": "word"
+        },
+        {
+          "index": 1,
+          "start": 15.272,
+          "end": 29.068,
+          "length": 13.8,
+          "type": "word"
+        },
+        {
+          "index": 2,
+          "start": 29.068,
+          "end": 44.444,
+          "length": 15.38,
+          "type": "word"
+        },
+        {
+          "index": 3,
+          "start": 44.444,
+          "end": 60.579,
+          "length": 16.13,
+          "type": "word"
+        },
+        {
+          "index": 4,
+          "start": 60.579,
+          "end": 74.083,
+          "length": 13.5,
+          "type": "word"
+        },
+        {
+          "index": 5,
+          "start": 74.083,
+          "end": 88.66,
+          "length": 14.58,
+          "type": "word"
+        }
+      ]
+    },
+    {
+      "page": "059",
+      "duration": 94.59,
+      "num_segments": 6,
+      "segments": [
+        {
+          "index": 0,
+          "start": 0.0,
+          "end": 14.168,
+          "length": 14.17,
+          "type": "word"
+        },
+        {
+          "index": 1,
+          "start": 14.168,
+          "end": 31.303,
+          "length": 17.14,
+          "type": "word"
+        },
+        {
+          "index": 2,
+          "start": 31.303,
+          "end": 48.611,
+          "length": 17.31,
+          "type": "word"
+        },
+        {
+          "index": 3,
+          "start": 48.611,
+          "end": 64.046,
+          "length": 15.44,
+          "type": "word"
+        },
+        {
+          "index": 4,
+          "start": 64.046,
+          "end": 77.799,
+          "length": 13.75,
+          "type": "word"
+        },
+        {
+          "index": 5,
+          "start": 77.799,
+          "end": 94.589,
+          "length": 16.79,
+          "type": "word"
+        }
+      ]
+    },
+    {
+      "page": "060",
+      "duration": 87.04,
+      "num_segments": 6,
+      "segments": [
+        {
+          "index": 0,
+          "start": 0.0,
+          "end": 17.74,
+          "length": 17.74,
+          "type": "word"
+        },
+        {
+          "index": 1,
+          "start": 17.74,
+          "end": 30.803,
+          "length": 13.06,
+          "type": "word"
+        },
+        {
+          "index": 2,
+          "start": 30.803,
+          "end": 43.441,
+          "length": 12.64,
+          "type": "word"
+        },
+        {
+          "index": 3,
+          "start": 43.441,
+          "end": 58.817,
+          "length": 15.38,
+          "type": "word"
+        },
+        {
+          "index": 4,
+          "start": 58.817,
+          "end": 74.181,
+          "length": 15.36,
+          "type": "word"
+        },
+        {
+          "index": 5,
+          "start": 74.181,
+          "end": 87.04,
+          "length": 12.86,
+          "type": "word"
+        }
+      ]
+    },
+    {
+      "page": "061",
+      "duration": 93.83,
+      "num_segments": 6,
+      "segments": [
+        {
+          "index": 0,
+          "start": 0.0,
+          "end": 18.38,
+          "length": 18.38,
+          "type": "word"
+        },
+        {
+          "index": 1,
+          "start": 18.38,
+          "end": 34.92,
+          "length": 16.54,
+          "type": "word"
+        },
+        {
+          "index": 2,
+          "start": 34.92,
+          "end": 50.384,
+          "length": 15.46,
+          "type": "word"
+        },
+        {
+          "index": 3,
+          "start": 50.384,
+          "end": 63.445,
+          "length": 13.06,
+          "type": "word"
+        },
+        {
+          "index": 4,
+          "start": 63.445,
+          "end": 77.829,
+          "length": 14.38,
+          "type": "word"
+        },
+        {
+          "index": 5,
+          "start": 77.829,
+          "end": 93.832,
+          "length": 16.0,
+          "type": "word"
+        }
+      ]
+    },
+    {
+      "page": "062",
+      "duration": 90.44,
+      "num_segments": 6,
+      "segments": [
+        {
+          "index": 0,
+          "start": 0.0,
+          "end": 15.83,
+          "length": 15.83,
+          "type": "word"
+        },
+        {
+          "index": 1,
+          "start": 15.83,
+          "end": 29.982,
+          "length": 14.15,
+          "type": "word"
+        },
+        {
+          "index": 2,
+          "start": 29.982,
+          "end": 44.809,
+          "length": 14.83,
+          "type": "word"
+        },
+        {
+          "index": 3,
+          "start": 44.809,
+          "end": 59.174,
+          "length": 14.37,
+          "type": "word"
+        },
+        {
+          "index": 4,
+          "start": 59.174,
+          "end": 73.717,
+          "length": 14.54,
+          "type": "word"
+        },
+        {
+          "index": 5,
+          "start": 73.717,
+          "end": 90.436,
+          "length": 16.72,
+          "type": "word"
+        }
+      ]
+    },
+    {
+      "page": "063",
+      "duration": 82.81,
+      "num_segments": 6,
+      "segments": [
+        {
+          "index": 0,
+          "start": 0.0,
+          "end": 12.55,
+          "length": 12.55,
+          "type": "word"
+        },
+        {
+          "index": 1,
+          "start": 12.55,
+          "end": 26.123,
+          "length": 13.57,
+          "type": "word"
+        },
+        {
+          "index": 2,
+          "start": 26.123,
+          "end": 40.139,
+          "length": 14.02,
+          "type": "word"
+        },
+        {
+          "index": 3,
+          "start": 40.139,
+          "end": 55.538,
+          "length": 15.4,
+          "type": "word"
+        },
+        {
+          "index": 4,
+          "start": 55.538,
+          "end": 68.608,
+          "length": 13.07,
+          "type": "word"
+        },
+        {
+          "index": 5,
+          "start": 68.608,
+          "end": 82.808,
+          "length": 14.2,
+          "type": "word"
+        }
+      ]
+    },
+    {
+      "page": "064",
+      "duration": 88.24,
+      "num_segments": 6,
+      "segments": [
+        {
+          "index": 0,
+          "start": 0.0,
+          "end": 12.249,
+          "length": 12.25,
+          "type": "word"
+        },
+        {
+          "index": 1,
+          "start": 12.249,
+          "end": 26.982,
+          "length": 14.73,
+          "type": "word"
+        },
+        {
+          "index": 2,
+          "start": 26.982,
+          "end": 42.324,
+          "length": 15.34,
+          "type": "word"
+        },
+        {
+          "index": 3,
+          "start": 42.324,
+          "end": 58.212,
+          "length": 15.89,
+          "type": "word"
+        },
+        {
+          "index": 4,
+          "start": 58.212,
+          "end": 72.405,
+          "length": 14.19,
+          "type": "word"
+        },
+        {
+          "index": 5,
+          "start": 72.405,
+          "end": 88.242,
+          "length": 15.84,
+          "type": "word"
+        }
+      ]
+    },
+    {
+      "page": "065",
+      "duration": 88.27,
+      "num_segments": 6,
+      "segments": [
+        {
+          "index": 0,
+          "start": 0.0,
+          "end": 15.854,
+          "length": 15.85,
+          "type": "word"
+        },
+        {
+          "index": 1,
+          "start": 15.854,
+          "end": 29.015,
+          "length": 13.16,
+          "type": "word"
+        },
+        {
+          "index": 2,
+          "start": 29.015,
+          "end": 43.117,
+          "length": 14.1,
+          "type": "word"
+        },
+        {
+          "index": 3,
+          "start": 43.117,
+          "end": 58.222,
+          "length": 15.11,
+          "type": "word"
+        },
+        {
+          "index": 4,
+          "start": 58.222,
+          "end": 72.247,
+          "length": 14.02,
+          "type": "word"
+        },
+        {
+          "index": 5,
+          "start": 72.247,
+          "end": 88.268,
+          "length": 16.02,
+          "type": "word"
+        }
+      ]
+    },
+    {
+      "page": "066",
+      "duration": 97.54,
+      "num_segments": 6,
+      "segments": [
+        {
+          "index": 0,
+          "start": 0.0,
+          "end": 18.117,
+          "length": 18.12,
+          "type": "word"
+        },
+        {
+          "index": 1,
+          "start": 18.117,
+          "end": 34.087,
+          "length": 15.97,
+          "type": "word"
+        },
+        {
+          "index": 2,
+          "start": 34.087,
+          "end": 48.957,
+          "length": 14.87,
+          "type": "word"
+        },
+        {
+          "index": 3,
+          "start": 48.957,
+          "end": 65.917,
+          "length": 16.96,
+          "type": "word"
+        },
+        {
+          "index": 4,
+          "start": 65.917,
+          "end": 81.167,
+          "length": 15.25,
+          "type": "word"
+        },
+        {
+          "index": 5,
+          "start": 81.167,
+          "end": 97.541,
+          "length": 16.37,
+          "type": "word"
+        }
+      ]
+    },
+    {
+      "page": "067",
+      "duration": 92.21,
+      "num_segments": 6,
+      "segments": [
+        {
+          "index": 0,
+          "start": 0.0,
+          "end": 16.211,
+          "length": 16.21,
+          "type": "word"
+        },
+        {
+          "index": 1,
+          "start": 16.211,
+          "end": 32.577,
+          "length": 16.37,
+          "type": "word"
+        },
+        {
+          "index": 2,
+          "start": 32.577,
+          "end": 47.094,
+          "length": 14.52,
+          "type": "word"
+        },
+        {
+          "index": 3,
+          "start": 47.094,
+          "end": 61.673,
+          "length": 14.58,
+          "type": "word"
+        },
+        {
+          "index": 4,
+          "start": 61.673,
+          "end": 75.976,
+          "length": 14.3,
+          "type": "word"
+        },
+        {
+          "index": 5,
+          "start": 75.976,
+          "end": 92.212,
+          "length": 16.24,
+          "type": "word"
+        }
+      ]
+    },
+    {
+      "page": "068",
+      "duration": 90.85,
+      "num_segments": 6,
+      "segments": [
+        {
+          "index": 0,
+          "start": 0.0,
+          "end": 16.073,
+          "length": 16.07,
+          "type": "word"
+        },
+        {
+          "index": 1,
+          "start": 16.073,
+          "end": 30.089,
+          "length": 14.02,
+          "type": "word"
+        },
+        {
+          "index": 2,
+          "start": 30.089,
+          "end": 44.74,
+          "length": 14.65,
+          "type": "word"
+        },
+        {
+          "index": 3,
+          "start": 44.74,
+          "end": 58.622,
+          "length": 13.88,
+          "type": "word"
+        },
+        {
+          "index": 4,
+          "start": 58.622,
+          "end": 73.753,
+          "length": 15.13,
+          "type": "word"
+        },
+        {
+          "index": 5,
+          "start": 73.753,
+          "end": 90.854,
+          "length": 17.1,
+          "type": "word"
+        }
+      ]
+    },
+    {
+      "page": "069",
+      "duration": 93.78,
+      "num_segments": 6,
+      "segments": [
+        {
+          "index": 0,
+          "start": 0.0,
+          "end": 19.217,
+          "length": 19.22,
+          "type": "word"
+        },
+        {
+          "index": 1,
+          "start": 19.217,
+          "end": 34.682,
+          "length": 15.47,
+          "type": "word"
+        },
+        {
+          "index": 2,
+          "start": 34.682,
+          "end": 47.286,
+          "length": 12.6,
+          "type": "word"
+        },
+        {
+          "index": 3,
+          "start": 47.286,
+          "end": 61.836,
+          "length": 14.55,
+          "type": "word"
+        },
+        {
+          "index": 4,
+          "start": 61.836,
+          "end": 78.664,
+          "length": 16.83,
+          "type": "word"
+        },
+        {
+          "index": 5,
+          "start": 78.664,
+          "end": 93.78,
+          "length": 15.12,
+          "type": "word"
+        }
+      ]
+    },
+    {
+      "page": "070",
+      "duration": 93.75,
+      "num_segments": 6,
+      "segments": [
+        {
+          "index": 0,
+          "start": 0.0,
+          "end": 20.617,
+          "length": 20.62,
+          "type": "word"
+        },
+        {
+          "index": 1,
+          "start": 20.617,
+          "end": 36.837,
+          "length": 16.22,
+          "type": "word"
+        },
+        {
+          "index": 2,
+          "start": 36.837,
+          "end": 50.342,
+          "length": 13.5,
+          "type": "word"
+        },
+        {
+          "index": 3,
+          "start": 50.342,
+          "end": 63.944,
+          "length": 13.6,
+          "type": "word"
+        },
+        {
+          "index": 4,
+          "start": 63.944,
+          "end": 79.803,
+          "length": 15.86,
+          "type": "word"
+        },
+        {
+          "index": 5,
+          "start": 79.803,
+          "end": 93.753,
+          "length": 13.95,
+          "type": "word"
+        }
+      ]
+    },
+    {
+      "page": "071",
+      "duration": 90.72,
+      "num_segments": 6,
+      "segments": [
+        {
+          "index": 0,
+          "start": 0.0,
+          "end": 19.076,
+          "length": 19.08,
+          "type": "word"
+        },
+        {
+          "index": 1,
+          "start": 19.076,
+          "end": 35.409,
+          "length": 16.33,
+          "type": "word"
+        },
+        {
+          "index": 2,
+          "start": 35.409,
+          "end": 47.476,
+          "length": 12.07,
+          "type": "word"
+        },
+        {
+          "index": 3,
+          "start": 47.476,
+          "end": 64.643,
+          "length": 17.17,
+          "type": "word"
+        },
+        {
+          "index": 4,
+          "start": 64.643,
+          "end": 77.818,
+          "length": 13.17,
+          "type": "word"
+        },
+        {
+          "index": 5,
+          "start": 77.818,
+          "end": 90.723,
+          "length": 12.91,
+          "type": "word"
+        }
+      ]
+    },
+    {
+      "page": "072",
+      "duration": 98.32,
+      "num_segments": 6,
+      "segments": [
+        {
+          "index": 0,
+          "start": 0.0,
+          "end": 20.198,
+          "length": 20.2,
+          "type": "word"
+        },
+        {
+          "index": 1,
+          "start": 20.198,
+          "end": 35.701,
+          "length": 15.5,
+          "type": "word"
+        },
+        {
+          "index": 2,
+          "start": 35.701,
+          "end": 53.048,
+          "length": 17.35,
+          "type": "word"
+        },
+        {
+          "index": 3,
+          "start": 53.048,
+          "end": 68.236,
+          "length": 15.19,
+          "type": "word"
+        },
+        {
+          "index": 4,
+          "start": 68.236,
+          "end": 82.372,
+          "length": 14.14,
+          "type": "word"
+        },
+        {
+          "index": 5,
+          "start": 82.372,
+          "end": 98.325,
+          "length": 15.95,
+          "type": "word"
+        }
+      ]
+    },
+    {
+      "page": "073",
+      "duration": 95.82,
+      "num_segments": 6,
+      "segments": [
+        {
+          "index": 0,
+          "start": 0.0,
+          "end": 17.16,
+          "length": 17.16,
+          "type": "word"
+        },
+        {
+          "index": 1,
+          "start": 17.16,
+          "end": 30.976,
+          "length": 13.82,
+          "type": "word"
+        },
+        {
+          "index": 2,
+          "start": 30.976,
+          "end": 49.012,
+          "length": 18.04,
+          "type": "word"
+        },
+        {
+          "index": 3,
+          "start": 49.012,
+          "end": 64.977,
+          "length": 15.97,
+          "type": "word"
+        },
+        {
+          "index": 4,
+          "start": 64.977,
+          "end": 80.41,
+          "length": 15.43,
+          "type": "word"
+        },
+        {
+          "index": 5,
+          "start": 80.41,
+          "end": 95.817,
+          "length": 15.41,
+          "type": "word"
+        }
+      ]
+    },
+    {
+      "page": "074",
+      "duration": 91.9,
+      "num_segments": 6,
+      "segments": [
+        {
+          "index": 0,
+          "start": 0.0,
+          "end": 10.933,
+          "length": 10.93,
+          "type": "word"
+        },
+        {
+          "index": 1,
+          "start": 10.933,
+          "end": 27.401,
+          "length": 16.47,
+          "type": "word"
+        },
+        {
+          "index": 2,
+          "start": 27.401,
+          "end": 41.647,
+          "length": 14.25,
+          "type": "word"
+        },
+        {
+          "index": 3,
+          "start": 41.647,
+          "end": 57.698,
+          "length": 16.05,
+          "type": "word"
+        },
+        {
+          "index": 4,
+          "start": 57.698,
+          "end": 74.579,
+          "length": 16.88,
+          "type": "word"
+        },
+        {
+          "index": 5,
+          "start": 74.579,
+          "end": 91.899,
+          "length": 17.32,
+          "type": "word"
+        }
+      ]
+    },
+    {
+      "page": "075",
+      "duration": 89.34,
+      "num_segments": 6,
+      "segments": [
+        {
+          "index": 0,
+          "start": 0.0,
+          "end": 16.607,
+          "length": 16.61,
+          "type": "word"
+        },
+        {
+          "index": 1,
+          "start": 16.607,
+          "end": 32.301,
+          "length": 15.69,
+          "type": "word"
+        },
+        {
+          "index": 2,
+          "start": 32.301,
+          "end": 46.133,
+          "length": 13.83,
+          "type": "word"
+        },
+        {
+          "index": 3,
+          "start": 46.133,
+          "end": 60.038,
+          "length": 13.9,
+          "type": "word"
+        },
+        {
+          "index": 4,
+          "start": 60.038,
+          "end": 71.639,
+          "length": 11.6,
+          "type": "word"
+        },
+        {
+          "index": 5,
+          "start": 71.639,
+          "end": 89.339,
+          "length": 17.7,
+          "type": "word"
+        }
+      ]
+    },
+    {
+      "page": "076",
+      "duration": 72.7,
+      "num_segments": 12,
+      "segments": [
+        {
+          "index": 0,
+          "start": 0.0,
+          "end": 13.148,
+          "length": 13.15,
+          "type": "word+announce"
+        },
+        {
+          "index": 1,
+          "start": 13.148,
+          "end": 18.073,
+          "length": 4.93,
+          "type": "word"
+        },
+        {
+          "index": 2,
+          "start": 18.073,
+          "end": 23.535,
+          "length": 5.46,
+          "type": "word"
+        },
+        {
+          "index": 3,
+          "start": 23.535,
+          "end": 28.67,
+          "length": 5.14,
+          "type": "word"
+        },
+        {
+          "index": 4,
+          "start": 28.67,
+          "end": 34.307,
+          "length": 5.64,
+          "type": "word"
+        },
+        {
+          "index": 5,
+          "start": 34.307,
+          "end": 40.195,
+          "length": 5.89,
+          "type": "word"
+        },
+        {
+          "index": 6,
+          "start": 40.195,
+          "end": 45.743,
+          "length": 5.55,
+          "type": "word"
+        },
+        {
+          "index": 7,
+          "start": 45.743,
+          "end": 51.232,
+          "length": 5.49,
+          "type": "word"
+        },
+        {
+          "index": 8,
+          "start": 51.232,
+          "end": 56.582,
+          "length": 5.35,
+          "type": "word"
+        },
+        {
+          "index": 9,
+          "start": 56.582,
+          "end": 61.644,
+          "length": 5.06,
+          "type": "word"
+        },
+        {
+          "index": 10,
+          "start": 61.644,
+          "end": 66.936,
+          "length": 5.29,
+          "type": "word"
+        },
+        {
+          "index": 11,
+          "start": 66.936,
+          "end": 72.699,
+          "length": 5.76,
+          "type": "word"
+        }
+      ]
+    },
+    {
+      "page": "077",
+      "duration": 56.53,
+      "num_segments": 11,
+      "segments": [
+        {
+          "index": 0,
+          "start": 0.0,
+          "end": 4.013,
+          "length": 4.01,
+          "type": "word"
+        },
+        {
+          "index": 1,
+          "start": 4.013,
+          "end": 9.033,
+          "length": 5.02,
+          "type": "word"
+        },
+        {
+          "index": 2,
+          "start": 9.033,
+          "end": 14.351,
+          "length": 5.32,
+          "type": "word"
+        },
+        {
+          "index": 3,
+          "start": 14.351,
+          "end": 19.511,
+          "length": 5.16,
+          "type": "word"
+        },
+        {
+          "index": 4,
+          "start": 19.511,
+          "end": 24.56,
+          "length": 5.05,
+          "type": "word"
+        },
+        {
+          "index": 5,
+          "start": 24.56,
+          "end": 29.421,
+          "length": 4.86,
+          "type": "word"
+        },
+        {
+          "index": 6,
+          "start": 29.421,
+          "end": 33.999,
+          "length": 4.58,
+          "type": "word"
+        },
+        {
+          "index": 7,
+          "start": 33.999,
+          "end": 39.44,
+          "length": 5.44,
+          "type": "word"
+        },
+        {
+          "index": 8,
+          "start": 39.44,
+          "end": 45.135,
+          "length": 5.7,
+          "type": "word"
+        },
+        {
+          "index": 9,
+          "start": 45.135,
+          "end": 51.11,
+          "length": 5.98,
+          "type": "word"
+        },
+        {
+          "index": 10,
+          "start": 51.11,
+          "end": 56.529,
+          "length": 5.42,
+          "type": "word"
+        }
+      ]
+    },
+    {
+      "page": "078",
+      "duration": 91.59,
+      "num_segments": 6,
+      "segments": [
+        {
+          "index": 0,
+          "start": 0.0,
+          "end": 21.755,
+          "length": 21.75,
+          "type": "word"
+        },
+        {
+          "index": 1,
+          "start": 21.755,
+          "end": 37.234,
+          "length": 15.48,
+          "type": "word"
+        },
+        {
+          "index": 2,
+          "start": 37.234,
+          "end": 51.707,
+          "length": 14.47,
+          "type": "word"
+        },
+        {
+          "index": 3,
+          "start": 51.707,
+          "end": 64.388,
+          "length": 12.68,
+          "type": "word"
+        },
+        {
+          "index": 4,
+          "start": 64.388,
+          "end": 77.171,
+          "length": 12.78,
+          "type": "word"
+        },
+        {
+          "index": 5,
+          "start": 77.171,
+          "end": 91.585,
+          "length": 14.41,
+          "type": "word"
+        }
+      ]
+    },
+    {
+      "page": "079",
+      "duration": 90.51,
+      "num_segments": 6,
+      "segments": [
+        {
+          "index": 0,
+          "start": 0.0,
+          "end": 13.425,
+          "length": 13.43,
+          "type": "word"
+        },
+        {
+          "index": 1,
+          "start": 13.425,
+          "end": 27.11,
+          "length": 13.68,
+          "type": "word"
+        },
+        {
+          "index": 2,
+          "start": 27.11,
+          "end": 42.51,
+          "length": 15.4,
+          "type": "word"
+        },
+        {
+          "index": 3,
+          "start": 42.51,
+          "end": 57.765,
+          "length": 15.26,
+          "type": "word"
+        },
+        {
+          "index": 4,
+          "start": 57.765,
+          "end": 74.492,
+          "length": 16.73,
+          "type": "word"
+        },
+        {
+          "index": 5,
+          "start": 74.492,
+          "end": 90.514,
+          "length": 16.02,
+          "type": "word"
+        }
+      ]
+    },
+    {
+      "page": "080",
+      "duration": 91.38,
+      "num_segments": 6,
+      "segments": [
+        {
+          "index": 0,
+          "start": 0.0,
+          "end": 13.535,
+          "length": 13.54,
+          "type": "word"
+        },
+        {
+          "index": 1,
+          "start": 13.535,
+          "end": 29.506,
+          "length": 15.97,
+          "type": "word"
+        },
+        {
+          "index": 2,
+          "start": 29.506,
+          "end": 44.246,
+          "length": 14.74,
+          "type": "word"
+        },
+        {
+          "index": 3,
+          "start": 44.246,
+          "end": 59.233,
+          "length": 14.99,
+          "type": "word"
+        },
+        {
+          "index": 4,
+          "start": 59.233,
+          "end": 73.912,
+          "length": 14.68,
+          "type": "word"
+        },
+        {
+          "index": 5,
+          "start": 73.912,
+          "end": 91.376,
+          "length": 17.46,
+          "type": "word"
+        }
+      ]
+    },
+    {
+      "page": "081",
+      "duration": 85.34,
+      "num_segments": 6,
+      "segments": [
+        {
+          "index": 0,
+          "start": 0.0,
+          "end": 13.334,
+          "length": 13.33,
+          "type": "word"
+        },
+        {
+          "index": 1,
+          "start": 13.334,
+          "end": 28.124,
+          "length": 14.79,
+          "type": "word"
+        },
+        {
+          "index": 2,
+          "start": 28.124,
+          "end": 41.983,
+          "length": 13.86,
+          "type": "word"
+        },
+        {
+          "index": 3,
+          "start": 41.983,
+          "end": 54.492,
+          "length": 12.51,
+          "type": "word"
+        },
+        {
+          "index": 4,
+          "start": 54.492,
+          "end": 69.599,
+          "length": 15.11,
+          "type": "word"
+        },
+        {
+          "index": 5,
+          "start": 69.599,
+          "end": 85.342,
+          "length": 15.74,
+          "type": "word"
+        }
+      ]
+    },
+    {
+      "page": "082",
+      "duration": 60.66,
+      "num_segments": 4,
+      "segments": [
+        {
+          "index": 0,
+          "start": 0.0,
+          "end": 17.917,
+          "length": 17.92,
+          "type": "word"
+        },
+        {
+          "index": 1,
+          "start": 17.917,
+          "end": 32.222,
+          "length": 14.3,
+          "type": "word"
+        },
+        {
+          "index": 2,
+          "start": 32.222,
+          "end": 47.111,
+          "length": 14.89,
+          "type": "word"
+        },
+        {
+          "index": 3,
+          "start": 47.111,
+          "end": 60.656,
+          "length": 13.55,
+          "type": "word"
+        }
+      ]
+    },
+    {
+      "page": "083",
+      "duration": 77.27,
+      "num_segments": 12,
+      "segments": [
+        {
+          "index": 0,
+          "start": 0.0,
+          "end": 11.115,
+          "length": 11.12,
+          "type": "word+announce"
+        },
+        {
+          "index": 1,
+          "start": 11.115,
+          "end": 17.725,
+          "length": 6.61,
+          "type": "word"
+        },
+        {
+          "index": 2,
+          "start": 17.725,
+          "end": 24.353,
+          "length": 6.63,
+          "type": "word"
+        },
+        {
+          "index": 3,
+          "start": 24.353,
+          "end": 30.353,
+          "length": 6.0,
+          "type": "word"
+        },
+        {
+          "index": 4,
+          "start": 30.353,
+          "end": 38.322,
+          "length": 7.97,
+          "type": "word"
+        },
+        {
+          "index": 5,
+          "start": 38.322,
+          "end": 43.681,
+          "length": 5.36,
+          "type": "word"
+        },
+        {
+          "index": 6,
+          "start": 43.681,
+          "end": 49.256,
+          "length": 5.58,
+          "type": "word"
+        },
+        {
+          "index": 7,
+          "start": 49.256,
+          "end": 54.66,
+          "length": 5.4,
+          "type": "word"
+        },
+        {
+          "index": 8,
+          "start": 54.66,
+          "end": 60.482,
+          "length": 5.82,
+          "type": "word"
+        },
+        {
+          "index": 9,
+          "start": 60.482,
+          "end": 66.383,
+          "length": 5.9,
+          "type": "word"
+        },
+        {
+          "index": 10,
+          "start": 66.383,
+          "end": 71.113,
+          "length": 4.73,
+          "type": "word"
+        },
+        {
+          "index": 11,
+          "start": 71.113,
+          "end": 77.27,
+          "length": 6.16,
+          "type": "word"
+        }
+      ]
+    },
+    {
+      "page": "084",
+      "duration": 65.46,
+      "num_segments": 12,
+      "segments": [
+        {
+          "index": 0,
+          "start": 0.0,
+          "end": 5.548,
+          "length": 5.55,
+          "type": "word"
+        },
+        {
+          "index": 1,
+          "start": 5.548,
+          "end": 10.787,
+          "length": 5.24,
+          "type": "word"
+        },
+        {
+          "index": 2,
+          "start": 10.787,
+          "end": 16.594,
+          "length": 5.81,
+          "type": "word"
+        },
+        {
+          "index": 3,
+          "start": 16.594,
+          "end": 21.508,
+          "length": 4.91,
+          "type": "word"
+        },
+        {
+          "index": 4,
+          "start": 21.508,
+          "end": 26.642,
+          "length": 5.13,
+          "type": "word"
+        },
+        {
+          "index": 5,
+          "start": 26.642,
+          "end": 32.181,
+          "length": 5.54,
+          "type": "word"
+        },
+        {
+          "index": 6,
+          "start": 32.181,
+          "end": 37.311,
+          "length": 5.13,
+          "type": "word"
+        },
+        {
+          "index": 7,
+          "start": 37.311,
+          "end": 42.774,
+          "length": 5.46,
+          "type": "word"
+        },
+        {
+          "index": 8,
+          "start": 42.774,
+          "end": 48.119,
+          "length": 5.34,
+          "type": "word"
+        },
+        {
+          "index": 9,
+          "start": 48.119,
+          "end": 54.266,
+          "length": 6.15,
+          "type": "word"
+        },
+        {
+          "index": 10,
+          "start": 54.266,
+          "end": 59.553,
+          "length": 5.29,
+          "type": "word"
+        },
+        {
+          "index": 11,
+          "start": 59.553,
+          "end": 65.463,
+          "length": 5.91,
+          "type": "word"
+        }
+      ]
+    },
+    {
+      "page": "085",
+      "duration": 11.91,
+      "num_segments": 2,
+      "segments": [
+        {
+          "index": 0,
+          "start": 0.0,
+          "end": 5.081,
+          "length": 5.08,
+          "type": "word"
+        },
+        {
+          "index": 1,
+          "start": 5.081,
+          "end": 11.912,
+          "length": 6.83,
+          "type": "word"
+        }
+      ]
+    },
+    {
+      "page": "086",
+      "duration": 84.14,
+      "num_segments": 16,
+      "segments": [
+        {
+          "index": 0,
+          "start": 0.0,
+          "end": 8.923,
+          "length": 8.92,
+          "type": "word+announce"
+        },
+        {
+          "index": 1,
+          "start": 8.923,
+          "end": 13.95,
+          "length": 5.03,
+          "type": "word"
+        },
+        {
+          "index": 2,
+          "start": 13.95,
+          "end": 18.903,
+          "length": 4.95,
+          "type": "word"
+        },
+        {
+          "index": 3,
+          "start": 18.903,
+          "end": 23.654,
+          "length": 4.75,
+          "type": "word"
+        },
+        {
+          "index": 4,
+          "start": 23.654,
+          "end": 28.378,
+          "length": 4.72,
+          "type": "word"
+        },
+        {
+          "index": 5,
+          "start": 28.378,
+          "end": 33.238,
+          "length": 4.86,
+          "type": "word"
+        },
+        {
+          "index": 6,
+          "start": 33.238,
+          "end": 38.044,
+          "length": 4.81,
+          "type": "word"
+        },
+        {
+          "index": 7,
+          "start": 38.044,
+          "end": 42.834,
+          "length": 4.79,
+          "type": "word"
+        },
+        {
+          "index": 8,
+          "start": 42.834,
+          "end": 47.586,
+          "length": 4.75,
+          "type": "word"
+        },
+        {
+          "index": 9,
+          "start": 47.586,
+          "end": 51.944,
+          "length": 4.36,
+          "type": "word"
+        },
+        {
+          "index": 10,
+          "start": 51.944,
+          "end": 56.576,
+          "length": 4.63,
+          "type": "word"
+        },
+        {
+          "index": 11,
+          "start": 56.576,
+          "end": 61.391,
+          "length": 4.81,
+          "type": "word"
+        },
+        {
+          "index": 12,
+          "start": 61.391,
+          "end": 66.343,
+          "length": 4.95,
+          "type": "word"
+        },
+        {
+          "index": 13,
+          "start": 66.343,
+          "end": 72.573,
+          "length": 6.23,
+          "type": "word"
+        },
+        {
+          "index": 14,
+          "start": 72.573,
+          "end": 77.875,
+          "length": 5.3,
+          "type": "word"
+        },
+        {
+          "index": 15,
+          "start": 77.875,
+          "end": 84.14,
+          "length": 6.27,
+          "type": "word"
+        }
+      ]
+    },
+    {
+      "page": "087",
+      "duration": 85.21,
+      "num_segments": 16,
+      "segments": [
+        {
+          "index": 0,
+          "start": 0.0,
+          "end": 8.036,
+          "length": 8.04,
+          "type": "word"
+        },
+        {
+          "index": 1,
+          "start": 8.036,
+          "end": 12.775,
+          "length": 4.74,
+          "type": "word"
+        },
+        {
+          "index": 2,
+          "start": 12.775,
+          "end": 18.728,
+          "length": 5.95,
+          "type": "word"
+        },
+        {
+          "index": 3,
+          "start": 18.728,
+          "end": 24.086,
+          "length": 5.36,
+          "type": "word"
+        },
+        {
+          "index": 4,
+          "start": 24.086,
+          "end": 28.917,
+          "length": 4.83,
+          "type": "word"
+        },
+        {
+          "index": 5,
+          "start": 28.917,
+          "end": 33.866,
+          "length": 4.95,
+          "type": "word"
+        },
+        {
+          "index": 6,
+          "start": 33.866,
+          "end": 38.787,
+          "length": 4.92,
+          "type": "word"
+        },
+        {
+          "index": 7,
+          "start": 38.787,
+          "end": 43.816,
+          "length": 5.03,
+          "type": "word"
+        },
+        {
+          "index": 8,
+          "start": 43.816,
+          "end": 48.908,
+          "length": 5.09,
+          "type": "word"
+        },
+        {
+          "index": 9,
+          "start": 48.908,
+          "end": 54.377,
+          "length": 5.47,
+          "type": "word"
+        },
+        {
+          "index": 10,
+          "start": 54.377,
+          "end": 59.555,
+          "length": 5.18,
+          "type": "word"
+        },
+        {
+          "index": 11,
+          "start": 59.555,
+          "end": 64.83,
+          "length": 5.27,
+          "type": "word"
+        },
+        {
+          "index": 12,
+          "start": 64.83,
+          "end": 69.46,
+          "length": 4.63,
+          "type": "word"
+        },
+        {
+          "index": 13,
+          "start": 69.46,
+          "end": 74.352,
+          "length": 4.89,
+          "type": "word"
+        },
+        {
+          "index": 14,
+          "start": 74.352,
+          "end": 79.55,
+          "length": 5.2,
+          "type": "word"
+        },
+        {
+          "index": 15,
+          "start": 79.55,
+          "end": 85.211,
+          "length": 5.66,
+          "type": "word"
+        }
+      ]
+    },
+    {
+      "page": "088",
+      "duration": 84.77,
+      "num_segments": 16,
+      "segments": [
+        {
+          "index": 0,
+          "start": 0.0,
+          "end": 9.779,
+          "length": 9.78,
+          "type": "word+announce"
+        },
+        {
+          "index": 1,
+          "start": 9.779,
+          "end": 14.715,
+          "length": 4.94,
+          "type": "word"
+        },
+        {
+          "index": 2,
+          "start": 14.715,
+          "end": 19.475,
+          "length": 4.76,
+          "type": "word"
+        },
+        {
+          "index": 3,
+          "start": 19.475,
+          "end": 24.299,
+          "length": 4.82,
+          "type": "word"
+        },
+        {
+          "index": 4,
+          "start": 24.299,
+          "end": 29.722,
+          "length": 5.42,
+          "type": "word"
+        },
+        {
+          "index": 5,
+          "start": 29.722,
+          "end": 34.692,
+          "length": 4.97,
+          "type": "word"
+        },
+        {
+          "index": 6,
+          "start": 34.692,
+          "end": 39.78,
+          "length": 5.09,
+          "type": "word"
+        },
+        {
+          "index": 7,
+          "start": 39.78,
+          "end": 44.678,
+          "length": 4.9,
+          "type": "word"
+        },
+        {
+          "index": 8,
+          "start": 44.678,
+          "end": 49.581,
+          "length": 4.9,
+          "type": "word"
+        },
+        {
+          "index": 9,
+          "start": 49.581,
+          "end": 54.585,
+          "length": 5.0,
+          "type": "word"
+        },
+        {
+          "index": 10,
+          "start": 54.585,
+          "end": 59.382,
+          "length": 4.8,
+          "type": "word"
+        },
+        {
+          "index": 11,
+          "start": 59.382,
+          "end": 64.127,
+          "length": 4.74,
+          "type": "word"
+        },
+        {
+          "index": 12,
+          "start": 64.127,
+          "end": 68.839,
+          "length": 4.71,
+          "type": "word"
+        },
+        {
+          "index": 13,
+          "start": 68.839,
+          "end": 73.714,
+          "length": 4.88,
+          "type": "word"
+        },
+        {
+          "index": 14,
+          "start": 73.714,
+          "end": 78.819,
+          "length": 5.11,
+          "type": "word"
+        },
+        {
+          "index": 15,
+          "start": 78.819,
+          "end": 84.767,
+          "length": 5.95,
+          "type": "word"
+        }
+      ]
+    },
+    {
+      "page": "089",
+      "duration": 87.28,
+      "num_segments": 16,
+      "segments": [
+        {
+          "index": 0,
+          "start": 0.0,
+          "end": 9.789,
+          "length": 9.79,
+          "type": "word+announce"
+        },
+        {
+          "index": 1,
+          "start": 9.789,
+          "end": 14.739,
+          "length": 4.95,
+          "type": "word"
+        },
+        {
+          "index": 2,
+          "start": 14.739,
+          "end": 19.514,
+          "length": 4.77,
+          "type": "word"
+        },
+        {
+          "index": 3,
+          "start": 19.514,
+          "end": 24.251,
+          "length": 4.74,
+          "type": "word"
+        },
+        {
+          "index": 4,
+          "start": 24.251,
+          "end": 29.398,
+          "length": 5.15,
+          "type": "word"
+        },
+        {
+          "index": 5,
+          "start": 29.398,
+          "end": 35.287,
+          "length": 5.89,
+          "type": "word"
+        },
+        {
+          "index": 6,
+          "start": 35.287,
+          "end": 40.74,
+          "length": 5.45,
+          "type": "word"
+        },
+        {
+          "index": 7,
+          "start": 40.74,
+          "end": 46.045,
+          "length": 5.3,
+          "type": "word"
+        },
+        {
+          "index": 8,
+          "start": 46.045,
+          "end": 51.346,
+          "length": 5.3,
+          "type": "word"
+        },
+        {
+          "index": 9,
+          "start": 51.346,
+          "end": 56.335,
+          "length": 4.99,
+          "type": "word"
+        },
+        {
+          "index": 10,
+          "start": 56.335,
+          "end": 61.638,
+          "length": 5.3,
+          "type": "word"
+        },
+        {
+          "index": 11,
+          "start": 61.638,
+          "end": 67.067,
+          "length": 5.43,
+          "type": "word"
+        },
+        {
+          "index": 12,
+          "start": 67.067,
+          "end": 72.454,
+          "length": 5.39,
+          "type": "word"
+        },
+        {
+          "index": 13,
+          "start": 72.454,
+          "end": 77.204,
+          "length": 4.75,
+          "type": "word"
+        },
+        {
+          "index": 14,
+          "start": 77.204,
+          "end": 81.935,
+          "length": 4.73,
+          "type": "word"
+        },
+        {
+          "index": 15,
+          "start": 81.935,
+          "end": 87.275,
+          "length": 5.34,
+          "type": "word"
+        }
+      ]
+    },
+    {
+      "page": "090",
+      "duration": 83.83,
+      "num_segments": 16,
+      "segments": [
+        {
+          "index": 0,
+          "start": 0.0,
+          "end": 8.317,
+          "length": 8.32,
+          "type": "word+announce"
+        },
+        {
+          "index": 1,
+          "start": 8.317,
+          "end": 13.33,
+          "length": 5.01,
+          "type": "word"
+        },
+        {
+          "index": 2,
+          "start": 13.33,
+          "end": 18.591,
+          "length": 5.26,
+          "type": "word"
+        },
+        {
+          "index": 3,
+          "start": 18.591,
+          "end": 23.497,
+          "length": 4.91,
+          "type": "word"
+        },
+        {
+          "index": 4,
+          "start": 23.497,
+          "end": 28.133,
+          "length": 4.64,
+          "type": "word"
+        },
+        {
+          "index": 5,
+          "start": 28.133,
+          "end": 33.216,
+          "length": 5.08,
+          "type": "word"
+        },
+        {
+          "index": 6,
+          "start": 33.216,
+          "end": 38.431,
+          "length": 5.21,
+          "type": "word"
+        },
+        {
+          "index": 7,
+          "start": 38.431,
+          "end": 43.961,
+          "length": 5.53,
+          "type": "word"
+        },
+        {
+          "index": 8,
+          "start": 43.961,
+          "end": 49.225,
+          "length": 5.26,
+          "type": "word"
+        },
+        {
+          "index": 9,
+          "start": 49.225,
+          "end": 53.393,
+          "length": 4.17,
+          "type": "word"
+        },
+        {
+          "index": 10,
+          "start": 53.393,
+          "end": 57.722,
+          "length": 4.33,
+          "type": "word"
+        },
+        {
+          "index": 11,
+          "start": 57.722,
+          "end": 62.796,
+          "length": 5.07,
+          "type": "word"
+        },
+        {
+          "index": 12,
+          "start": 62.796,
+          "end": 67.822,
+          "length": 5.03,
+          "type": "word"
+        },
+        {
+          "index": 13,
+          "start": 67.822,
+          "end": 73.049,
+          "length": 5.23,
+          "type": "word"
+        },
+        {
+          "index": 14,
+          "start": 73.049,
+          "end": 78.151,
+          "length": 5.1,
+          "type": "word"
+        },
+        {
+          "index": 15,
+          "start": 78.151,
+          "end": 83.827,
+          "length": 5.68,
+          "type": "word"
+        }
+      ]
+    },
+    {
+      "page": "091",
+      "duration": 20.95,
+      "num_segments": 4,
+      "segments": [
+        {
+          "index": 0,
+          "start": 0.0,
+          "end": 6.994,
+          "length": 6.99,
+          "type": "word+announce"
+        },
+        {
+          "index": 1,
+          "start": 6.994,
+          "end": 11.324,
+          "length": 4.33,
+          "type": "word"
+        },
+        {
+          "index": 2,
+          "start": 11.324,
+          "end": 15.685,
+          "length": 4.36,
+          "type": "word"
+        },
+        {
+          "index": 3,
+          "start": 15.685,
+          "end": 20.95,
+          "length": 5.26,
+          "type": "word"
+        }
+      ]
+    },
+    {
+      "page": "092",
+      "duration": 98.9,
+      "num_segments": 6,
+      "segments": [
+        {
+          "index": 0,
+          "start": 0.0,
+          "end": 18.891,
+          "length": 18.89,
+          "type": "word"
+        },
+        {
+          "index": 1,
+          "start": 18.891,
+          "end": 33.156,
+          "length": 14.27,
+          "type": "word"
+        },
+        {
+          "index": 2,
+          "start": 33.156,
+          "end": 47.682,
+          "length": 14.53,
+          "type": "word"
+        },
+        {
+          "index": 3,
+          "start": 47.682,
+          "end": 63.138,
+          "length": 15.46,
+          "type": "word"
+        },
+        {
+          "index": 4,
+          "start": 63.138,
+          "end": 80.807,
+          "length": 17.67,
+          "type": "word"
+        },
+        {
+          "index": 5,
+          "start": 80.807,
+          "end": 98.9,
+          "length": 18.09,
+          "type": "word"
+        }
+      ]
+    },
+    {
+      "page": "093",
+      "duration": 106.53,
+      "num_segments": 6,
+      "segments": [
+        {
+          "index": 0,
+          "start": 0.0,
+          "end": 19.393,
+          "length": 19.39,
+          "type": "word"
+        },
+        {
+          "index": 1,
+          "start": 19.393,
+          "end": 35.982,
+          "length": 16.59,
+          "type": "word"
+        },
+        {
+          "index": 2,
+          "start": 35.982,
+          "end": 52.914,
+          "length": 16.93,
+          "type": "word"
+        },
+        {
+          "index": 3,
+          "start": 52.914,
+          "end": 69.526,
+          "length": 16.61,
+          "type": "word"
+        },
+        {
+          "index": 4,
+          "start": 69.526,
+          "end": 88.148,
+          "length": 18.62,
+          "type": "word"
+        },
+        {
+          "index": 5,
+          "start": 88.148,
+          "end": 106.527,
+          "length": 18.38,
+          "type": "word"
+        }
+      ]
+    },
+    {
+      "page": "094",
+      "duration": 96.24,
+      "num_segments": 6,
+      "segments": [
+        {
+          "index": 0,
+          "start": 0.0,
+          "end": 21.386,
+          "length": 21.39,
+          "type": "word"
+        },
+        {
+          "index": 1,
+          "start": 21.386,
+          "end": 34.859,
+          "length": 13.47,
+          "type": "word"
+        },
+        {
+          "index": 2,
+          "start": 34.859,
+          "end": 51.753,
+          "length": 16.89,
+          "type": "word"
+        },
+        {
+          "index": 3,
+          "start": 51.753,
+          "end": 65.512,
+          "length": 13.76,
+          "type": "word"
+        },
+        {
+          "index": 4,
+          "start": 65.512,
+          "end": 81.47,
+          "length": 15.96,
+          "type": "word"
+        },
+        {
+          "index": 5,
+          "start": 81.47,
+          "end": 96.235,
+          "length": 14.77,
+          "type": "word"
+        }
+      ]
+    },
+    {
+      "page": "095",
+      "duration": 90.15,
+      "num_segments": 7,
+      "segments": [
+        {
+          "index": 0,
+          "start": 0.0,
+          "end": 15.928,
+          "length": 15.93,
+          "type": "word"
+        },
+        {
+          "index": 1,
+          "start": 15.928,
+          "end": 26.268,
+          "length": 10.34,
+          "type": "word"
+        },
+        {
+          "index": 2,
+          "start": 26.268,
+          "end": 32.068,
+          "length": 5.8,
+          "type": "word"
+        },
+        {
+          "index": 3,
+          "start": 32.068,
+          "end": 47.991,
+          "length": 15.92,
+          "type": "word"
+        },
+        {
+          "index": 4,
+          "start": 47.991,
+          "end": 63.251,
+          "length": 15.26,
+          "type": "word"
+        },
+        {
+          "index": 5,
+          "start": 63.251,
+          "end": 76.045,
+          "length": 12.79,
+          "type": "word"
+        },
+        {
+          "index": 6,
+          "start": 76.045,
+          "end": 90.149,
+          "length": 14.1,
+          "type": "word"
+        }
+      ]
+    },
+    {
+      "page": "096",
+      "duration": 106.34,
+      "num_segments": 7,
+      "segments": [
+        {
+          "index": 0,
+          "start": 0.0,
+          "end": 13.294,
+          "length": 13.29,
+          "type": "word"
+        },
+        {
+          "index": 1,
+          "start": 13.294,
+          "end": 18.584,
+          "length": 5.29,
+          "type": "word"
+        },
+        {
+          "index": 2,
+          "start": 18.584,
+          "end": 33.656,
+          "length": 15.07,
+          "type": "word"
+        },
+        {
+          "index": 3,
+          "start": 33.656,
+          "end": 52.732,
+          "length": 19.08,
+          "type": "word"
+        },
+        {
+          "index": 4,
+          "start": 52.732,
+          "end": 69.663,
+          "length": 16.93,
+          "type": "word"
+        },
+        {
+          "index": 5,
+          "start": 69.663,
+          "end": 86.228,
+          "length": 16.56,
+          "type": "word"
+        },
+        {
+          "index": 6,
+          "start": 86.228,
+          "end": 106.344,
+          "length": 20.12,
+          "type": "word"
+        }
+      ]
+    },
+    {
+      "page": "097",
+      "duration": 108.41,
+      "num_segments": 6,
+      "segments": [
+        {
+          "index": 0,
+          "start": 0.0,
+          "end": 16.772,
+          "length": 16.77,
+          "type": "word"
+        },
+        {
+          "index": 1,
+          "start": 16.772,
+          "end": 34.138,
+          "length": 17.37,
+          "type": "word"
+        },
+        {
+          "index": 2,
+          "start": 34.138,
+          "end": 52.872,
+          "length": 18.73,
+          "type": "word"
+        },
+        {
+          "index": 3,
+          "start": 52.872,
+          "end": 71.284,
+          "length": 18.41,
+          "type": "word"
+        },
+        {
+          "index": 4,
+          "start": 71.284,
+          "end": 88.864,
+          "length": 17.58,
+          "type": "word"
+        },
+        {
+          "index": 5,
+          "start": 88.864,
+          "end": 108.408,
+          "length": 19.54,
+          "type": "word"
+        }
+      ]
+    },
+    {
+      "page": "098",
+      "duration": 48.38,
+      "num_segments": 4,
+      "segments": [
+        {
+          "index": 0,
+          "start": 0.0,
+          "end": 16.013,
+          "length": 16.01,
+          "type": "word"
+        },
+        {
+          "index": 1,
+          "start": 16.013,
+          "end": 30.595,
+          "length": 14.58,
+          "type": "word"
+        },
+        {
+          "index": 2,
+          "start": 30.595,
+          "end": 47.31,
+          "length": 16.72,
+          "type": "word"
+        },
+        {
+          "index": 3,
+          "start": 47.31,
+          "end": 48.379,
+          "length": 1.07,
+          "type": "word"
+        }
+      ]
+    }
+  ]
+}
