@@ -143,17 +143,15 @@ const Player = (() => {
     console.log('[Hearbit] Media Session handlers set');
   }
 
-  /* 末尾/先頭ではロック画面の前/次ボタンを OS 側で無効表示にする。
-   * 仕様: 先頭の単語では「前へ」を無効化、末尾の単語では「次へ」を無効化。
-   * ハンドラを null にすると iOS/Android はそのボタンをグレーアウト（無効）表示する。
-   * これにより「最後で次を押しても無反応でフリーズに見える」問題を防ぐ。 */
-  function updateNavHandlers() {
-    if (!('mediaSession' in navigator)) return;
-    const atFirst = currentIndex <= 0;
-    const atLast = currentIndex >= playlist.length - 1;
-    msSet('previoustrack', atFirst ? null : () => prev());
-    msSet('nexttrack', atLast ? null : () => next());
-  }
+  /* 先頭/末尾の扱い（iOS実機バグ対策で方針変更）:
+   * 以前は setActionHandler を null/関数でトグルして OS 側のボタンを無効化していたが、
+   * iOS Safari には「一度 null にしたハンドラを関数へ戻してもボタンが無効のまま」に
+   * なる既知の不具合があり、途中の単語（例: 001の単語2）で次へが出なくなる症状を招いた。
+   * → Media Session の previoustrack / nexttrack は【常に登録しっぱなし】（setupMediaSession）。
+   *   先頭/末尾の抑止は prev()/next() 側の no-op（境界ガード）で担保する。
+   *   ボタンの見た目上の無効化は、確実に効く DOM（全画面プレーヤーの ◀◀/▶▶ の disabled、
+   *   updateLabels 内）だけで行う。ロック画面のボタンは常に押せ、境界では no-op になる
+   *   （誤作動せず、途中でボタンが消える問題も起きない）。 */
 
   // ---------- end 監視 ----------
   function tick() {
@@ -192,8 +190,7 @@ const Player = (() => {
 
     currentIndex = index;
     if (onCellChange) onCellChange(index);
-    updateLabels();
-    updateNavHandlers(); // 末尾/先頭でロック画面の前/次ボタンを無効化
+    updateLabels(); // ラベル更新 + 全画面 ◀◀/▶▶ の境界 disabled 反映
     showMini();
 
     // 同じページ音声なら src を再利用（seek のみ）。ページが変わる時だけ差し替える。
@@ -262,9 +259,10 @@ const Player = (() => {
   function toggle() { if (isPlaying) pause(); else resume(); }
 
   /* 仕様（末尾/先頭の扱い）:
-   *   - 先頭(index 0)での prev は no-op（ロック画面ではボタン自体を無効化済み）。
-   *     アプリ内の ◀◀ を押した場合も何もしない（同じ単語の頭出しはしない＝挙動を対称に）。
-   *   - 末尾での next は no-op（同上）。onEnded は timeupdate 監視からのみ呼ぶ。 */
+   *   - 先頭(index 0)での prev は no-op（境界ガード）。同じ単語の頭出しはしない＝対称。
+   *   - 末尾(index length-1)での next は no-op。onEnded は timeupdate 監視からのみ呼ぶ。
+   * ロック画面のボタンは常に押せるが、境界ではこのガードで何も起きない（誤作動しない）。
+   * 全画面プレーヤーの ◀◀/▶▶ は updateLabels() で境界時に disabled 表示にする。 */
   function prev() {
     if (currentIndex > 0) playIndex(currentIndex - 1);
   }
