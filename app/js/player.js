@@ -131,8 +131,17 @@ const Player = (() => {
     catch (e) { /* 未対応アクションは無視 */ }
   }
 
+  // Media Session ハンドラは【一度だけ】登録する（冪等）。
+  // configure()（単語帳を開くたび）や loadAndPlay から再登録すると、iOS Safari では
+  // 同じ操作（例: nexttrack）が2回発火して「次へ」で単語が1個飛ばしになる不具合が出る。
+  // ハンドラは module-level の prev/next/resume/pause/seekBy/stop クロージャを参照し、
+  // playlist / currentIndex はハンドラ内で毎回ライブに読むため、初回登録だけで単語帳を
+  // 切り替えても正しく動く。
+  let mediaSessionReady = false;
   function setupMediaSession() {
     if (!('mediaSession' in navigator)) return;
+    if (mediaSessionReady) return; // 二重登録防止（冪等）
+    mediaSessionReady = true;
     msSet('play', () => resume());
     msSet('pause', () => pause());
     msSet('previoustrack', () => prev());
@@ -140,7 +149,7 @@ const Player = (() => {
     msSet('seekbackward', (d) => seekBy(-(d && d.seekOffset ? d.seekOffset : 5)));
     msSet('seekforward', (d) => seekBy(d && d.seekOffset ? d.seekOffset : 5));
     msSet('stop', () => stop());
-    console.log('[Hearbit] Media Session handlers set');
+    console.log('[Hearbit] Media Session handlers set (once)');
   }
 
   /* 先頭/末尾の扱い（iOS実機バグ対策で方針変更）:
@@ -262,11 +271,24 @@ const Player = (() => {
    *   - 先頭(index 0)での prev は no-op（境界ガード）。同じ単語の頭出しはしない＝対称。
    *   - 末尾(index length-1)での next は no-op。onEnded は timeupdate 監視からのみ呼ぶ。
    * ロック画面のボタンは常に押せるが、境界ではこのガードで何も起きない（誤作動しない）。
-   * 全画面プレーヤーの ◀◀/▶▶ は updateLabels() で境界時に disabled 表示にする。 */
+   * 全画面プレーヤーの ◀◀/▶▶ は updateLabels() で境界時に disabled 表示にする。
+   *
+   * 二重発火ガード: iOS の Media Session は同一操作を極短時間に2回発火することがある。
+   * 根本原因（ハンドラ二重登録）は setupMediaSession の冪等化で解消済みだが、保険として
+   * 250ms 以内の連続した prev/next は1回だけ受け付ける（人手の連打は250ms超なので影響なし）。 */
+  let lastNavAt = 0;
+  function navDebounced() {
+    const now = (typeof performance !== 'undefined' ? performance.now() : Date.now());
+    if (now - lastNavAt < 250) return false;
+    lastNavAt = now;
+    return true;
+  }
   function prev() {
+    if (!navDebounced()) return;
     if (currentIndex > 0) playIndex(currentIndex - 1);
   }
   function next() {
+    if (!navDebounced()) return;
     if (currentIndex >= 0 && currentIndex < playlist.length - 1) playIndex(currentIndex + 1);
   }
 
