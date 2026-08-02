@@ -246,9 +246,18 @@
       let wordNo = 0;
       p.segments.forEach((seg) => {
         wordNo += 1; serial += 1;
+        // 実効start: アナウンス付き単語（word+announce）は冒頭のアナウンスを飛ばし、
+        // announce_end（単語本体の開始）から鳴らす → タップですぐ単語が聞こえる。
+        // announce_low_confidence:true でも announce_end を採用（境界が多少ズレても
+        // 「単語から始める」意図は満たせる。精度改善は Issue #4 の手動修正で）。
+        // それ以外のセグメントは従来通り seg.start。end は常に seg.end。
+        // ※機能B（聞き流し）の連結時も、単語本体だけを繋ぐには同じ announce_end 考慮が要る。
+        const effStart = (seg.type === 'word+announce' && seg.announce_end != null)
+          ? seg.announce_end : seg.start;
         playlist.push({
           page: p.page, segIndex: seg.index,
-          start: seg.start, end: seg.end, length: seg.length, type: seg.type,
+          start: seg.start, effStart, end: seg.end, length: seg.length, type: seg.type,
+          announce_end: seg.announce_end != null ? seg.announce_end : null,
           wordNo, serial, pageLabel,
         });
       });

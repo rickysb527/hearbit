@@ -57,6 +57,12 @@ const Player = (() => {
     return `${m}:${String(s).padStart(2, '0')}`;
   }
 
+  // 実効再生開始位置: word+announce はアナウンスを飛ばして単語本体（effStart）から鳴らす。
+  // app.js が playlist 各要素に effStart を持たせる。無ければ start にフォールバック。
+  function startOf(w) { return (w && w.effStart != null) ? w.effStart : (w ? w.start : 0); }
+  // 実効の尺（アナウンスを除いた単語本体の長さ）。シークバー/時間表示に使う。
+  function lengthOf(w) { return w ? Math.max(0, w.end - startOf(w)) : 0; }
+
   function setPlayingUI(playing) {
     isPlaying = playing;
     mini.classList.toggle('paused', !playing);
@@ -82,7 +88,7 @@ const Player = (() => {
     fpNum.textContent = String(w.wordNo);
     fpSerial.textContent = `#${w.serial}`;
     fpBlocks.textContent = (w.length >= 8) ? '単語 → 訳 → 例文' : '単語 → 訳';
-    fpDur.textContent = fmt(w.length);
+    fpDur.textContent = fmt(lengthOf(w));
     // 全画面プレーヤーの ◀◀/▶▶ も先頭/末尾で無効化（ロック画面と挙動を揃える）
     fpPrev.disabled = currentIndex <= 0;
     fpNext.disabled = currentIndex >= playlist.length - 1;
@@ -92,8 +98,9 @@ const Player = (() => {
   function updateSeek() {
     const w = playlist[currentIndex];
     if (!w || seeking) return;
-    const pos = Math.min(Math.max(audio.currentTime - w.start, 0), w.length);
-    const ratio = w.length > 0 ? pos / w.length : 0;
+    const st = startOf(w), len = lengthOf(w);
+    const pos = Math.min(Math.max(audio.currentTime - st, 0), len);
+    const ratio = len > 0 ? pos / len : 0;
     seekFill.style.width = `${ratio * 100}%`;
     seekThumb.style.left = `${ratio * 100}%`;
     fpCur.textContent = fmt(pos);
@@ -207,8 +214,9 @@ const Player = (() => {
       if (myToken !== playToken) return;
     }
 
+    const st = startOf(w); // アナウンス付きは announce_end から（単語本体の頭）
     stopAt = w.end;
-    try { audio.currentTime = w.start; } catch (e) { /* Safari: play後に再設定 */ }
+    try { audio.currentTime = st; } catch (e) { /* Safari: play後に再設定 */ }
 
     if (!autoplay) { setPlayingUI(false); updateSeek(); return; }
 
@@ -220,7 +228,7 @@ const Player = (() => {
       return;
     }
     if (myToken !== playToken) { audio.pause(); return; }
-    if (Math.abs(audio.currentTime - w.start) > 0.3) audio.currentTime = w.start;
+    if (Math.abs(audio.currentTime - st) > 0.3) audio.currentTime = st;
 
     setPlayingUI(true);
     startWatch();
@@ -232,9 +240,10 @@ const Player = (() => {
   async function resume() {
     if (currentIndex < 0) return;
     const w = playlist[currentIndex];
-    // 末尾で止まっていたら頭から鳴らし直す
-    if (audio.currentTime >= (stopAt ?? w.end) - 0.02 || audio.currentTime < w.start) {
-      try { audio.currentTime = w.start; } catch (e) {}
+    const st = startOf(w); // アナウンス付きは単語本体の頭から
+    // 末尾で止まっていたら（実効の）頭から鳴らし直す
+    if (audio.currentTime >= (stopAt ?? w.end) - 0.02 || audio.currentTime < st) {
+      try { audio.currentTime = st; } catch (e) {}
     }
     try { await audio.play(); setPlayingUI(true); startWatch(); }
     catch (e) { if (e && e.name !== 'AbortError') console.warn('resume failed', e); }
@@ -267,7 +276,8 @@ const Player = (() => {
     const w = playlist[currentIndex];
     if (!w) return;
     let t = audio.currentTime + delta;
-    t = Math.min(Math.max(t, w.start), w.end - 0.05);
+    // 下限は実効start（アナウンス部へは戻さない）
+    t = Math.min(Math.max(t, startOf(w)), w.end - 0.05);
     try { audio.currentTime = t; } catch (e) {}
     updateSeek();
   }
@@ -276,7 +286,8 @@ const Player = (() => {
     const w = playlist[currentIndex];
     if (!w) return;
     ratio = Math.min(Math.max(ratio, 0), 1);
-    const t = w.start + ratio * w.length;
+    // シークは実効区間（単語本体 startOf〜end）に対して行う
+    const t = startOf(w) + ratio * lengthOf(w);
     try { audio.currentTime = Math.min(t, w.end - 0.02); } catch (e) {}
     updateSeek();
   }
