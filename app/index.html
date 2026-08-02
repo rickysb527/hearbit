@@ -152,25 +152,24 @@
         <div id="pages-grid-wrap"></div>
       </div>
 
-      <!-- 聞き流しタブ（機能B: 枠のみ・次段階） -->
+      <!-- 聞き流しタブ（機能B: 単語+訳を連結1本で連続再生） -->
       <div id="tab-listen" class="tab-panel">
-        <div class="placeholder">
-          <svg viewBox="0 0 48 32" width="56" height="38" aria-hidden="true">
-            <g fill="currentColor" opacity="0.6">
-              <rect x="1" y="12" width="4" height="8" rx="2"/>
-              <rect x="8" y="8" width="4" height="16" rx="2"/>
-              <rect x="15" y="2" width="4" height="28" rx="2"/>
-              <rect x="22" y="9" width="4" height="14" rx="2"/>
-              <rect x="29" y="5" width="4" height="22" rx="2"/>
-              <rect x="36" y="11" width="4" height="10" rx="2"/>
-              <rect x="43" y="13" width="4" height="6" rx="2"/>
-            </g>
-          </svg>
-          <div class="placeholder-title">聞き流し（準備中）</div>
-          <p class="placeholder-text">
-            単語部分だけを 50語 / 100語で連結し、1本の音声として連続再生します。<br/>
-            ロック中も止まらない連結再生は次の段階で提供します。
-          </p>
+        <p class="listen-lead">
+          単語部分（単語+訳）だけを連結し、<b>1本の音声</b>として連続再生します。<br/>
+          ロック中も止まらないので散歩中の聞き流しに。
+        </p>
+
+        <div class="listen-opt">
+          <div class="listen-opt-label">1トラックの語数</div>
+          <div class="seg listen-size" id="listen-size" role="tablist" aria-label="語数">
+            <button data-size="50" class="seg-btn active" role="tab">50語</button>
+            <button data-size="100" class="seg-btn" role="tab">100語</button>
+          </div>
+        </div>
+
+        <div class="listen-opt">
+          <div class="listen-opt-label">範囲</div>
+          <div class="listen-ranges" id="listen-ranges" role="listbox" aria-label="範囲を選ぶ"></div>
         </div>
       </div>
     </section>
@@ -238,6 +237,67 @@
     </div>
   </div>
 
+  <!-- ===== 全画面プレーヤー（③ 機能B: 聞き流し / 円形プログレス） ===== -->
+  <div id="listen-player" class="hidden" aria-label="聞き流しプレーヤー">
+    <div class="fp-top">
+      <button id="lp-collapse" class="icon-btn" aria-label="閉じる">
+        <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <polyline points="6 9 12 15 18 9"/>
+        </svg>
+      </button>
+      <div class="lp-title" id="lp-title">聞き流し</div>
+      <button class="icon-btn" aria-hidden="true" tabindex="-1" style="visibility:hidden">
+        <svg viewBox="0 0 24 24" width="24" height="24"></svg>
+      </button>
+    </div>
+
+    <div class="lp-body">
+      <div class="lp-sub" id="lp-sub">単語のみ · 50語</div>
+
+      <!-- 読み込み中（トラック構築） -->
+      <div id="lp-loading" class="lp-loading hidden">
+        <div class="lp-spinner" aria-hidden="true"></div>
+        <div class="lp-loading-text" id="lp-loading-text">音声を用意中…</div>
+      </div>
+
+      <!-- 円形プログレスリング -->
+      <div class="lp-ring-wrap" id="lp-ring-wrap">
+        <svg class="lp-ring" viewBox="0 0 240 240" aria-hidden="true">
+          <circle class="lp-ring-bg" cx="120" cy="120" r="106" fill="none" stroke-width="12"/>
+          <circle class="lp-ring-fg" id="lp-ring-fg" cx="120" cy="120" r="106" fill="none" stroke-width="12"
+            stroke-linecap="round" transform="rotate(-90 120 120)"/>
+          <circle class="lp-ring-dot" id="lp-ring-dot" cx="120" cy="14" r="9"/>
+        </svg>
+        <div class="lp-ring-center">
+          <div class="wave lp-wave" id="lp-wave" aria-hidden="true">
+            <span></span><span></span><span></span><span></span><span></span>
+          </div>
+          <div class="lp-word" id="lp-word">単語 1</div>
+        </div>
+      </div>
+
+      <div class="lp-count"><span id="lp-cur">1</span> / <span id="lp-total">50</span></div>
+
+      <div class="fp-controls">
+        <button id="lp-prev" class="fp-side" aria-label="前の単語">
+          <svg viewBox="0 0 24 24" width="30" height="30" fill="currentColor" aria-hidden="true"><polygon points="18 5 8 12 18 19"/><rect x="5" y="5" width="2.4" height="14" rx="1.2"/></svg>
+        </button>
+        <button id="lp-toggle" class="fp-main" aria-label="再生 / 一時停止">
+          <svg class="ic-play" viewBox="0 0 24 24" width="34" height="34" fill="currentColor" aria-hidden="true"><polygon points="7 4 21 12 7 20"/></svg>
+          <svg class="ic-pause hidden" viewBox="0 0 24 24" width="34" height="34" fill="currentColor" aria-hidden="true"><rect x="6" y="4" width="4.5" height="16" rx="1.5"/><rect x="13.5" y="4" width="4.5" height="16" rx="1.5"/></svg>
+        </button>
+        <button id="lp-next" class="fp-side" aria-label="次の単語">
+          <svg viewBox="0 0 24 24" width="30" height="30" fill="currentColor" aria-hidden="true"><polygon points="6 5 16 12 6 19"/><rect x="16.6" y="5" width="2.4" height="14" rx="1.2"/></svg>
+        </button>
+      </div>
+
+      <div class="lp-offline">
+        <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+        オフライン
+      </div>
+    </div>
+  </div>
+
   <!-- ===== 下部タブバー（①ルートのみ） ===== -->
   <nav id="tab-bar">
     <button class="tabbar-btn active" data-root="books" aria-label="単語帳">
@@ -258,7 +318,9 @@
 
   <script src="js/db.js"></script>
   <script src="js/splitter.js"></script>
+  <script src="js/listen-build.js"></script>
   <script src="js/player.js"></script>
+  <script src="js/listen.js"></script>
   <script src="js/app.js"></script>
   <script>
     // Service Worker 登録（PWA / オフライン起動）

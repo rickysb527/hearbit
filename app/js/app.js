@@ -38,6 +38,10 @@
   // --- DOM: pages ---
   const pagesGridWrap = document.getElementById('pages-grid-wrap');
 
+  // --- DOM: 聞き流し（機能B） ---
+  const listenSizeSeg = document.getElementById('listen-size');
+  const listenRanges = document.getElementById('listen-ranges');
+
   // --- ナビゲーション状態 ---
   // 'books'/'settings' はルート階層（ブランドヘッダ+下部タブ）。
   // 'import'/'pages' は下層（コンテキストヘッダ、下部タブ非表示）。
@@ -45,6 +49,8 @@
   let currentBook = null; // { id, name, book }
   let playlist = [];      // フラットな単語リスト（Player 用）
   let cellEls = [];       // playlist と同じ index のセルDOM（ハイライト用）
+  let listenWords = [];   // 機能B用の単語リスト（ListenBuild.collectWords）
+  let listenSize = 50;    // 現在選択中のチャンクサイズ（50/100）
 
   const ROOTS = ['books', 'settings'];
 
@@ -226,8 +232,11 @@
   function openBook(book) {
     currentBook = book;
     Player.stop();
+    Listen.stop();
     const wordCount = book.book.pages.reduce((s, p) => s + p.word_count, 0);
     buildPlaylist(book);
+    configureListen(book);
+    renderListenOptions();
     renderPages(book);
     // タブは「単語」に戻す
     document.querySelectorAll('#book-tabs .tab').forEach(t => t.classList.toggle('active', t.dataset.tab === 'words'));
@@ -277,6 +286,54 @@
     if (cell && cell.scrollIntoView) cell.scrollIntoView({ block: 'nearest' });
   }
 
+  // ================= 機能B: 聞き流し =================
+  // 単語リスト（単語+訳の抽出は再生時に遅延確定）を Listen に渡す。
+  function configureListen(book) {
+    listenWords = ListenBuild.collectWords(book.book); // silences 無し = wordonly は遅延確定
+    Listen.configure({
+      bookName: book.name,
+      words: listenWords,
+      getBlobFor: (page) => DB.getAudio(book.id, page),
+      ui: listenUI,
+    });
+  }
+
+  // 語数トグル（50/100）
+  listenSizeSeg.querySelectorAll('.seg-btn').forEach((b) => {
+    b.addEventListener('click', () => {
+      listenSize = parseInt(b.dataset.size, 10);
+      listenSizeSeg.querySelectorAll('.seg-btn').forEach((x) =>
+        x.classList.toggle('active', x === b));
+      renderListenRanges();
+    });
+  });
+
+  // 範囲チップ（1–50, 51–100 …）を描画。タップで連結トラックを構築→再生。
+  function renderListenOptions() {
+    listenSizeSeg.querySelectorAll('.seg-btn').forEach((x) =>
+      x.classList.toggle('active', parseInt(x.dataset.size, 10) === listenSize));
+    renderListenRanges();
+  }
+
+  function renderListenRanges() {
+    const total = listenWords.length;
+    listenRanges.innerHTML = '';
+    const n = ListenBuild.numChunks(total, listenSize);
+    for (let c = 0; c < n; c++) {
+      const [from, to] = ListenBuild.chunkRange(total, listenSize, c);
+      const chip = document.createElement('button');
+      chip.className = 'listen-range-chip';
+      chip.setAttribute('role', 'option');
+      chip.innerHTML = `<span class="lr-range">${from + 1}–${to}</span>
+        <span class="lr-count">${to - from}語</span>`;
+      chip.addEventListener('click', () => {
+        showListenFull({ size: listenSize, from: from + 1, to, wordCount: to - from });
+        Listen.playRange(from, to, listenSize);
+      });
+      listenRanges.appendChild(chip);
+    }
+  }
+
   function renderPages(book) {
     pagesGridWrap.innerHTML = '';
     cellEls = [];
@@ -316,6 +373,77 @@
       pagesGridWrap.appendChild(section);
     });
   }
+
+  // ---- 聞き流し 全画面プレーヤー（円形プログレス）の DOM とコントローラ ----
+  const lp = document.getElementById('listen-player');
+  const lpSub = document.getElementById('lp-sub');
+  const lpWord = document.getElementById('lp-word');
+  const lpCur = document.getElementById('lp-cur');
+  const lpTotal = document.getElementById('lp-total');
+  const lpRingFg = document.getElementById('lp-ring-fg');
+  const lpRingDot = document.getElementById('lp-ring-dot');
+  const lpLoading = document.getElementById('lp-loading');
+  const lpLoadingText = document.getElementById('lp-loading-text');
+  const lpRingWrap = document.getElementById('lp-ring-wrap');
+  const lpToggle = document.getElementById('lp-toggle');
+  const lpPrev = document.getElementById('lp-prev');
+  const lpNext = document.getElementById('lp-next');
+  const lpCollapse = document.getElementById('lp-collapse');
+
+  const RING_R = 106;
+  const RING_C = 2 * Math.PI * RING_R; // 円周（stroke-dasharray 用）
+  lpRingFg.style.strokeDasharray = String(RING_C);
+  lpRingFg.style.strokeDashoffset = String(RING_C);
+
+  function setRing(ratio) {
+    ratio = Math.min(Math.max(ratio, 0), 1);
+    lpRingFg.style.strokeDashoffset = String(RING_C * (1 - ratio));
+    // 先端ドットを弧の終端へ配置（-90°基準＝12時から時計回り）
+    const ang = -Math.PI / 2 + ratio * 2 * Math.PI;
+    lpRingDot.setAttribute('cx', String(120 + RING_R * Math.cos(ang)));
+    lpRingDot.setAttribute('cy', String(120 + RING_R * Math.sin(ang)));
+  }
+
+  function showListenFull(info) {
+    lpSub.textContent = `単語のみ · ${info.size}語（${info.from}–${info.to}）`;
+    lpTotal.textContent = String(info.wordCount);
+    lpCur.textContent = '1';
+    lpWord.textContent = `単語 ${info.from}`;
+    setRing(0);
+    lp.classList.remove('hidden');
+  }
+
+  // Listen → UI（app.js が注入）
+  const listenUI = {
+    onPlaying(playing) {
+      lp.classList.toggle('paused', !playing);
+      lp.classList.toggle('playing-anim', playing);
+      lpToggle.querySelector('.ic-play').classList.toggle('hidden', playing);
+      lpToggle.querySelector('.ic-pause').classList.toggle('hidden', !playing);
+    },
+    onProgress(ratio, wordNo, wordCount) {
+      setRing(ratio);
+      lpCur.textContent = String(wordNo);
+      lpTotal.textContent = String(wordCount);
+      // 中央表示: 通し番号ではなくトラック内の語順（散歩中のチラ見で「今何語目か」）
+      lpWord.textContent = `単語 ${wordNo}`;
+    },
+    onLoading(loading, done, all) {
+      lpLoading.classList.toggle('hidden', !loading);
+      lpRingWrap.classList.toggle('dim', loading);
+      if (loading && done != null) lpLoadingText.textContent = `音声を用意中… ${done}/${all}`;
+    },
+    onHeader(h) {
+      lpSub.textContent = `単語のみ · ${h.size}語（${h.from}–${h.to}）`;
+      lpTotal.textContent = String(h.wordCount);
+    },
+    hideFull() { lp.classList.add('hidden'); },
+  };
+
+  lpToggle.addEventListener('click', () => Listen.toggle());
+  lpPrev.addEventListener('click', () => Listen.prev());
+  lpNext.addEventListener('click', () => Listen.next());
+  lpCollapse.addEventListener('click', () => { Listen.stop(); });
 
   // 上部タブ（単語 / 聞き流し）
   document.getElementById('book-tabs').addEventListener('click', (e) => {
