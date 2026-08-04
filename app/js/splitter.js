@@ -20,13 +20,15 @@ const Splitter = (() => {
    *
    *   → 具体的には、無音閾値・単語境界・短小結合・アナウンス切り離し（analyzeFromSamples）、
    *     もしくは listen-build.js の wordonly 抽出（wordonlyRange 等）を変更したら +1 する。
+   *   ※【運用ルール】分割/抽出ロジック(splitter.js/listen-build.js)を変えたら SPLIT_VERSION を
+   *     上げ、同時に sw.js の CACHE も上げること（古いJSが配られて再分割が走らない事故を防ぐ）。
    *
    * 履歴:
    *   1: 初期リリース（無音検知移植 / 短小結合 / アナウンス切り離し / wordonly抽出）。
-   *      ※訳スキップ（announce_end による単語本体開始・wordonly の冒頭余白スキップ）を含む
-   *        現行ロジック一式をバージョン1と定義。以降の変更でインクリメントする。
+   *   2: wordonly抽出の冒頭無音余白スキップ・境界不足時end含める修正を反映（訳スキップ修正）。
+   *      ※既存データ(v1 or splitVersion無し)は次回オープンで元音声から自動再分割され反映される。
    */
-  const SPLIT_VERSION = 1;
+  const SPLIT_VERSION = 2;
 
   const NOISE_DB = -30;      // dBFS 閾値
   const MIN_SILENCE = 0.4;   // これ以上続けば無音とみなす（秒）
