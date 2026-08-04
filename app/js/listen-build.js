@@ -10,12 +10,17 @@
  *   start = announce_end（無ければ seg.start）、end = seg.end。
  *
  * wordonly_range(seg, silences):
- *   セグメント内を無音(0.4秒以上)でブロック分割し、先頭2ブロック（単語+訳）を取る。
- *   - 内部境界 = start+EDGE_EPS < 無音中点 < end-EDGE_EPS を満たす無音の中点（昇順）。
- *     セグメント端の無音（=単語境界）は EDGE_EPS 余白で除外（さもないと「単語」だけで切れる）。
- *   - 境界が2個以上 → 先頭2ブロック = start 〜 inner[1]。
- *   - 1個 → start 〜 inner[0]。
- *   - 0個（例文なしの短い語など）→ セグメント全体（= word_play_range）。
+ *   セグメント内を無音(0.4秒以上)で「発話ブロック」に分割し、先頭2ブロック（単語+訳）を取る。
+ *   - まず冒頭の無音余白をスキップする。各ページの1単語目セグメントは start=0.00 で
+ *     冒頭に無音余白（実測 約0.45秒）があり、これを1ブロック目と誤カウントすると
+ *     「(余白)+単語」で切れて訳が落ちる（実機バグ）。よって start<=seg開始+EDGE_EPS の
+ *     無音（＝冒頭余白）は「発話の開始点」まで start を進め、内部境界から除外する。
+ *   - 内部境界 = 冒頭余白スキップ後の start より後で、かつ end-EDGE_EPS より前の無音中点（昇順）。
+ *     セグメント末尾の無音（=単語境界）は EDGE_EPS 余白で除外（さもないと訳の直後で切れない）。
+ *   - ブロック = 発話区間。無音は区切りとしてのみ扱い、ブロックに数えない。
+ *   - 境界が2個以上 → 先頭2ブロック（単語+訳）= start 〜 inner[1]。
+ *   - 2個未満（例: word_only は 単語→訳 の1境界のみ）→ start 〜 end（残り全ブロックを含める）。
+ *     inner[last] で切ると最後のブロック（＝訳）が落ちるため end まで含める。
  *
  * 無音検知は Splitter.detectSilences（noise=-30dB, min_silence=0.4s）を流用する。
  * build_chunks.py の silencedetect(noise=-30dB:d=0.4) と同一パラメータ。
@@ -37,13 +42,24 @@
    * silences: そのページ全体の無音区間 [{start,end,dur}]（絶対秒）。
    */
   function wordonlyRange(seg, silences) {
-    const [start, end] = wordPlayRange(seg);
+    const [rawStart, end] = wordPlayRange(seg);
+    // 冒頭の無音余白をスキップ：seg開始付近(=start+EDGE_EPS以内)から始まる無音は
+    // 「発話前の余白」なので、その終端（＝最初の発話の開始点）まで start を進める。
+    // 複数連続することは通常ないが、念のため最も後ろの余白終端を採用する。
+    let start = rawStart;
+    silences.forEach((s) => {
+      if (s.start <= rawStart + EDGE_EPS && s.end > start && s.end < end - EDGE_EPS) {
+        start = round3(s.end);
+      }
+    });
+    // 内部境界 = 発話開始後 〜 末尾余白手前 の無音中点（＝発話ブロックの区切り）。
     const inner = silences
       .map((s) => round3((s.start + s.end) / 2))
-      .filter((mid) => (start + EDGE_EPS) < mid && mid < (end - EDGE_EPS))
+      .filter((mid) => start < mid && mid < (end - EDGE_EPS))
       .sort((a, b) => a - b);
+    // N 境界 → N+1 ブロック。先頭 WORDONLY_BLOCKS ブロックには境界が WORDONLY_BLOCKS 個必要。
     if (inner.length >= WORDONLY_BLOCKS) return [start, inner[WORDONLY_BLOCKS - 1]];
-    if (inner.length) return [start, inner[inner.length - 1]];
+    // 境界不足 → 残り全ブロックを含め end まで（最後のブロック＝訳を落とさない）。
     return [start, end];
   }
 
