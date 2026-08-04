@@ -324,6 +324,18 @@ body {
 .lp-loading-text { font-size: 14px; color: var(--text-sub); }
 @keyframes lp-spin { to { transform: rotate(360deg); } }
 
+/* 分割再計算オーバーレイ */
+.resplit-overlay { position: fixed; inset: 0; z-index: 50; display: flex;
+  align-items: center; justify-content: center;
+  background: rgba(0,0,0,0.45); backdrop-filter: blur(2px); }
+.resplit-overlay.hidden { display: none; }
+.resplit-box { background: var(--surface, #fff); color: var(--text, #111);
+  border-radius: 16px; padding: 28px 32px; display: flex; flex-direction: column;
+  align-items: center; gap: 14px; min-width: 220px; max-width: 80vw;
+  box-shadow: 0 12px 40px rgba(0,0,0,0.3); }
+.resplit-title { font-size: 16px; font-weight: 700; }
+.resplit-text { font-size: 13px; color: var(--text-sub); text-align: center; }
+
 /* ===== 再生波形アニメ（共通） ===== */
 .wave, .fp-wave { display: inline-flex; align-items: flex-end; gap: 3px; height: 22px; }
 .wave span, .fp-wave span {
@@ -442,3 +454,54 @@ body {
 
 /* ミニプレーヤー表示時、②のコンテンツ末尾に余白を確保 */
 body.mini-open #view-pages { padding-bottom: calc(72px + env(safe-area-inset-bottom)); }
+
+/* ===== 分割の手動編集（#4） ===== */
+.editor-lead { font-size: 13px; line-height: 1.7; color: var(--text-sub); margin: 8px 2px 14px; }
+.editor-lead b { color: var(--text); }
+.ghost-btn {
+  border: 1px solid var(--border); background: var(--surface); color: var(--text);
+  border-radius: 10px; padding: 10px 14px; font-size: 14px; font-weight: 700; cursor: pointer;
+}
+.ghost-btn:active { background: var(--surface-2); }
+.editor-toolbar { display: flex; gap: 10px; margin-bottom: 14px; flex-wrap: wrap; }
+
+.editor-list { display: flex; flex-direction: column; gap: 12px; }
+.ed-seg {
+  background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+  padding: 12px; box-shadow: var(--shadow);
+}
+.ed-seg.announce { border-color: var(--accent); }
+.ed-seg-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+.ed-seg-title { font-size: 15px; font-weight: 800; }
+.ed-seg-time { font-size: 12px; color: var(--text-sub); font-variant-numeric: tabular-nums; }
+.ed-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
+.ed-row-label { font-size: 12px; font-weight: 700; color: var(--text-sub); min-width: 82px; }
+.ed-val { font-size: 13px; font-variant-numeric: tabular-nums; min-width: 58px; text-align: center;
+  color: var(--text); }
+.ed-mini-btn {
+  border: 1px solid var(--border); background: var(--surface-2); color: var(--text);
+  border-radius: 8px; min-width: 40px; min-height: 34px; font-size: 15px; font-weight: 800; cursor: pointer;
+}
+.ed-mini-btn:active { background: var(--border); }
+.ed-mini-btn.danger { color: var(--danger); }
+.ed-play-btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  border: 1px solid var(--accent); background: var(--accent-weak, transparent); color: var(--accent);
+  border-radius: 8px; min-height: 34px; padding: 0 12px; font-size: 13px; font-weight: 700; cursor: pointer;
+}
+.ed-play-btn:active { filter: brightness(0.95); }
+.ed-play-btn.playing { background: var(--active-weak); border-color: var(--active); color: var(--active); }
+.ed-type-seg { margin-left: auto; }
+.ed-type-seg .seg-btn { padding: 6px 10px; font-size: 12px; }
+.editor-actions { display: flex; gap: 10px; margin-top: 20px; }
+.editor-actions .ghost-btn { flex: 0 0 auto; }
+.editor-actions .primary-btn { flex: 1 1 auto; min-height: 48px; }
+
+/* ②ページ見出しの「編集」ボタン */
+.ph-edit-btn {
+  border: 1px solid var(--border); background: var(--surface); color: var(--accent);
+  border-radius: 8px; padding: 4px 10px; font-size: 12px; font-weight: 700; cursor: pointer;
+  display: inline-flex; align-items: center; gap: 4px;
+}
+.ph-edit-btn:active { background: var(--surface-2); }
+.ph-manual { color: var(--accent); font-size: 12px; font-weight: 700; }

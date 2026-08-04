@@ -8,6 +8,7 @@
     settings: document.getElementById('view-settings'),
     import: document.getElementById('view-import'),
     pages: document.getElementById('view-pages'),
+    editor: document.getElementById('view-editor'),
   };
 
   // --- DOM: header ---
@@ -37,6 +38,10 @@
 
   // --- DOM: pages ---
   const pagesGridWrap = document.getElementById('pages-grid-wrap');
+
+  // --- DOM: 分割再計算オーバーレイ ---
+  const resplitOverlay = document.getElementById('resplit-overlay');
+  const resplitText = document.getElementById('resplit-text');
 
   // --- DOM: 聞き流し（機能B） ---
   const listenSizeSeg = document.getElementById('listen-size');
@@ -80,6 +85,8 @@
   }
 
   function goBack() {
+    const leaving = stack[stack.length - 1];
+    if (leaving === 'editor') Editor.stopPreview(); // 編集画面を離れるとき試聴を止める
     stack.pop();
     const prev = stack[stack.length - 1] || 'books';
     if (prev === 'books') { renderBooks(); showView('books'); }
@@ -153,7 +160,9 @@
           <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 6 15 12 9 18"/></svg>
         </div>`;
       el.querySelector('.book-name').textContent = b.name;
-      el.addEventListener('click', () => openBook(b));
+      el.addEventListener('click', () => {
+        openBook(b).catch((err) => { hideResplit(); alert('単語帳を開けませんでした: ' + err.message); });
+      });
       el.querySelector('.book-del').addEventListener('click', async (e) => {
         e.stopPropagation();
         if (confirm(`「${b.name}」を削除しますか？`)) { await DB.deleteBook(b.id); renderBooks(); }
@@ -213,7 +222,11 @@
     importText.textContent = '保存中…';
     importFill.style.width = '100%';
 
-    const meta = { id: 'book_' + Date.now(), name, createdAt: Date.now(), book: { book: name, pages } };
+    const meta = {
+      id: 'book_' + Date.now(), name, createdAt: Date.now(),
+      splitVersion: Splitter.SPLIT_VERSION, // この分割ロジックのバージョンを刻む
+      book: { book: name, pages },
+    };
     await DB.saveBook(meta, audioMap);
 
     const totalSeg = pages.reduce((s, p) => s + p.num_segments, 0);
@@ -228,11 +241,71 @@
     showView('books');
   });
 
+  // ================= 分割の再計算（ロジックのバージョン付きキャッシュ） =================
+  // 単語帳オープン時、meta.splitVersion が現行 Splitter.SPLIT_VERSION と一致すれば
+  // キャッシュ（book.pages）をそのまま使う（速い）。不一致（コード更新後の初回）なら
+  // 元音声Blobから再分割してキャッシュを更新する（自動・ユーザー再投入不要）。
+  //
+  // 戻り値: 最新の meta（再分割した場合は book.pages / splitVersion を更新済み）。
+  //   元音声が無く再分割できない旧データは、そのまま返しつつ needsReimport:true を付ける。
+  async function ensureSplitCurrent(meta) {
+    // 現行と一致 → そのまま（高速パス）。splitVersion 未定義の旧データは「要再計算」扱い。
+    if (meta.splitVersion === Splitter.SPLIT_VERSION) return meta;
+
+    const pages = (meta.book && meta.book.pages) || [];
+    // 元音声が揃っているか（旧スキーマ・破損データのマイグレーション可否）
+    const canResplit = pages.length > 0 && await DB.hasAllAudio(meta.id, pages);
+    if (!canResplit) {
+      // 元音声が無い旧データ → 再投入を促す（キャッシュはそのまま使わせるが警告）
+      return Object.assign({}, meta, { needsReimport: true });
+    }
+
+    // 元音声から再分割してキャッシュを作り直す
+    showResplit('音声を読み込んでいます');
+    const newPages = [];
+    for (let i = 0; i < pages.length; i++) {
+      const p = pages[i];
+      // 手動編集済みページは自動再分割から保護（SPLIT_VERSION が上がっても上書きしない）。
+      if (p.manualEdited) { newPages.push(p); continue; }
+      resplitText.textContent = `再分割中 ${i + 1}/${pages.length}`;
+      const blob = await DB.getAudio(meta.id, p.page);
+      if (!blob) { newPages.push(p); continue; } // 念のため（hasAllAudioで担保済み）
+      const buf = await blob.arrayBuffer();
+      let pageMeta;
+      try { pageMeta = await Splitter.analyzePage(buf, p.page); }
+      catch (err) { newPages.push(p); continue; } // 解析失敗ページは旧結果を温存
+      newPages.push(pageMeta);
+      await sleep(0);
+    }
+
+    const updated = Object.assign({}, meta, {
+      splitVersion: Splitter.SPLIT_VERSION,
+      book: Object.assign({}, meta.book, { pages: newPages }),
+    });
+    delete updated.needsReimport;
+    await DB.updateBookMeta(updated);
+    hideResplit();
+    return updated;
+  }
+
+  function showResplit(msg) {
+    if (msg) resplitText.textContent = msg;
+    resplitOverlay.classList.remove('hidden');
+  }
+  function hideResplit() { resplitOverlay.classList.add('hidden'); }
+
   // ================= ② ページ/単語一覧（番号グリッド） =================
-  function openBook(book) {
-    currentBook = book;
+  async function openBook(book) {
     Player.stop();
     Listen.stop();
+    // バージョン判定 → 必要なら元音声から再分割してキャッシュ更新（再投入不要で反映）
+    book = await ensureSplitCurrent(book);
+    if (book.needsReimport) {
+      alert(`「${book.name}」は分割ロジックの更新分を反映できません（元音声が見つかりません）。\n` +
+        `お手数ですが、この単語帳を削除して音声を読み込み直してください。`);
+      // それでも旧キャッシュで開けるなら開く（閲覧・再生自体は可能）
+    }
+    currentBook = book;
     const wordCount = book.book.pages.reduce((s, p) => s + p.word_count, 0);
     buildPlaylist(book);
     configureListen(book);
@@ -347,8 +420,16 @@
       head.className = 'page-section-head';
       const announce = p.has_announce
         ? '<span class="ph-announce" aria-label="アナウンス付き">📢</span>' : '';
+      const manual = p.manualEdited
+        ? '<span class="ph-manual" aria-label="手動編集済み">✎ 編集済</span>' : '';
       head.innerHTML = `<span>ページ ${String(pageIdx + 1).padStart(3, '0')}</span>
-        <span class="ph-count">${announce}${p.word_count}単語</span>`;
+        <span class="ph-count">${manual}${announce}${p.word_count}単語
+          <button class="ph-edit-btn" type="button" aria-label="このページの分割を編集">✎ 編集</button>
+        </span>`;
+      head.querySelector('.ph-edit-btn').addEventListener('click', (e) => {
+        e.stopPropagation();
+        Editor.open(pageIdx);
+      });
       section.appendChild(head);
 
       const grid = document.createElement('div');
@@ -373,6 +454,220 @@
       pagesGridWrap.appendChild(section);
     });
   }
+
+  // ================= 分割の手動編集（残タスク #4） =================
+  // 1ページの境界(cut点)・type・announce_end を手で調整し、per-book の分割位置JSONに
+  // 上書き保存する。保存したページは manualEdited:true になり、SPLIT_VERSION が上がっても
+  // ensureSplitCurrent の自動再分割から除外される（手編集を守る）。
+  // 分割アルゴリズム（splitter.js）は変更しない。ここは結果の手動上書きのみ。
+  const Editor = (() => {
+    const listEl = document.getElementById('editor-list');
+    const addBtn = document.getElementById('ed-add-btn');
+    const resetBtn = document.getElementById('ed-reset-btn');
+    const saveBtn = document.getElementById('ed-save-btn');
+    const cancelBtn = document.getElementById('ed-cancel-btn');
+    const edAudio = document.getElementById('editor-audio');
+
+    const NUDGE = 0.1; // 微調整ステップ（秒）
+
+    let pageIdx = -1;   // currentBook.book.pages のインデックス
+    let page = null;    // 対象ページ（保存済みメタ）
+    let state = null;   // SplitEditor の編集状態 { duration, bounds, types, announceEnds }
+    let previewUrl = null;
+    let previewStopAt = null;
+    let previewRaf = null;
+    let previewKey = null; // 再生中の対象（ハイライト用）
+
+    const fmt = (t) => (isFinite(t) ? t.toFixed(2) : '0.00');
+
+    // ---- 試聴（編集専用の audio 要素。Player/Listen とは独立）----
+    async function ensureSrc() {
+      if (previewUrl) return true;
+      const blob = await DB.getAudio(currentBook.id, page.page);
+      if (!blob) { alert('元音声が見つかりません（試聴できません）'); return false; }
+      previewUrl = URL.createObjectURL(blob);
+      edAudio.src = previewUrl;
+      edAudio.load();
+      await new Promise((res) => {
+        if (edAudio.readyState >= 1) return res();
+        const on = () => { edAudio.removeEventListener('loadedmetadata', on); res(); };
+        edAudio.addEventListener('loadedmetadata', on);
+      });
+      return true;
+    }
+    function watch() {
+      if (previewStopAt != null && edAudio.currentTime >= previewStopAt) { stopPreview(); return; }
+      previewRaf = requestAnimationFrame(watch);
+    }
+    async function play(from, to, key) {
+      stopPreview();
+      if (!(await ensureSrc())) return;
+      previewStopAt = to;
+      previewKey = key;
+      try { edAudio.currentTime = from; } catch (e) {}
+      try { await edAudio.play(); } catch (e) { return; }
+      if (Math.abs(edAudio.currentTime - from) > 0.3) { try { edAudio.currentTime = from; } catch (e) {} }
+      previewRaf = requestAnimationFrame(watch);
+      markPlaying(key);
+    }
+    function stopPreview() {
+      if (previewRaf != null) { cancelAnimationFrame(previewRaf); previewRaf = null; }
+      edAudio.pause();
+      previewStopAt = null;
+      previewKey = null;
+      markPlaying(null);
+    }
+    function markPlaying(key) {
+      listEl.querySelectorAll('.ed-play-btn').forEach((b) =>
+        b.classList.toggle('playing', key != null && b.dataset.key === key));
+    }
+    function revoke() { if (previewUrl) { URL.revokeObjectURL(previewUrl); previewUrl = null; } }
+
+    // ---- open ----
+    function open(idx) {
+      Player.stop(); Listen.stop();
+      pageIdx = idx;
+      page = currentBook.book.pages[idx];
+      state = SplitEditor.pageToState(page);
+      render();
+      navigate('editor', `分割を編集`, `ページ ${String(idx + 1).padStart(3, '0')}`);
+    }
+
+    // ---- 描画 ----
+    function render() {
+      stopPreview();
+      listEl.innerHTML = '';
+      const bounds = state.bounds;
+      for (let i = 0; i < bounds.length - 1; i++) {
+        const segStart = bounds[i], segEnd = bounds[i + 1];
+        const type = state.types[i];
+        const ae = state.announceEnds[i];
+        const card = document.createElement('div');
+        card.className = 'ed-seg' + (type === 'word+announce' ? ' announce' : '');
+
+        // ヘッダ: 単語番号 + 時間 + type トグル
+        const head = document.createElement('div');
+        head.className = 'ed-seg-head';
+        head.innerHTML = `<span class="ed-seg-title">単語 ${i + 1}</span>
+          <span class="ed-seg-time">${fmt(segStart)}s – ${fmt(segEnd)}s（${fmt(segEnd - segStart)}s）</span>`;
+        const typeSeg = document.createElement('div');
+        typeSeg.className = 'seg ed-type-seg';
+        typeSeg.innerHTML = `
+          <button class="seg-btn ${type === 'word' ? 'active' : ''}" data-type="word">単語</button>
+          <button class="seg-btn ${type === 'word+announce' ? 'active' : ''}" data-type="word+announce">📢付</button>`;
+        typeSeg.querySelectorAll('.seg-btn').forEach((b) => b.addEventListener('click', () => {
+          state = SplitEditor.setType(state, i, b.dataset.type); render();
+        }));
+        head.appendChild(typeSeg);
+        card.appendChild(head);
+
+        // 試聴（この単語 = start〜end）
+        const rowPlay = document.createElement('div');
+        rowPlay.className = 'ed-row';
+        rowPlay.innerHTML = `<span class="ed-row-label">試聴</span>`;
+        const playBtn = playButton('▶ この単語', `seg${i}`, segStart, segEnd);
+        rowPlay.appendChild(playBtn);
+        card.appendChild(rowPlay);
+
+        // 境界（このセグメントの開始 = bounds[i]）の微調整・削除。i=0 は先頭(0固定)なので不可。
+        if (i > 0) {
+          const rowB = document.createElement('div');
+          rowB.className = 'ed-row';
+          rowB.innerHTML = `<span class="ed-row-label">境界(頭)</span>`;
+          rowB.appendChild(miniBtn('−', () => { state = SplitEditor.nudgeBoundary(state, i, -NUDGE); render(); }));
+          const val = document.createElement('span');
+          val.className = 'ed-val'; val.textContent = `${fmt(segStart)}s`;
+          rowB.appendChild(val);
+          rowB.appendChild(miniBtn('＋', () => { state = SplitEditor.nudgeBoundary(state, i, NUDGE); render(); }));
+          rowB.appendChild(miniBtn('🗑', () => { state = SplitEditor.removeBoundary(state, i); render(); }, true));
+          card.appendChild(rowB);
+        }
+
+        // announce_end（word+announce のみ）：単語本体の開始位置を調整 + 試聴
+        if (type === 'word+announce') {
+          const rowA = document.createElement('div');
+          rowA.className = 'ed-row';
+          rowA.innerHTML = `<span class="ed-row-label">本体の頭</span>`;
+          rowA.appendChild(miniBtn('−', () => { state = SplitEditor.nudgeAnnounceEnd(state, i, -NUDGE); render(); }));
+          const val = document.createElement('span');
+          val.className = 'ed-val';
+          val.textContent = (ae != null ? `${fmt(ae)}s` : '未設定');
+          rowA.appendChild(val);
+          rowA.appendChild(miniBtn('＋', () => { state = SplitEditor.nudgeAnnounceEnd(state, i, NUDGE); render(); }));
+          const from = (ae != null ? ae : segStart);
+          rowA.appendChild(playButton('▶ 本体', `ann${i}`, from, segEnd));
+          card.appendChild(rowA);
+        }
+
+        listEl.appendChild(card);
+      }
+    }
+
+    function miniBtn(label, onClick, danger) {
+      const b = document.createElement('button');
+      b.className = 'ed-mini-btn' + (danger ? ' danger' : '');
+      b.type = 'button'; b.textContent = label;
+      b.addEventListener('click', onClick);
+      return b;
+    }
+    function playButton(label, key, from, to) {
+      const b = document.createElement('button');
+      b.className = 'ed-play-btn'; b.type = 'button'; b.dataset.key = key; b.textContent = label;
+      b.addEventListener('click', () => {
+        if (previewKey === key) stopPreview(); else play(from, to, key);
+      });
+      return b;
+    }
+
+    // ---- ツールバー: 境界追加 / 自動分割に戻す ----
+    addBtn.addEventListener('click', () => {
+      // 追加位置は入力で受ける（素のprompt。最小実装）。既定は最長セグメントの中央。
+      let longest = 0, li = 0;
+      for (let i = 0; i < state.bounds.length - 1; i++) {
+        const len = state.bounds[i + 1] - state.bounds[i];
+        if (len > longest) { longest = len; li = i; }
+      }
+      const suggest = ((state.bounds[li] + state.bounds[li + 1]) / 2).toFixed(2);
+      const ans = prompt(`新しい境界の時刻（秒, 0〜${fmt(state.duration)}）`, suggest);
+      if (ans == null) return;
+      const t = parseFloat(ans);
+      if (!isFinite(t)) return;
+      state = SplitEditor.addBoundary(state, t);
+      render();
+    });
+    resetBtn.addEventListener('click', () => {
+      if (!confirm('この画面を開いたときの状態に戻します（この場の編集を破棄）。よろしいですか？')) return;
+      state = SplitEditor.pageToState(page); // 編集画面を開いた時点（保存済み）の状態へ
+      render();
+    });
+
+    // ---- 保存 / キャンセル ----
+    saveBtn.addEventListener('click', async () => {
+      stopPreview();
+      const newPage = SplitEditor.stateToPage(page, state);
+      currentBook.book.pages[pageIdx] = newPage;
+      // per-book の派生キャッシュを更新（splitVersion は現行のまま。manualEdited で保護）。
+      const meta = Object.assign({}, currentBook, {
+        splitVersion: (currentBook.splitVersion != null ? currentBook.splitVersion : Splitter.SPLIT_VERSION),
+      });
+      await DB.updateBookMeta(meta);
+      currentBook = meta;
+      // 依存する再生データを作り直す
+      buildPlaylist(currentBook);
+      configureListen(currentBook);
+      renderListenOptions();
+      renderPages(currentBook);
+      revoke();
+      // ②へ戻る
+      const li = stack.indexOf('editor');
+      if (li >= 0) stack.length = li; // editor を積む前の位置へ
+      ctxTitle.textContent = currentBook.name;
+      showView('pages');
+    });
+    cancelBtn.addEventListener('click', () => { revoke(); goBack(); });
+
+    return { open, stopPreview, render };
+  })();
 
   // ---- 聞き流し 全画面プレーヤー（円形プログレス）の DOM とコントローラ ----
   const lp = document.getElementById('listen-player');

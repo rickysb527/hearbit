@@ -173,7 +173,27 @@
         </div>
       </div>
     </section>
+
+    <!-- 分割の手動編集（残タスク #4） -->
+    <section id="view-editor" class="view">
+      <p class="editor-lead">
+        単語の境界（区切り位置）を手で調整します。試聴で確認しながら、ズレていれば
+        <b>±0.1秒</b>で微調整・境界の<b>追加/削除</b>ができます。保存するとこのページは
+        <b>手動編集済み</b>になり、分割ロジックが更新されても<b>自動で上書きされません</b>。
+      </p>
+      <div class="editor-toolbar">
+        <button id="ed-add-btn" class="ghost-btn">＋ 境界を追加</button>
+        <button id="ed-reset-btn" class="ghost-btn">編集前に戻す</button>
+      </div>
+      <div id="editor-list" class="editor-list"></div>
+      <div class="editor-actions">
+        <button id="ed-cancel-btn" class="ghost-btn">キャンセル</button>
+        <button id="ed-save-btn" class="primary-btn">この編集を保存</button>
+      </div>
+    </section>
   </main>
+
+  <audio id="editor-audio" preload="auto"></audio>
 
   <!-- ===== ミニプレーヤー（②に常駐） ===== -->
   <div id="mini-player" class="hidden" aria-label="ミニプレーヤー">
@@ -316,9 +336,19 @@
 
   <audio id="audio-el" preload="auto"></audio>
 
+  <!-- 分割再計算オーバーレイ（ロジック更新後の初回オープン時のみ表示） -->
+  <div id="resplit-overlay" class="resplit-overlay hidden" role="alertdialog" aria-live="polite" aria-label="分割を更新中">
+    <div class="resplit-box">
+      <div class="lp-spinner"></div>
+      <div class="resplit-title">分割を更新中…</div>
+      <div class="resplit-text" id="resplit-text">音声を読み込んでいます</div>
+    </div>
+  </div>
+
   <script src="js/db.js"></script>
   <script src="js/splitter.js"></script>
   <script src="js/listen-build.js"></script>
+  <script src="js/editor.js"></script>
   <script src="js/player.js"></script>
   <script src="js/listen.js"></script>
   <script src="js/app.js"></script>

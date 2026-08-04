@@ -1,9 +1,13 @@
 /* IndexedDB ラッパー。
- * 単語帳ごとに【元音声Blob群 + 分割位置JSON】を保存する。
+ * 単語帳ごとに【元音声Blob群 + 分割位置JSON(=派生キャッシュ)】を保存する。
  *
  * ストア構成:
- *   books  : { id, name, createdAt, book(segments.json相当) }  ← メタデータのみ（軽い）
- *   audio  : { key, blob }  key = `${bookId}/${page}`          ← 元音声Blob（重い・別ストア）
+ *   books  : { id, name, createdAt, splitVersion, book(segments.json相当) }
+ *            splitVersion = book.pages を生成した分割ロジックの Splitter.SPLIT_VERSION。
+ *            book.pages（分割結果）は「元音声から再計算できる派生キャッシュ」で、
+ *            オープン時に splitVersion が現行と不一致なら元音声から作り直す。
+ *            → 元音声Blobが常に真実の源。分割ロジックを直しても再投入不要で反映される。
+ *   audio  : { key, blob }  key = `${bookId}/${page}`          ← 元音声Blob（重い・別ストア／真実の源）
  *
  * 分割後の音声は保存しない。再生時に元音声の start〜end を位置指定で鳴らす（容量最適化）。
  */
@@ -75,7 +79,7 @@ const DB = (() => {
     },
 
     /* 単語帳を保存（メタ + 各ページ音声Blob）
-     * meta: { id, name, createdAt, book }
+     * meta: { id, name, createdAt, splitVersion, book }
      * audioMap: { [page]: Blob }
      */
     async saveBook(meta, audioMap) {
@@ -89,10 +93,30 @@ const DB = (() => {
       return meta;
     },
 
+    /* 派生キャッシュ（分割結果 book + splitVersion）だけを更新する。
+     * 元音声Blob（audioストア）はそのまま。再分割の結果を書き戻すのに使う。
+     * meta は最新の book / splitVersion を含む完全なメタオブジェクト。
+     */
+    async updateBookMeta(meta) {
+      await tx('books', 'readwrite', s => s.put(meta));
+      return meta;
+    },
+
     /* あるページの元音声Blobを取得 */
     async getAudio(bookId, page) {
       const rec = await tx('audio', 'readonly', s => reqP(s.get(`${bookId}/${page}`)));
       return rec ? rec.blob : null;
+    },
+
+    /* 元音声Blobが全ページ揃っているか（マイグレーション可否の判定に使う）。
+     * pages: book.pages（page識別子を持つ配列）。1つでも欠けたら false。
+     */
+    async hasAllAudio(bookId, pages) {
+      for (const p of pages) {
+        const rec = await tx('audio', 'readonly', s => reqP(s.get(`${bookId}/${p.page}`)));
+        if (!rec || !rec.blob) return false;
+      }
+      return true;
     },
 
     async deleteBook(id) {
