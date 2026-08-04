@@ -74,24 +74,37 @@ def word_play_range(seg):
 
 
 def wordonly_range(seg, sils):
-    """セグメント内を無音ブロック分割し、先頭 WORDONLY_BLOCKS ブロック（単語＋訳）の
-    範囲 (start, end) を返す。内部境界が足りなければ full と同じ範囲にフォールバック。
+    """セグメント内を無音で「発話ブロック」に分割し、先頭 WORDONLY_BLOCKS ブロック
+    （単語＋訳）の範囲 (start, end) を返す。内部境界が足りなければフォールバック。
 
-    内部境界 = start<mid<end を満たす無音の中点。ブロック k の終端 =
-    内部境界[k-1]。単語＋訳 = start 〜 内部境界[WORDONLY_BLOCKS-1]。
+    冒頭の無音余白スキップ: 各ページの1単語目セグメントは start=0.00 で冒頭に無音余白
+    （実測 約0.45秒）があり、これを1ブロック目と誤カウントすると「(余白)+単語」で切れて
+    訳が落ちる（実機バグ）。よって seg開始付近(start+EDGE_EPS 以内)から始まる無音は
+    「発話前の余白」とみなし、その終端（＝最初の発話の開始点）まで start を進めて
+    内部境界からも除外する。
+
+    内部境界 = 冒頭余白スキップ後の start より後 かつ end-EDGE_EPS より前の無音中点（昇順）。
+    セグメント末尾の無音（=単語境界）は EDGE_EPS 余白で除外（訳の直後で切れるように）。
+    ブロック k の終端 = 内部境界[k-1]。単語＋訳 = start 〜 内部境界[WORDONLY_BLOCKS-1]。
+
+    境界が WORDONLY_BLOCKS 個そろわない場合（例: word_only ページは 単語→訳 の
+    1境界しかない）は end まで含める。inner[-1] で切ると最後のブロック（＝訳）が落ちるため。
     """
-    start, end = word_play_range(seg)
-    # セグメント端(=単語境界の無音)の中点は start/end とほぼ一致する。これを内部境界に
-    # 含めると「単語→訳」ではなく「単語」だけで切れてしまうため EDGE_EPS 余白で除外する。
+    raw_start, end = word_play_range(seg)
+    # 冒頭の無音余白をスキップ：発話の開始点まで start を進める。
+    start = raw_start
+    for s, e, d in sils:
+        if s <= raw_start + EDGE_EPS and e > start and e < end - EDGE_EPS:
+            start = round(e, 3)
+    # 内部境界 = 発話開始後 〜 末尾余白手前 の無音中点（＝発話ブロックの区切り）。
     inner = sorted(round((s + e) / 2, 3) for s, e, d in sils
-                   if start + EDGE_EPS < (s + e) / 2 < end - EDGE_EPS)
-    # WORDONLY_BLOCKS ブロック取るには境界が WORDONLY_BLOCKS 個必要
-    # （先頭2ブロック = 内部境界[1] まで）。無ければ全境界の最後まで＝実質full。
+                   if start < (s + e) / 2 < end - EDGE_EPS)
+    # N 個の内部境界 → N+1 ブロック。先頭 WORDONLY_BLOCKS ブロックを取るには
+    # 境界が WORDONLY_BLOCKS 個必要（= inner[WORDONLY_BLOCKS-1] で切る）。
     if len(inner) >= WORDONLY_BLOCKS:
         return start, inner[WORDONLY_BLOCKS - 1]
-    if inner:
-        return start, inner[-1]
-    return start, end   # 内部無音なし → セグメント全体（例文なしの短い語など）
+    # 境界不足 → 残り全ブロックを含めて end まで（最後のブロック＝訳を落とさない）。
+    return start, end
 
 
 def collect_words(data):
