@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no" />
+  <title>Hearbit</title>
+  <meta name="description" content="聞きたい言葉を、すぐそこに。単語帳音声を持ち込み、ブラウザ内で単語ごとに分割して再生する汎用プレーヤー。" />
+
+  <!-- PWA / theme -->
+  <meta name="theme-color" content="#0E7C86" media="(prefers-color-scheme: light)" />
+  <meta name="theme-color" content="#0E1116" media="(prefers-color-scheme: dark)" />
+  <link rel="manifest" href="manifest.json" />
+
+  <!-- iOS standalone -->
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="Hearbit" />
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
+  <link rel="icon" type="image/svg+xml" href="icons/icon.svg" />
+  <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png" />
+
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+  <!-- ===== ヘッダー ===== -->
+  <header id="app-header">
+    <!-- ①ルート: ブランドヘッダー -->
+    <div class="header-brand" id="header-brand">
+      <span class="logo" aria-label="Hearbit">
+        <svg class="logo-mark" viewBox="0 0 48 32" width="28" height="20" aria-hidden="true">
+          <g fill="currentColor">
+            <rect x="1"  y="12" width="4" height="8"  rx="2"/>
+            <rect x="8"  y="8"  width="4" height="16" rx="2"/>
+            <rect x="15" y="2"  width="4" height="28" rx="2"/>
+            <rect x="22" y="9"  width="4" height="14" rx="2"/>
+            <rect x="29" y="5"  width="4" height="22" rx="2"/>
+            <rect x="36" y="11" width="4" height="10" rx="2"/>
+            <rect x="43" y="13" width="4" height="6"  rx="2"/>
+          </g>
+        </svg>
+        <span class="logo-word">Hearbit</span>
+      </span>
+      <button id="settings-btn" class="icon-btn" aria-label="設定">
+        <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="12" cy="12" r="3"/>
+          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+        </svg>
+      </button>
+    </div>
+
+    <!-- ②③: コンテキストヘッダー（戻る + タイトル + アクション） -->
+    <div class="header-context hidden" id="header-context">
+      <button id="back-btn" class="icon-btn" aria-label="戻る">
+        <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <polyline points="15 18 9 12 15 6"/>
+        </svg>
+      </button>
+      <div class="header-titles">
+        <div class="header-title" id="ctx-title"></div>
+        <div class="header-sub" id="ctx-sub"></div>
+      </div>
+      <button id="ctx-action" class="icon-btn" aria-label="メニュー">
+        <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor" aria-hidden="true">
+          <circle cx="5" cy="12" r="1.9"/><circle cx="12" cy="12" r="1.9"/><circle cx="19" cy="12" r="1.9"/>
+        </svg>
+      </button>
+    </div>
+  </header>
+
+  <main id="app-main">
+    <!-- ① 単語帳リスト -->
+    <section id="view-books" class="view active">
+      <h1 class="page-title">単語帳</h1>
+
+      <div class="list" id="books-list"></div>
+
+      <!-- 空状態 -->
+      <div id="books-empty" class="empty-state hidden">
+        <div class="empty-art" aria-hidden="true">
+          <svg viewBox="0 0 96 96" width="88" height="88" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M30 40a18 18 0 0 1 36 0"/>
+            <rect x="20" y="40" width="14" height="26" rx="6"/>
+            <rect x="62" y="40" width="14" height="26" rx="6"/>
+            <path d="M20 55v6a10 10 0 0 0 10 10h6"/>
+          </svg>
+        </div>
+        <div class="empty-title">単語帳がまだありません</div>
+        <p class="empty-text">
+          お手元の単語帳音声フォルダを読み込むと、ブラウザ内で単語ごとに分割して再生できます。<br/>
+          音声は端末の外に出ません。
+        </p>
+      </div>
+
+      <button id="add-book-btn" class="primary-btn">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true">
+          <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+        </svg>
+        音声を読み込む
+      </button>
+    </section>
+
+    <!-- 設定 -->
+    <section id="view-settings" class="view">
+      <h1 class="page-title">設定</h1>
+      <div class="settings-group">
+        <div class="settings-row">
+          <span>テーマ</span>
+          <div class="seg" id="theme-seg" role="tablist" aria-label="テーマ切替">
+            <button data-theme="system" class="seg-btn active">自動</button>
+            <button data-theme="light" class="seg-btn">ライト</button>
+            <button data-theme="dark" class="seg-btn">ダーク</button>
+          </div>
+        </div>
+      </div>
+      <div class="settings-note">
+        Hearbit — 聞きたい言葉を、すぐそこに。<br/>
+        音声はサーバに送信されず、端末内でのみ処理・保存されます（完全個人利用）。
+      </div>
+    </section>
+
+    <!-- 単語帳の新規追加（フォルダ読み込み・分割） -->
+    <section id="view-import" class="view">
+      <label class="field">
+        <span>単語帳の名前</span>
+        <input type="text" id="import-name" placeholder="例: HSK3級単語" />
+      </label>
+      <label class="field">
+        <span>音声ファイル（複数選択可・mp3）</span>
+        <input type="file" id="import-files" accept="audio/*,.mp3" multiple />
+      </label>
+      <button id="import-run-btn" class="primary-btn" disabled>読み込んで分割・保存</button>
+      <div id="import-progress" class="progress hidden">
+        <div class="progress-bar"><div class="progress-fill" id="import-fill"></div></div>
+        <div class="progress-text" id="import-text"></div>
+      </div>
+      <details id="import-debug" class="debug hidden">
+        <summary>分割結果（デバッグ）</summary>
+        <pre id="import-debug-out"></pre>
+      </details>
+    </section>
+
+    <!-- ② ページ/単語一覧（番号グリッド） -->
+    <section id="view-pages" class="view">
+      <div class="tabs" id="book-tabs" role="tablist">
+        <button class="tab active" data-tab="words" role="tab">単語</button>
+        <button class="tab" data-tab="listen" role="tab">聞き流し</button>
+      </div>
+
+      <!-- 単語タブ -->
+      <div id="tab-words" class="tab-panel active">
+        <div id="pages-grid-wrap"></div>
+      </div>
+
+      <!-- 聞き流しタブ（機能B: 単語+訳を連結1本で連続再生） -->
+      <div id="tab-listen" class="tab-panel">
+        <p class="listen-lead">
+          単語部分（単語+訳）だけを連結し、<b>1本の音声</b>として連続再生します。<br/>
+          ロック中も止まらないので散歩中の聞き流しに。
+        </p>
+
+        <div class="listen-opt">
+          <div class="listen-opt-label">1トラックの語数</div>
+          <div class="seg listen-size" id="listen-size" role="tablist" aria-label="語数">
+            <button data-size="50" class="seg-btn active" role="tab">50語</button>
+            <button data-size="100" class="seg-btn" role="tab">100語</button>
+          </div>
+        </div>
+
+        <div class="listen-opt">
+          <div class="listen-opt-label">範囲</div>
+          <div class="listen-ranges" id="listen-ranges" role="listbox" aria-label="範囲を選ぶ"></div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- ===== ミニプレーヤー（②に常駐） ===== -->
+  <div id="mini-player" class="hidden" aria-label="ミニプレーヤー">
+    <button id="mini-expand" class="mini-expand" aria-label="全画面プレーヤーを開く">
+      <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <polyline points="18 15 12 9 6 15"/>
+      </svg>
+    </button>
+    <div class="mini-label" id="mini-label">再生中</div>
+    <div class="wave" id="mini-wave" aria-hidden="true">
+      <span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+    </div>
+    <button id="mini-toggle" class="mini-toggle" aria-label="再生 / 一時停止">
+      <svg class="ic-play" viewBox="0 0 24 24" width="22" height="22" fill="currentColor" aria-hidden="true"><polygon points="6 4 20 12 6 20"/></svg>
+      <svg class="ic-pause hidden" viewBox="0 0 24 24" width="22" height="22" fill="currentColor" aria-hidden="true"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg>
+    </button>
+  </div>
+
+  <!-- ===== 全画面プレーヤー（③ 機能A） ===== -->
+  <div id="full-player" class="hidden" aria-label="全画面プレーヤー">
+    <div class="fp-top">
+      <button id="fp-collapse" class="icon-btn" aria-label="ミニ化">
+        <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <polyline points="6 9 12 15 18 9"/>
+        </svg>
+      </button>
+      <button class="icon-btn" aria-hidden="true" tabindex="-1" style="visibility:hidden">
+        <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><circle cx="5" cy="12" r="1.9"/><circle cx="12" cy="12" r="1.9"/><circle cx="19" cy="12" r="1.9"/></svg>
+      </button>
+    </div>
+
+    <div class="fp-body">
+      <div class="fp-page" id="fp-page">ページ 001</div>
+      <div class="fp-wave" id="fp-wave" aria-hidden="true">
+        <span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+      </div>
+      <div class="fp-num" id="fp-num">1</div>
+      <div class="fp-serial" id="fp-serial">#1</div>
+      <div class="fp-blocks" id="fp-blocks">単語 → 訳 → 例文</div>
+
+      <div class="fp-seek">
+        <span class="fp-time" id="fp-cur">0:00</span>
+        <div class="seekbar" id="seekbar" role="slider" aria-label="再生位置" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" tabindex="0">
+          <div class="seek-track"><div class="seek-fill" id="seek-fill"></div><div class="seek-thumb" id="seek-thumb"></div></div>
+        </div>
+        <span class="fp-time" id="fp-dur">0:00</span>
+      </div>
+
+      <div class="fp-controls">
+        <button id="fp-prev" class="fp-side" aria-label="前の単語">
+          <svg viewBox="0 0 24 24" width="30" height="30" fill="currentColor" aria-hidden="true"><polygon points="18 5 8 12 18 19"/><rect x="5" y="5" width="2.4" height="14" rx="1.2"/></svg>
+        </button>
+        <button id="fp-toggle" class="fp-main" aria-label="再生 / 一時停止">
+          <svg class="ic-play" viewBox="0 0 24 24" width="34" height="34" fill="currentColor" aria-hidden="true"><polygon points="7 4 21 12 7 20"/></svg>
+          <svg class="ic-pause hidden" viewBox="0 0 24 24" width="34" height="34" fill="currentColor" aria-hidden="true"><rect x="6" y="4" width="4.5" height="16" rx="1.5"/><rect x="13.5" y="4" width="4.5" height="16" rx="1.5"/></svg>
+        </button>
+        <button id="fp-next" class="fp-side" aria-label="次の単語">
+          <svg viewBox="0 0 24 24" width="30" height="30" fill="currentColor" aria-hidden="true"><polygon points="6 5 16 12 6 19"/><rect x="16.6" y="5" width="2.4" height="14" rx="1.2"/></svg>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== 全画面プレーヤー（③ 機能B: 聞き流し / 円形プログレス） ===== -->
+  <div id="listen-player" class="hidden" aria-label="聞き流しプレーヤー">
+    <div class="fp-top">
+      <button id="lp-collapse" class="icon-btn" aria-label="閉じる">
+        <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <polyline points="6 9 12 15 18 9"/>
+        </svg>
+      </button>
+      <div class="lp-title" id="lp-title">聞き流し</div>
+      <button class="icon-btn" aria-hidden="true" tabindex="-1" style="visibility:hidden">
+        <svg viewBox="0 0 24 24" width="24" height="24"></svg>
+      </button>
+    </div>
+
+    <div class="lp-body">
+      <div class="lp-sub" id="lp-sub">単語のみ · 50語</div>
+
+      <!-- 読み込み中（トラック構築） -->
+      <div id="lp-loading" class="lp-loading hidden">
+        <div class="lp-spinner" aria-hidden="true"></div>
+        <div class="lp-loading-text" id="lp-loading-text">音声を用意中…</div>
+      </div>
+
+      <!-- 円形プログレスリング -->
+      <div class="lp-ring-wrap" id="lp-ring-wrap">
+        <svg class="lp-ring" viewBox="0 0 240 240" aria-hidden="true">
+          <circle class="lp-ring-bg" cx="120" cy="120" r="106" fill="none" stroke-width="12"/>
+          <circle class="lp-ring-fg" id="lp-ring-fg" cx="120" cy="120" r="106" fill="none" stroke-width="12"
+            stroke-linecap="round" transform="rotate(-90 120 120)"/>
+          <circle class="lp-ring-dot" id="lp-ring-dot" cx="120" cy="14" r="9"/>
+        </svg>
+        <div class="lp-ring-center">
+          <div class="wave lp-wave" id="lp-wave" aria-hidden="true">
+            <span></span><span></span><span></span><span></span><span></span>
+          </div>
+          <div class="lp-word" id="lp-word">単語 1</div>
+        </div>
+      </div>
+
+      <div class="lp-count"><span id="lp-cur">1</span> / <span id="lp-total">50</span></div>
+
+      <div class="fp-controls">
+        <button id="lp-prev" class="fp-side" aria-label="前の単語">
+          <svg viewBox="0 0 24 24" width="30" height="30" fill="currentColor" aria-hidden="true"><polygon points="18 5 8 12 18 19"/><rect x="5" y="5" width="2.4" height="14" rx="1.2"/></svg>
+        </button>
+        <button id="lp-toggle" class="fp-main" aria-label="再生 / 一時停止">
+          <svg class="ic-play" viewBox="0 0 24 24" width="34" height="34" fill="currentColor" aria-hidden="true"><polygon points="7 4 21 12 7 20"/></svg>
+          <svg class="ic-pause hidden" viewBox="0 0 24 24" width="34" height="34" fill="currentColor" aria-hidden="true"><rect x="6" y="4" width="4.5" height="16" rx="1.5"/><rect x="13.5" y="4" width="4.5" height="16" rx="1.5"/></svg>
+        </button>
+        <button id="lp-next" class="fp-side" aria-label="次の単語">
+          <svg viewBox="0 0 24 24" width="30" height="30" fill="currentColor" aria-hidden="true"><polygon points="6 5 16 12 6 19"/><rect x="16.6" y="5" width="2.4" height="14" rx="1.2"/></svg>
+        </button>
+      </div>
+
+      <div class="lp-offline">
+        <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+        オフライン
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== 下部タブバー（①ルートのみ） ===== -->
+  <nav id="tab-bar">
+    <button class="tabbar-btn active" data-root="books" aria-label="単語帳">
+      <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M4 4h11a3 3 0 0 1 3 3v13H7a3 3 0 0 1-3-3z"/><path d="M18 7a2 2 0 0 1 2-2v13"/>
+      </svg>
+      <span>単語帳</span>
+    </button>
+    <button class="tabbar-btn" data-root="settings" aria-label="設定">
+      <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/>
+      </svg>
+      <span>設定</span>
+    </button>
+  </nav>
+
+  <audio id="audio-el" preload="auto"></audio>
+
+  <script src="js/db.js"></script>
+  <script src="js/splitter.js"></script>
+  <script src="js/listen-build.js"></script>
+  <script src="js/player.js"></script>
+  <script src="js/listen.js"></script>
+  <script src="js/app.js"></script>
+  <script>
+    // Service Worker 登録（PWA / オフライン起動）
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('sw.js')
+          .then((reg) => console.log('[Hearbit] SW registered:', reg.scope))
+          .catch((err) => console.warn('[Hearbit] SW registration failed:', err));
+      });
+    }
+  </script>
+</body>
+</html>
