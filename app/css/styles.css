@@ -324,6 +324,18 @@ body {
 .lp-loading-text { font-size: 14px; color: var(--text-sub); }
 @keyframes lp-spin { to { transform: rotate(360deg); } }
 
+/* 分割再計算オーバーレイ */
+.resplit-overlay { position: fixed; inset: 0; z-index: 50; display: flex;
+  align-items: center; justify-content: center;
+  background: rgba(0,0,0,0.45); backdrop-filter: blur(2px); }
+.resplit-overlay.hidden { display: none; }
+.resplit-box { background: var(--surface, #fff); color: var(--text, #111);
+  border-radius: 16px; padding: 28px 32px; display: flex; flex-direction: column;
+  align-items: center; gap: 14px; min-width: 220px; max-width: 80vw;
+  box-shadow: 0 12px 40px rgba(0,0,0,0.3); }
+.resplit-title { font-size: 16px; font-weight: 700; }
+.resplit-text { font-size: 13px; color: var(--text-sub); text-align: center; }
+
 /* ===== 再生波形アニメ（共通） ===== */
 .wave, .fp-wave { display: inline-flex; align-items: flex-end; gap: 3px; height: 22px; }
 .wave span, .fp-wave span {

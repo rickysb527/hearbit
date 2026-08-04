@@ -38,6 +38,10 @@
   // --- DOM: pages ---
   const pagesGridWrap = document.getElementById('pages-grid-wrap');
 
+  // --- DOM: 分割再計算オーバーレイ ---
+  const resplitOverlay = document.getElementById('resplit-overlay');
+  const resplitText = document.getElementById('resplit-text');
+
   // --- DOM: 聞き流し（機能B） ---
   const listenSizeSeg = document.getElementById('listen-size');
   const listenRanges = document.getElementById('listen-ranges');
@@ -153,7 +157,9 @@
           <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 6 15 12 9 18"/></svg>
         </div>`;
       el.querySelector('.book-name').textContent = b.name;
-      el.addEventListener('click', () => openBook(b));
+      el.addEventListener('click', () => {
+        openBook(b).catch((err) => { hideResplit(); alert('単語帳を開けませんでした: ' + err.message); });
+      });
       el.querySelector('.book-del').addEventListener('click', async (e) => {
         e.stopPropagation();
         if (confirm(`「${b.name}」を削除しますか？`)) { await DB.deleteBook(b.id); renderBooks(); }
@@ -213,7 +219,11 @@
     importText.textContent = '保存中…';
     importFill.style.width = '100%';
 
-    const meta = { id: 'book_' + Date.now(), name, createdAt: Date.now(), book: { book: name, pages } };
+    const meta = {
+      id: 'book_' + Date.now(), name, createdAt: Date.now(),
+      splitVersion: Splitter.SPLIT_VERSION, // この分割ロジックのバージョンを刻む
+      book: { book: name, pages },
+    };
     await DB.saveBook(meta, audioMap);
 
     const totalSeg = pages.reduce((s, p) => s + p.num_segments, 0);
@@ -228,11 +238,69 @@
     showView('books');
   });
 
+  // ================= 分割の再計算（ロジックのバージョン付きキャッシュ） =================
+  // 単語帳オープン時、meta.splitVersion が現行 Splitter.SPLIT_VERSION と一致すれば
+  // キャッシュ（book.pages）をそのまま使う（速い）。不一致（コード更新後の初回）なら
+  // 元音声Blobから再分割してキャッシュを更新する（自動・ユーザー再投入不要）。
+  //
+  // 戻り値: 最新の meta（再分割した場合は book.pages / splitVersion を更新済み）。
+  //   元音声が無く再分割できない旧データは、そのまま返しつつ needsReimport:true を付ける。
+  async function ensureSplitCurrent(meta) {
+    // 現行と一致 → そのまま（高速パス）。splitVersion 未定義の旧データは「要再計算」扱い。
+    if (meta.splitVersion === Splitter.SPLIT_VERSION) return meta;
+
+    const pages = (meta.book && meta.book.pages) || [];
+    // 元音声が揃っているか（旧スキーマ・破損データのマイグレーション可否）
+    const canResplit = pages.length > 0 && await DB.hasAllAudio(meta.id, pages);
+    if (!canResplit) {
+      // 元音声が無い旧データ → 再投入を促す（キャッシュはそのまま使わせるが警告）
+      return Object.assign({}, meta, { needsReimport: true });
+    }
+
+    // 元音声から再分割してキャッシュを作り直す
+    showResplit('音声を読み込んでいます');
+    const newPages = [];
+    for (let i = 0; i < pages.length; i++) {
+      const p = pages[i];
+      resplitText.textContent = `再分割中 ${i + 1}/${pages.length}`;
+      const blob = await DB.getAudio(meta.id, p.page);
+      if (!blob) { newPages.push(p); continue; } // 念のため（hasAllAudioで担保済み）
+      const buf = await blob.arrayBuffer();
+      let pageMeta;
+      try { pageMeta = await Splitter.analyzePage(buf, p.page); }
+      catch (err) { newPages.push(p); continue; } // 解析失敗ページは旧結果を温存
+      newPages.push(pageMeta);
+      await sleep(0);
+    }
+
+    const updated = Object.assign({}, meta, {
+      splitVersion: Splitter.SPLIT_VERSION,
+      book: Object.assign({}, meta.book, { pages: newPages }),
+    });
+    delete updated.needsReimport;
+    await DB.updateBookMeta(updated);
+    hideResplit();
+    return updated;
+  }
+
+  function showResplit(msg) {
+    if (msg) resplitText.textContent = msg;
+    resplitOverlay.classList.remove('hidden');
+  }
+  function hideResplit() { resplitOverlay.classList.add('hidden'); }
+
   // ================= ② ページ/単語一覧（番号グリッド） =================
-  function openBook(book) {
-    currentBook = book;
+  async function openBook(book) {
     Player.stop();
     Listen.stop();
+    // バージョン判定 → 必要なら元音声から再分割してキャッシュ更新（再投入不要で反映）
+    book = await ensureSplitCurrent(book);
+    if (book.needsReimport) {
+      alert(`「${book.name}」は分割ロジックの更新分を反映できません（元音声が見つかりません）。\n` +
+        `お手数ですが、この単語帳を削除して音声を読み込み直してください。`);
+      // それでも旧キャッシュで開けるなら開く（閲覧・再生自体は可能）
+    }
+    currentBook = book;
     const wordCount = book.book.pages.reduce((s, p) => s + p.word_count, 0);
     buildPlaylist(book);
     configureListen(book);

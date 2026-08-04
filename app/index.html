@@ -316,6 +316,15 @@
 
   <audio id="audio-el" preload="auto"></audio>
 
+  <!-- 分割再計算オーバーレイ（ロジック更新後の初回オープン時のみ表示） -->
+  <div id="resplit-overlay" class="resplit-overlay hidden" role="alertdialog" aria-live="polite" aria-label="分割を更新中">
+    <div class="resplit-box">
+      <div class="lp-spinner"></div>
+      <div class="resplit-title">分割を更新中…</div>
+      <div class="resplit-text" id="resplit-text">音声を読み込んでいます</div>
+    </div>
+  </div>
+
   <script src="js/db.js"></script>
   <script src="js/splitter.js"></script>
   <script src="js/listen-build.js"></script>

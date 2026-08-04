@@ -9,6 +9,25 @@
  * -30dBFS を下回る連続区間を無音とみなして同等に再現する（窓幅は WIN_MS）。
  */
 const Splitter = (() => {
+  /* 分割ロジックのバージョン。
+   * splitter.js / listen-build.js の「分割・抽出ロジック」を変更したら、この値を上げる。
+   *
+   * 【運用ルール（重要）】
+   *   保存する単語帳には、生成時の SPLIT_VERSION を meta.splitVersion として付与する。
+   *   単語帳オープン時に meta.splitVersion !== SPLIT_VERSION なら、元音声Blobから
+   *   自動で再分割してキャッシュ（book.pages[].segments 等）を更新する。
+   *   これにより「ロジックを直したら、ユーザーの再投入なしに次回オープンで反映」される。
+   *
+   *   → 具体的には、無音閾値・単語境界・短小結合・アナウンス切り離し（analyzeFromSamples）、
+   *     もしくは listen-build.js の wordonly 抽出（wordonlyRange 等）を変更したら +1 する。
+   *
+   * 履歴:
+   *   1: 初期リリース（無音検知移植 / 短小結合 / アナウンス切り離し / wordonly抽出）。
+   *      ※訳スキップ（announce_end による単語本体開始・wordonly の冒頭余白スキップ）を含む
+   *        現行ロジック一式をバージョン1と定義。以降の変更でインクリメントする。
+   */
+  const SPLIT_VERSION = 1;
+
   const NOISE_DB = -30;      // dBFS 閾値
   const MIN_SILENCE = 0.4;   // これ以上続けば無音とみなす（秒）
   const WORD_GAP = 2.0;      // これ以上の無音を単語境界とみなす（秒）
@@ -250,6 +269,7 @@ const Splitter = (() => {
   return {
     decode, detectSilences, detectCuts, analyzePage, analyzeFromSamples,
     mergeShortSegments, computeAnnounceEnd, median,
+    SPLIT_VERSION,
     NOISE_DB, MIN_SILENCE, WORD_GAP, SHORT_MERGE_RATIO, EXCESS_THRESHOLD, ANNOUNCE_LOW_CONF,
   };
 })();
