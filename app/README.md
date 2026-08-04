@@ -19,12 +19,14 @@ app/
   js/
     db.js              IndexedDB: 単語帳メタ(+splitVersion) + 元音声Blob（分割結果は派生キャッシュ）
     splitter.js        Web Audio API 無音検知・分割（Python版ロジック移植）＋ SPLIT_VERSION 定義
+    editor.js          分割の手動編集（#4）の純ロジック（境界/type/announce_end の再構築）
     player.js          再生エンジン: 区間再生 + 前/次の単語 + シーク + Media Session
-    app.js             3階層ナビ・カード/番号グリッド・ミニ/全画面プレーヤー連携 + 分割の再計算
+    app.js             3階層ナビ・番号グリッド・プレーヤー連携 + 分割の再計算 + 手動編集UI
   verify/
     verify_split.js    JS分割ロジックを Node で走らせ segments.json と突き合わせ
     verify_listen.js   機能B（wordonly抽出/チャンク）を build_chunks.py と突き合わせ
     verify_cache.js    データ保持方式（バージョン付きキャッシュ・再分割・移行）の headless 検証
+    verify_editor.js   分割の手動編集（純ロジック + 手編集ページの再分割保護）の headless 検証
 ```
 
 ## データ保持方式（分割のバージョン付きキャッシュ）
@@ -39,6 +41,21 @@ app/
 - **SPLIT_VERSION 運用ルール（重要）**: `splitter.js`（無音検知・単語境界・短小結合・アナウンス切り離し）または `listen-build.js`（wordonly 抽出）の**分割・抽出ロジックを変更したら `SPLIT_VERSION` を +1** する。これだけで、既存ユーザーの単語帳が次回オープン時に自動で作り直される。
 - **マイグレーション**: `splitVersion` を持たない旧データも、元音声Blobが揃っていれば同じ経路で自動再分割して移行する。元音声が無い旧データは `needsReimport` として再投入を促す（旧キャッシュのままでも閲覧・再生は可能）。
 - **容量**: 派生キャッシュ（`book.pages`）は元々数KB〜数十KBの位置JSONのみ（分割後音声は保存しない方針は不変）。よって「元音声＋派生キャッシュ」の総容量は従来とほぼ同じで、削減の主眼は容量ではなく**再投入不要で修正が反映される運用性**。
+
+## 分割の手動編集（#4）
+
+自動分割で境界ズレ／アナウンス誤判定が残るページを、**手で直して per-book に上書き保存**できる。
+
+- **入口**: ②ページ/単語一覧の各ページ見出しの `✎ 編集` ボタン → 編集画面（`view-editor`）。
+- **できること**（1ページ単位）:
+  - 各単語（セグメント）の**境界（頭）を ±0.1秒で微調整**／**境界を追加**（時刻入力・最長区間の中央を既定）／**境界を削除**（前後を結合）。
+  - **type を `単語`/`📢付`（word/word+announce）で切替**。`📢付` にすると `本体の頭`（announce_end＝アナウンスを飛ばして単語本体が始まる位置）を ±0.1秒で調整できる。
+  - **試聴**: `▶ この単語`（境界〜次境界）／`▶ 本体`（announce_end〜end）を編集用 audio 要素（`editor-audio`）で再生。メインの再生（機能A/B）とは独立。
+  - `自動分割に戻す`（保存済み＝元の状態へ復帰）／`キャンセル`／`この編集を保存`。
+- **保存の中身**: `editor.js` の `stateToPage` が **segments.json と同一形式**の page を再構築し、`manualEdited:true` を付けて `book.pages[idx]` を上書き → `DB.updateBookMeta` で per-book キャッシュを更新。保存後は playlist / 聞き流し / グリッドを作り直す。
+  - 付随フィールドの整合: `length=round2(end-start)` を都度再計算。`announce_end` は type=word+announce かつ範囲内のときだけ付与。自動由来の `merged` / `announce_low_confidence` は手動編集で意味が変わるため落とす（再生・聞き流しは参照しない）。`has_announce`/`word_count`/`layout` は再計算（layout は splitter と同一の本体中央値ルール）。
+- **保護ロジック（手編集を守る）**: `ensureSplitCurrent` は `page.manualEdited===true` のページを**自動再分割の対象外**にする。よって `SPLIT_VERSION` を上げても、手で直したページだけは上書きされず、同じ単語帳の未編集ページは通常どおり再分割される。
+- **アルゴリズム不変**: `splitter.js` / `listen-build.js` の分割・抽出アルゴリズムは変更していない。手動編集は「結果（境界/type/announce_end）の上書き」だけを行う。既存の機能A/B再生は編集後 segments をそのまま使う（型が同一なので追加対応不要）。
 
 ## 実装した画面（Hearbit）
 
@@ -101,9 +118,11 @@ node app/verify/verify_split.js       # 代表10ページ
 node app/verify/verify_split.js all   # 全98ページ
 node app/verify/verify_listen.js all  # 機能B（wordonly/チャンク）
 node app/verify/verify_cache.js       # データ保持方式（バージョン付きキャッシュ・再分割・移行）
+node app/verify/verify_editor.js      # 分割の手動編集（純ロジック + 手編集ページの再分割保護）
 ```
 
 現状: 全98ページで セグメント数・cut点（±0.15s）ともに 98/98 一致。
 `verify_listen.js all` は全チェック PASS（wordonly 649/650、閾値ぎわ1件は許容）。
 `verify_cache.js` は 15/15 PASS（保存時に splitVersion 付与・不一致で自動再分割・一致なら再分割なし・元音声なし旧データは再投入促し）。
-（分割ロジック `splitter.js` / `listen-build.js` は本作業では変更していません。データ保持方式のみ変更。）
+`verify_editor.js` は 26/26 PASS（往復の境界/type/announce_end 保持・境界の追加/削除/微調整・type切替とannounce_end・manualEdited付与・手編集ページが SPLIT_VERSION 更新後も保護され未編集ページは再分割）。
+（分割ロジック `splitter.js` / `listen-build.js` は本作業でも変更していません。手動編集は結果の上書きのみ。）
