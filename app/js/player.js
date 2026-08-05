@@ -386,19 +386,35 @@ const Player = (() => {
 
   // ---------- app.js からの設定 ----------
   function configure(opts) {
+    const prevLen = playlist.length;
+    const prevIndex = currentIndex;
     playlist = opts.playlist || [];
     bookName = opts.bookName || '';
     getBlobFor = opts.getBlobFor;
     onCellChange = opts.onCellChange || null;
-    currentIndex = -1;
-    currentBlobPage = null;
+    // テキスト編集など「同じ単語帳の再構成」では、再生位置を保つ（-1 に落とさない）。
+    // 単語数が変わった（＝別の単語帳/分割変更）場合のみ位置をリセットする。
+    if (opts.preserveIndex && playlist.length === prevLen && prevIndex >= 0 && prevIndex < playlist.length) {
+      currentIndex = prevIndex;
+    } else {
+      currentIndex = -1;
+      currentBlobPage = null;
+    }
     setupMediaSession();
+  }
+
+  // 現在再生中の単語のラベル/メタデータを再表示（テキスト編集の即反映用）。
+  // playlist は configure で差し替え済み。currentIndex が有効ならラベルを描き直す。
+  function refreshCurrent() {
+    if (currentIndex < 0 || currentIndex >= playlist.length) return;
+    updateLabels();
+    updateSeek();
   }
 
   return {
     configure,
     playIndex, prev, next, toggle, pause, resume, stop,
-    showFull, hideFull,
+    showFull, hideFull, refreshCurrent,
     getIndex: () => currentIndex,
   };
 })();

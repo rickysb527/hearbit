@@ -39,6 +39,7 @@ const Listen = (() => {
   let bookName = '';
   let words = [];             // ListenBuild.collectWords の結果（全単語・順序どおり）
   let getBlobFor = null;      // async (page) => Blob
+  let textFor = null;         // (page, segIndex) => { hanzi, pinyin, gloss, low_confidence } | null
   let onBoundary = null;      // (wordIdxInTrack) => void  UI更新コールバック
 
   // 現在ロード中のトラック（連結1本）の情報
@@ -201,6 +202,21 @@ const Listen = (() => {
     return Math.min(offsetInBuffer + (audioCtx().currentTime - startedAtCtxTime), track.duration);
   }
 
+  // 連結トラック内の語順(0-based) → 元の words[] の要素（page/seg を持つ）。
+  function trackWord(wiInTrack) {
+    if (!track || wiInTrack < 0) return null;
+    const globalIdx = track.rangeFrom + wiInTrack;
+    return words[globalIdx] || null;
+  }
+  // 現在語のテキスト（漢字・ピンイン・訳）。textFor が無い/未紐付けなら null。
+  function textForTrackWord(wiInTrack) {
+    const w = trackWord(wiInTrack);
+    if (!w || !textFor) return null;
+    const t = textFor(w.page, w.seg.index);
+    if (!t || (!t.hanzi && !t.pinyin && !t.gloss)) return null;
+    return t;
+  }
+
   function wordIndexAt(posSec) {
     if (!track) return -1;
     const b = track.boundaries;
@@ -335,9 +351,15 @@ const Listen = (() => {
   function updateMediaMetadata() {
     if (!('mediaSession' in navigator) || !track) return;
     const n = currentWordInTrack >= 0 ? currentWordInTrack + 1 : 1;
+    // ロック画面タイトル: 漢字(+ピンイン)があればそれを優先。無ければ「聞き流し n/total」。
+    const t = textForTrackWord(currentWordInTrack >= 0 ? currentWordInTrack : 0);
+    let title = `聞き流し ${n}/${track.wordCount}`;
+    if (t && (t.hanzi || t.pinyin)) {
+      title = [t.hanzi, t.pinyin].filter(Boolean).join('  ') + `  (${n}/${track.wordCount})`;
+    }
     try {
       navigator.mediaSession.metadata = new MediaMetadata({
-        title: `聞き流し ${n}/${track.wordCount}`,
+        title,
         artist: bookName || 'Hearbit',
         album: `${track.size}語 · ${track.rangeFrom + 1}–${track.rangeTo}`,
         artwork: [
@@ -362,7 +384,8 @@ const Listen = (() => {
     if (!track) return;
     const ratio = track.duration > 0 ? Math.min(pos / track.duration, 1) : 0;
     const wi = wordIndexAt(pos);
-    ui.onProgress(ratio, wi + 1, track.wordCount);
+    // 第4引数: 現在語のテキスト（漢字・ピンイン・訳）。無ければ null（番号フォールバック）。
+    ui.onProgress(ratio, wi + 1, track.wordCount, textForTrackWord(wi));
   }
   function onLoadingUI(loading, done, all) { ui.onLoading(loading, done, all); }
   function updateHeaderUI() {
@@ -376,15 +399,23 @@ const Listen = (() => {
     bookName = opts.bookName || '';
     words = opts.words || [];
     getBlobFor = opts.getBlobFor;
+    if (opts.textFor !== undefined) textFor = opts.textFor; // page/index → テキスト解決
     ui = Object.assign(ui, opts.ui || {});
     // 単語帳が変わったのでページ decode キャッシュを破棄
     pageCache.clear();
     stop();
   }
 
+  // テキスト編集後、いま表示中の語のテキストを引き直して再描画（再生位置は変えない）。
+  function refreshText() {
+    if (!track) return;
+    updateProgressUI(currentPos());
+    updateMediaMetadata();
+  }
+
   return {
     configure,
-    playRange, prev, next, toggle, pause, resume, stop,
+    playRange, prev, next, toggle, pause, resume, stop, refreshText,
     getWordCount: () => words.length,
     isActive: () => !!track,
     isPlaying: () => isPlaying,

@@ -44,6 +44,9 @@
   const vocabClearBtn = document.getElementById('vocab-clear-btn');
   const vocabBarTitle = document.getElementById('vocab-bar-title');
   const vocabBarSub = document.getElementById('vocab-bar-sub');
+  const vocabFilterBar = document.getElementById('vocab-filter-bar');
+  const vocabFilterBtn = document.getElementById('vocab-filter-btn');
+  const vocabFilterCount = document.getElementById('vocab-filter-count');
 
   // --- DOM: 分割再計算オーバーレイ ---
   const resplitOverlay = document.getElementById('resplit-overlay');
@@ -62,6 +65,7 @@
   let cellEls = [];       // playlist と同じ index のセルDOM（ハイライト用）
   let listenWords = [];   // 機能B用の単語リスト（ListenBuild.collectWords）
   let listenSize = 50;    // 現在選択中のチャンクサイズ（50/100）
+  let vocabFilterLowOnly = false; // 「要確認のみ表示」フィルタ（low_confidence だけ）
 
   const ROOTS = ['books', 'settings'];
 
@@ -334,7 +338,8 @@
   }
 
   // フラットな単語リストを構築（prev/next・Media Session のため）
-  function buildPlaylist(book) {
+  // opts.preserveIndex: 同一単語帳の再構成（テキスト編集）で再生位置を保つ。
+  function buildPlaylist(book, opts) {
     playlist = [];
     cellEls = [];
     let serial = 0;
@@ -367,6 +372,7 @@
       bookName: book.name,
       getBlobFor: (page) => DB.getAudio(book.id, page),
       onCellChange: highlightCell,
+      preserveIndex: !!(opts && opts.preserveIndex),
     });
   }
 
@@ -384,6 +390,9 @@
       bookName: book.name,
       words: listenWords,
       getBlobFor: (page) => DB.getAudio(book.id, page),
+      // 現在語の漢字・ピンインを引く。currentBook.vocab をライブに読むため、
+      // テキスト編集後も（refreshText 経由で）最新値が反映される。
+      textFor: (page, segIndex) => vocabFor(currentBook, page, segIndex),
       ui: listenUI,
     });
   }
@@ -453,15 +462,26 @@
       grid.className = 'words-grid';
 
       let wordNo = 0;
+      let visibleInPage = 0;
       p.segments.forEach((seg) => {
         wordNo += 1;
         const myFlatIndex = flatIndex++;
         const w = playlist[myFlatIndex];
-        const cell = document.createElement('div');
         const hasText = !!(w.text && (w.text.hanzi || w.text.pinyin));
+        const isLow = !!(w.text && w.text.low_confidence);
+        // 「要確認のみ表示」フィルタ: low_confidence の単語だけ残す。
+        if (vocabFilterLowOnly && !isLow) return;
+        visibleInPage++;
+        const cell = document.createElement('div');
         cell.className = 'cell' + (seg.type === 'word+announce' ? ' announce' : '')
-          + (hasText ? ' has-text' : '');
+          + (hasText ? ' has-text' : '')
+          + (isLow ? ' low-conf' : '');
         cell.setAttribute('role', 'button');
+        // テキスト編集ボタン（テキスト読込済みのときだけ表示）。長押しでも開ける。
+        const editBtn = currentBook && currentBook.vocab
+          ? `<button class="cell-edit" type="button" aria-label="テキストを編集" tabindex="-1">` +
+            `<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4z"/></svg></button>`
+          : '';
         if (hasText) {
           const t = w.text;
           const lc = t.low_confidence ? '<span class="cell-lc" aria-label="認識が不確か">?</span>' : '';
@@ -469,22 +489,65 @@
             `ページ${pageIdx + 1} 単語${wordNo} ${t.hanzi || ''} ${t.pinyin || ''}`.trim());
           cell.innerHTML =
             `<div class="cell-badge">${wordNo}${lc}</div>` +
+            editBtn +
             `<div class="cell-hanzi"></div>` +
             `<div class="cell-pinyin"></div>`;
           cell.querySelector('.cell-hanzi').textContent = t.hanzi || '';
           cell.querySelector('.cell-pinyin').textContent = t.pinyin || '';
         } else {
           cell.setAttribute('aria-label', `ページ${pageIdx + 1} 単語${wordNo} 通し${w.serial}`);
-          cell.innerHTML = `<div class="num">${wordNo}</div><div class="serial">#${w.serial}</div>`;
+          cell.innerHTML = editBtn +
+            `<div class="num">${wordNo}</div><div class="serial">#${w.serial}</div>`;
         }
         cell.addEventListener('click', () => Player.playIndex(myFlatIndex));
+        // 編集ボタン: タップで編集モーダル（再生はさせない）
+        const eb = cell.querySelector('.cell-edit');
+        if (eb) eb.addEventListener('click', (e) => {
+          e.stopPropagation();
+          TextEdit.open(p.page, seg.index, pageIdx + 1, wordNo);
+        });
+        // 長押し（タッチ/マウス）でも編集を開く。vocab があるときのみ。
+        if (currentBook && currentBook.vocab) {
+          attachLongPress(cell, () => TextEdit.open(p.page, seg.index, pageIdx + 1, wordNo));
+        }
         cellEls[myFlatIndex] = cell;
         grid.appendChild(cell);
       });
 
+      // フィルタで空になったページは見出しごと隠す（要確認だけを見やすく）
+      if (vocabFilterLowOnly && visibleInPage === 0) return;
       section.appendChild(grid);
       pagesGridWrap.appendChild(section);
     });
+
+    // フィルタ適用時に該当が1件も無ければ案内を出す
+    if (vocabFilterLowOnly && !pagesGridWrap.children.length) {
+      const empty = document.createElement('div');
+      empty.className = 'vocab-filter-empty';
+      empty.textContent = '要確認（?）の単語はありません。';
+      pagesGridWrap.appendChild(empty);
+    }
+  }
+
+  // ---- 長押し検出（タッチ/ポインタ共通）。移動やスクロールでキャンセル。 ----
+  function attachLongPress(el, onLongPress) {
+    let timer = null, sx = 0, sy = 0, fired = false;
+    const LONG_MS = 500, MOVE_TOL = 10;
+    const clear = () => { if (timer) { clearTimeout(timer); timer = null; } };
+    el.addEventListener('pointerdown', (e) => {
+      if (e.target.closest('.cell-edit')) return; // 編集ボタン自身は除外
+      fired = false; sx = e.clientX; sy = e.clientY;
+      clear();
+      timer = setTimeout(() => { fired = true; timer = null; onLongPress(); }, LONG_MS);
+    });
+    el.addEventListener('pointermove', (e) => {
+      if (timer && (Math.abs(e.clientX - sx) > MOVE_TOL || Math.abs(e.clientY - sy) > MOVE_TOL)) clear();
+    });
+    el.addEventListener('pointerup', clear);
+    el.addEventListener('pointercancel', clear);
+    el.addEventListener('pointerleave', clear);
+    // 長押しで開いた直後の click（=再生）を打ち消す
+    el.addEventListener('click', (e) => { if (fired) { fired = false; e.stopImmediatePropagation(); e.preventDefault(); } }, true);
   }
 
   // ================= 単語テキスト（漢字・ピンイン）の読み込み（Issue #3） =================
@@ -529,6 +592,19 @@
     return { matched, total };
   }
 
+  // 現在の単語帳の実セグメントのうち low_confidence が付いた数。
+  function countLowConfidence(book) {
+    if (!book || !book.vocab) return 0;
+    let n = 0;
+    book.book.pages.forEach((p) => {
+      p.segments.forEach((seg) => {
+        const t = book.vocab[`${p.page}/${seg.index}`];
+        if (t && t.low_confidence) n++;
+      });
+    });
+    return n;
+  }
+
   function refreshVocabBar() {
     const has = !!(currentBook && currentBook.vocab);
     vocabClearBtn.classList.toggle('hidden', !has);
@@ -540,7 +616,20 @@
       vocabBarTitle.textContent = '漢字・ピンインを表示';
       vocabBarSub.textContent = '単語テキスト(JSON)を読み込むと一覧に表示されます';
     }
+    // 要確認フィルタ: テキスト読込済み かつ 要確認が1件以上あるときだけ出す。
+    const lowN = has ? countLowConfidence(currentBook) : 0;
+    const showFilter = has && lowN > 0;
+    vocabFilterBar.classList.toggle('hidden', !showFilter);
+    if (!showFilter && vocabFilterLowOnly) vocabFilterLowOnly = false; // 無くなったら解除
+    vocabFilterBtn.setAttribute('aria-pressed', String(vocabFilterLowOnly));
+    vocabFilterCount.textContent = lowN ? `（${lowN}）` : '';
   }
+
+  vocabFilterBtn.addEventListener('click', () => {
+    vocabFilterLowOnly = !vocabFilterLowOnly;
+    vocabFilterBtn.setAttribute('aria-pressed', String(vocabFilterLowOnly));
+    renderPages(currentBook);
+  });
 
   vocabFile.addEventListener('change', async () => {
     const file = vocabFile.files && vocabFile.files[0];
@@ -793,10 +882,96 @@
     return { open, stopPreview, render };
   })();
 
+  // ================= 単語テキストの手動修正（Issue #4 テキスト編集） =================
+  // 単語一覧②のセルの編集ボタン/長押しから開く。漢字・ピンイン・訳を手で直して
+  // book.vocab の該当 page/index を上書きし、low_confidence を false に落とす（手で直した=信頼）。
+  // 保存は DB.updateBookMeta。vocab は page+index キーの派生とは独立した辞書なので、
+  // SPLIT_VERSION 更新・境界編集(editor.js)後も紐付けは保たれる（既存設計を壊さない）。
+  const TextEdit = (() => {
+    const modal = document.getElementById('text-edit-modal');
+    const titleEl = document.getElementById('te-title');
+    const subEl = document.getElementById('te-sub');
+    const hanziEl = document.getElementById('te-hanzi');
+    const pinyinEl = document.getElementById('te-pinyin');
+    const glossEl = document.getElementById('te-gloss');
+    const noteEl = document.getElementById('te-note');
+    const cancelBtn = document.getElementById('te-cancel');
+    const saveBtn = document.getElementById('te-save');
+
+    let curPage = null;   // 対象セグメントの page
+    let curIndex = -1;    // 対象セグメントの seg.index
+    let curWasLow = false;
+
+    function open(page, segIndex, pageNo, wordNo) {
+      if (!currentBook) return;
+      // vocab がまだ無ければ空辞書を用意（テキスト未読込の単語帳でも手入力で作れる）。
+      if (!currentBook.vocab) currentBook.vocab = {};
+      curPage = page;
+      curIndex = segIndex;
+      const key = `${page}/${segIndex}`;
+      const t = currentBook.vocab[key] || { hanzi: '', pinyin: '', gloss: '', low_confidence: false };
+      curWasLow = !!t.low_confidence;
+      subEl.textContent = `ページ ${String(pageNo).padStart(3, '0')} · 単語 ${wordNo}`;
+      hanziEl.value = t.hanzi || '';
+      pinyinEl.value = t.pinyin || '';
+      glossEl.value = t.gloss || '';
+      noteEl.textContent = curWasLow
+        ? '認識が不確か（?）な単語です。直して保存すると「?」が外れます。'
+        : '保存すると一覧・再生画面・ロック画面に即反映されます。';
+      noteEl.classList.toggle('warn', curWasLow);
+      modal.classList.remove('hidden');
+      setTimeout(() => { try { hanziEl.focus(); } catch (e) {} }, 50);
+    }
+
+    function close() { modal.classList.add('hidden'); }
+
+    async function save() {
+      if (!currentBook || curPage == null) return;
+      const key = `${curPage}/${curIndex}`;
+      const entry = {
+        hanzi: hanziEl.value.trim(),
+        pinyin: pinyinEl.value.trim(),
+        gloss: glossEl.value.trim(),
+        low_confidence: false, // 手で直した = 信頼できる
+      };
+      // 新しい辞書を作って差し替える（既存参照を壊さず、保存対象を明確に）。
+      const vocab = Object.assign({}, currentBook.vocab, { [key]: entry });
+      const meta = Object.assign({}, currentBook, { vocab });
+      await DB.updateBookMeta(meta);
+      currentBook = meta;
+      // 依存する表示を全部作り直して即反映（一覧・機能A再生ラベル・機能Bラベル・ロック画面）。
+      buildPlaylist(currentBook, { preserveIndex: true }); // text 再付与。再生位置は保つ
+      configureListen(currentBook); // 機能B の words を作り直し（テキスト参照は listen 側で毎回引く）
+      renderPages(currentBook);     // 一覧セルを再描画（? の有無・漢字/ピンインを更新）
+      refreshVocabBar();
+      // 全画面プレーヤー表示中なら、いま鳴っている単語のラベルも更新する。
+      if (typeof Player !== 'undefined' && Player.refreshCurrent) Player.refreshCurrent();
+      // 再描画でセルDOMが差し替わっているので、再生中セルのハイライトを貼り直す。
+      const pIdx = (typeof Player !== 'undefined' && Player.getIndex) ? Player.getIndex() : -1;
+      if (pIdx >= 0) highlightCell(pIdx);
+      if (typeof Listen !== 'undefined' && Listen.refreshText) Listen.refreshText();
+      close();
+    }
+
+    cancelBtn.addEventListener('click', close);
+    saveBtn.addEventListener('click', () => { save().catch((e) => alert('保存できませんでした: ' + e.message)); });
+    // 背景タップで閉じる（シート外）。Enter で保存。
+    modal.addEventListener('click', (e) => { if (e.target === modal) close(); });
+    [hanziEl, pinyinEl, glossEl].forEach((el) => el.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') { e.preventDefault(); saveBtn.click(); }
+    }));
+
+    return { open, close };
+  })();
+
   // ---- 聞き流し 全画面プレーヤー（円形プログレス）の DOM とコントローラ ----
   const lp = document.getElementById('listen-player');
   const lpSub = document.getElementById('lp-sub');
   const lpWord = document.getElementById('lp-word');
+  const lpText = document.getElementById('lp-text');
+  const lpHanzi = document.getElementById('lp-hanzi');
+  const lpPinyin = document.getElementById('lp-pinyin');
+  const lpGloss = document.getElementById('lp-gloss');
   const lpCur = document.getElementById('lp-cur');
   const lpTotal = document.getElementById('lp-total');
   const lpRingFg = document.getElementById('lp-ring-fg');
@@ -823,11 +998,29 @@
     lpRingDot.setAttribute('cy', String(120 + RING_R * Math.sin(ang)));
   }
 
+  // 円形プログレス中央の単語表示。text（漢字・ピンイン・訳）があれば漢字(大)・ピンイン(小)・
+  // 訳(極小)を出し、無ければ「単語 N」の番号フォールバック。切り替わるたびに呼ぶ。
+  function renderListenWord(text, wordNo) {
+    const hasText = !!(text && (text.hanzi || text.pinyin));
+    lpText.classList.toggle('hidden', !hasText);
+    lpWord.classList.toggle('hidden', hasText);
+    if (hasText) {
+      lpHanzi.textContent = text.hanzi || '';
+      lpPinyin.textContent = text.pinyin || '';
+      const hasGloss = !!(text.gloss && text.gloss.trim());
+      lpGloss.classList.toggle('hidden', !hasGloss);
+      lpGloss.textContent = hasGloss ? text.gloss : '';
+    } else {
+      lpWord.textContent = `単語 ${wordNo}`;
+    }
+  }
+
   function showListenFull(info) {
     lpSub.textContent = `単語のみ · ${info.size}語（${info.from}–${info.to}）`;
     lpTotal.textContent = String(info.wordCount);
     lpCur.textContent = '1';
-    lpWord.textContent = `単語 ${info.from}`;
+    // 開始時点は最初の語（テキストは onProgress/refreshText が確定するまで番号表示）。
+    renderListenWord(null, 1);
     setRing(0);
     lp.classList.remove('hidden');
   }
@@ -840,12 +1033,12 @@
       lpToggle.querySelector('.ic-play').classList.toggle('hidden', playing);
       lpToggle.querySelector('.ic-pause').classList.toggle('hidden', !playing);
     },
-    onProgress(ratio, wordNo, wordCount) {
+    onProgress(ratio, wordNo, wordCount, text) {
       setRing(ratio);
       lpCur.textContent = String(wordNo);
       lpTotal.textContent = String(wordCount);
-      // 中央表示: 通し番号ではなくトラック内の語順（散歩中のチラ見で「今何語目か」）
-      lpWord.textContent = `単語 ${wordNo}`;
+      // 中央表示: テキストがあれば漢字・ピンイン、無ければトラック内の語順「単語 N」。
+      renderListenWord(text, wordNo);
     },
     onLoading(loading, done, all) {
       lpLoading.classList.toggle('hidden', !loading);

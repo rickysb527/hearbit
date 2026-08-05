@@ -161,6 +161,13 @@
           </label>
           <button id="vocab-clear-btn" class="ghost-btn vocab-clear-btn hidden" type="button">消去</button>
         </div>
+        <!-- 要確認（low_confidence）だけに絞るフィルタ。テキスト読込済みのときだけ表示。 -->
+        <div id="vocab-filter-bar" class="vocab-filter-bar hidden">
+          <button id="vocab-filter-btn" class="ghost-btn vocab-filter-btn" type="button" aria-pressed="false">
+            <span class="cell-lc" aria-hidden="true">?</span> 要確認のみ表示
+            <span id="vocab-filter-count" class="vocab-filter-count"></span>
+          </button>
+        </div>
         <div id="pages-grid-wrap"></div>
       </div>
 
@@ -310,6 +317,13 @@
           <div class="wave lp-wave" id="lp-wave" aria-hidden="true">
             <span></span><span></span><span></span><span></span><span></span>
           </div>
+          <!-- テキストあり: 漢字(大)・ピンイン(小)・訳(極小)。無ければ hidden。 -->
+          <div class="lp-text hidden" id="lp-text">
+            <div class="lp-hanzi" id="lp-hanzi"></div>
+            <div class="lp-pinyin" id="lp-pinyin"></div>
+            <div class="lp-gloss hidden" id="lp-gloss"></div>
+          </div>
+          <!-- テキストなしのフォールバック: 「単語 N」。 -->
           <div class="lp-word" id="lp-word">単語 1</div>
         </div>
       </div>
@@ -360,6 +374,33 @@
       <div class="lp-spinner"></div>
       <div class="resplit-title">分割を更新中…</div>
       <div class="resplit-text" id="resplit-text">音声を読み込んでいます</div>
+    </div>
+  </div>
+
+  <!-- 単語テキスト（漢字・ピンイン・訳）の手動修正モーダル（Issue #4 テキスト編集） -->
+  <div id="text-edit-modal" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-label="単語テキストを編集">
+    <div class="modal-sheet">
+      <div class="modal-head">
+        <div class="modal-title" id="te-title">単語テキストを編集</div>
+        <div class="modal-sub" id="te-sub"></div>
+      </div>
+      <label class="field">
+        <span>漢字</span>
+        <input type="text" id="te-hanzi" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="例: 阿姨" />
+      </label>
+      <label class="field">
+        <span>ピンイン</span>
+        <input type="text" id="te-pinyin" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="例: ā yí" />
+      </label>
+      <label class="field">
+        <span>訳</span>
+        <input type="text" id="te-gloss" autocomplete="off" placeholder="例: おばさん" />
+      </label>
+      <div class="modal-note" id="te-note"></div>
+      <div class="modal-actions">
+        <button id="te-cancel" class="ghost-btn" type="button">キャンセル</button>
+        <button id="te-save" class="primary-btn" type="button">保存</button>
+      </div>
     </div>
   </div>
 
