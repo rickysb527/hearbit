@@ -335,6 +335,17 @@ body {
   max-width: 180px; overflow: hidden; text-overflow: ellipsis; }
 #listen-player.paused .lp-wave span { animation: none !important; height: 30% !important; opacity: 0.5; }
 
+/* テキスト付き（漢字・ピンイン・訳）中央表示。リング内(直径約200px)に収める。 */
+.lp-text { display: flex; flex-direction: column; align-items: center; gap: 3px; max-width: 180px; }
+.lp-text.hidden { display: none; }
+.lp-hanzi { font-size: 40px; font-weight: 800; color: var(--text); line-height: 1.05;
+  word-break: break-word; }
+.lp-pinyin { font-size: 15px; color: var(--text-sub); line-height: 1.25; word-break: break-word; }
+.lp-gloss { font-size: 12px; color: var(--text-sub); opacity: 0.85; line-height: 1.3;
+  margin-top: 2px; word-break: break-word;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.lp-gloss.hidden { display: none; }
+
 .lp-count { font-size: 22px; font-weight: 700; color: var(--text); margin: 20px 0 6px; }
 .lp-count #lp-cur { color: var(--active); }
 
@@ -365,6 +376,57 @@ body {
   box-shadow: 0 12px 40px rgba(0,0,0,0.3); }
 .resplit-title { font-size: 16px; font-weight: 700; }
 .resplit-text { font-size: 13px; color: var(--text-sub); text-align: center; }
+
+/* ===== 要確認フィルタ（low_confidence だけ表示） ===== */
+.vocab-filter-bar { margin: 0 2px 12px; }
+.vocab-filter-bar.hidden { display: none; }
+.vocab-filter-btn { display: inline-flex; align-items: center; gap: 7px; }
+.vocab-filter-btn[aria-pressed="true"] {
+  background: var(--active-weak); border-color: var(--active); color: var(--active);
+}
+.vocab-filter-btn[aria-pressed="true"] .cell-lc { color: var(--active); }
+.vocab-filter-count { font-size: 12px; color: var(--text-sub); font-weight: 600; }
+.vocab-filter-btn[aria-pressed="true"] .vocab-filter-count { color: var(--active); }
+.vocab-filter-empty { color: var(--text-sub); font-size: 14px; text-align: center; padding: 40px 0; }
+
+/* セルの編集アフォーダンス（テキスト付きセルの右上に鉛筆） */
+.cell .cell-edit {
+  position: absolute; top: 3px; right: 3px;
+  width: 22px; height: 22px; padding: 0;
+  display: inline-flex; align-items: center; justify-content: center;
+  border: none; background: transparent; color: var(--text-sub);
+  border-radius: 6px; cursor: pointer; opacity: 0.55;
+}
+.cell .cell-edit:active { background: var(--surface-2); opacity: 1; }
+.cell.playing .cell-edit { color: var(--active); }
+/* low_confidence セルはうっすら強調（要確認を見つけやすく） */
+.cell.low-conf { border-color: color-mix(in srgb, var(--active) 45%, var(--border)); }
+
+/* ===== テキスト編集モーダル ===== */
+.modal-overlay {
+  position: fixed; inset: 0; z-index: 60;
+  display: flex; align-items: flex-end; justify-content: center;
+  background: rgba(0,0,0,0.45); backdrop-filter: blur(2px);
+  animation: fp-in 0.18s ease;
+}
+.modal-overlay.hidden { display: none; }
+.modal-sheet {
+  width: 100%; max-width: 520px;
+  background: var(--bg); color: var(--text);
+  border-radius: 18px 18px 0 0;
+  padding: 20px 18px calc(20px + env(safe-area-inset-bottom));
+  box-shadow: 0 -8px 40px rgba(0,0,0,0.3);
+  animation: sheet-up 0.22s ease;
+}
+@keyframes sheet-up { from { transform: translateY(24px); opacity: 0.6; } to { transform: translateY(0); opacity: 1; } }
+.modal-head { margin-bottom: 16px; }
+.modal-title { font-size: 18px; font-weight: 800; }
+.modal-sub { font-size: 13px; color: var(--text-sub); margin-top: 4px; }
+.modal-note { font-size: 12px; color: var(--text-sub); line-height: 1.6; margin: 2px 2px 16px; }
+.modal-note.warn { color: var(--active); }
+.modal-actions { display: flex; gap: 12px; }
+.modal-actions .ghost-btn { flex: 0 0 auto; min-height: 48px; padding: 0 20px; }
+.modal-actions .primary-btn { flex: 1 1 auto; min-height: 48px; }
 
 /* ===== 再生波形アニメ（共通） ===== */
 .wave, .fp-wave { display: inline-flex; align-items: flex-end; gap: 3px; height: 22px; }
