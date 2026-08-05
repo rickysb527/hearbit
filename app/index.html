@@ -149,6 +149,18 @@
 
       <!-- 単語タブ -->
       <div id="tab-words" class="tab-panel active">
+        <!-- 単語テキスト（漢字・ピンイン）の読み込み口。無い間は番号表示のまま。 -->
+        <div id="vocab-bar" class="vocab-bar">
+          <div class="vocab-bar-main">
+            <div class="vocab-bar-title" id="vocab-bar-title">漢字・ピンインを表示</div>
+            <div class="vocab-bar-sub" id="vocab-bar-sub">単語テキスト(JSON)を読み込むと一覧に表示されます</div>
+          </div>
+          <label class="ghost-btn vocab-bar-btn">
+            読み込む
+            <input type="file" id="vocab-file" accept="application/json,.json" hidden />
+          </label>
+          <button id="vocab-clear-btn" class="ghost-btn vocab-clear-btn hidden" type="button">消去</button>
+        </div>
         <div id="pages-grid-wrap"></div>
       </div>
 
@@ -232,6 +244,12 @@
       </div>
       <div class="fp-num" id="fp-num">1</div>
       <div class="fp-serial" id="fp-serial">#1</div>
+      <!-- 漢字・ピンイン（テキストがあれば表示。無ければ hidden） -->
+      <div class="fp-text hidden" id="fp-text">
+        <div class="fp-hanzi" id="fp-hanzi"></div>
+        <div class="fp-pinyin" id="fp-pinyin"></div>
+        <div class="fp-gloss hidden" id="fp-gloss"></div>
+      </div>
       <div class="fp-blocks" id="fp-blocks">単語 → 訳 → 例文</div>
 
       <div class="fp-seek">

@@ -22,6 +22,10 @@ const Player = (() => {
   const fpPage = document.getElementById('fp-page');
   const fpNum = document.getElementById('fp-num');
   const fpSerial = document.getElementById('fp-serial');
+  const fpText = document.getElementById('fp-text');
+  const fpHanzi = document.getElementById('fp-hanzi');
+  const fpPinyin = document.getElementById('fp-pinyin');
+  const fpGloss = document.getElementById('fp-gloss');
   const fpBlocks = document.getElementById('fp-blocks');
   const fpCollapse = document.getElementById('fp-collapse');
   const fpToggle = document.getElementById('fp-toggle');
@@ -87,6 +91,18 @@ const Player = (() => {
     fpPage.textContent = w.pageLabel;
     fpNum.textContent = String(w.wordNo);
     fpSerial.textContent = `#${w.serial}`;
+    // 漢字・ピンイン（テキストがあれば表示。番号は上部に残す）。無ければ hidden。
+    const t = w.text;
+    const hasText = !!(t && (t.hanzi || t.pinyin));
+    fpText.classList.toggle('hidden', !hasText);
+    if (hasText) {
+      fpHanzi.textContent = t.hanzi || '';
+      fpPinyin.textContent = t.pinyin || '';
+      fpText.classList.toggle('low-conf', !!t.low_confidence);
+      const hasGloss = !!(t.gloss && t.gloss.trim());
+      fpGloss.classList.toggle('hidden', !hasGloss);
+      fpGloss.textContent = hasGloss ? t.gloss : '';
+    }
     fpBlocks.textContent = (w.length >= 8) ? '単語 → 訳 → 例文' : '単語 → 訳';
     fpDur.textContent = fmt(lengthOf(w));
     // 全画面プレーヤーの ◀◀/▶▶ も先頭/末尾で無効化（ロック画面と挙動を揃える）
@@ -112,9 +128,14 @@ const Player = (() => {
     if (!('mediaSession' in navigator)) return;
     const w = playlist[currentIndex];
     if (!w) return;
+    // ロック画面のタイトルは漢字(+ピンイン)があればそれを優先。無ければ番号。
+    let title = `単語 ${w.wordNo} (#${w.serial})`;
+    if (w.text && (w.text.hanzi || w.text.pinyin)) {
+      title = [w.text.hanzi, w.text.pinyin].filter(Boolean).join('  ');
+    }
     try {
       navigator.mediaSession.metadata = new MediaMetadata({
-        title: `単語 ${w.wordNo} (#${w.serial})`,
+        title,
         artist: bookName || 'Hearbit',
         album: w.pageLabel,
         artwork: [
