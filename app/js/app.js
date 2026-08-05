@@ -39,6 +39,12 @@
   // --- DOM: pages ---
   const pagesGridWrap = document.getElementById('pages-grid-wrap');
 
+  // --- DOM: 単語テキスト(漢字・ピンイン)読み込み ---
+  const vocabFile = document.getElementById('vocab-file');
+  const vocabClearBtn = document.getElementById('vocab-clear-btn');
+  const vocabBarTitle = document.getElementById('vocab-bar-title');
+  const vocabBarSub = document.getElementById('vocab-bar-sub');
+
   // --- DOM: 分割再計算オーバーレイ ---
   const resplitOverlay = document.getElementById('resplit-overlay');
   const resplitText = document.getElementById('resplit-text');
@@ -311,11 +317,20 @@
     configureListen(book);
     renderListenOptions();
     renderPages(book);
+    refreshVocabBar();
     // タブは「単語」に戻す
     document.querySelectorAll('#book-tabs .tab').forEach(t => t.classList.toggle('active', t.dataset.tab === 'words'));
     document.getElementById('tab-words').classList.add('active');
     document.getElementById('tab-listen').classList.remove('active');
     navigate('pages', book.name, `${book.book.pages.length}ページ · ${wordCount}単語`);
+  }
+
+  // 単語テキスト（漢字・ピンイン）の紐付け。book.vocab は page/index をキーにした辞書。
+  // { "001/0": { hanzi, pinyin, gloss, low_confidence }, ... }。無ければ null を返す。
+  function vocabFor(book, page, segIndex) {
+    const v = book && book.vocab;
+    if (!v) return null;
+    return v[`${page}/${segIndex}`] || null;
   }
 
   // フラットな単語リストを構築（prev/next・Media Session のため）
@@ -328,6 +343,7 @@
       let wordNo = 0;
       p.segments.forEach((seg) => {
         wordNo += 1; serial += 1;
+        const text = vocabFor(book, p.page, seg.index); // 漢字・ピンイン（無ければ null）
         // 実効start: アナウンス付き単語（word+announce）は冒頭のアナウンスを飛ばし、
         // announce_end（単語本体の開始）から鳴らす → タップですぐ単語が聞こえる。
         // announce_low_confidence:true でも announce_end を採用（境界が多少ズレても
@@ -341,6 +357,7 @@
           start: seg.start, effStart, end: seg.end, length: seg.length, type: seg.type,
           announce_end: seg.announce_end != null ? seg.announce_end : null,
           wordNo, serial, pageLabel,
+          text, // { hanzi, pinyin, gloss, low_confidence } | null
         });
       });
     });
@@ -441,10 +458,25 @@
         const myFlatIndex = flatIndex++;
         const w = playlist[myFlatIndex];
         const cell = document.createElement('div');
-        cell.className = 'cell' + (seg.type === 'word+announce' ? ' announce' : '');
+        const hasText = !!(w.text && (w.text.hanzi || w.text.pinyin));
+        cell.className = 'cell' + (seg.type === 'word+announce' ? ' announce' : '')
+          + (hasText ? ' has-text' : '');
         cell.setAttribute('role', 'button');
-        cell.setAttribute('aria-label', `ページ${pageIdx + 1} 単語${wordNo} 通し${w.serial}`);
-        cell.innerHTML = `<div class="num">${wordNo}</div><div class="serial">#${w.serial}</div>`;
+        if (hasText) {
+          const t = w.text;
+          const lc = t.low_confidence ? '<span class="cell-lc" aria-label="認識が不確か">?</span>' : '';
+          cell.setAttribute('aria-label',
+            `ページ${pageIdx + 1} 単語${wordNo} ${t.hanzi || ''} ${t.pinyin || ''}`.trim());
+          cell.innerHTML =
+            `<div class="cell-badge">${wordNo}${lc}</div>` +
+            `<div class="cell-hanzi"></div>` +
+            `<div class="cell-pinyin"></div>`;
+          cell.querySelector('.cell-hanzi').textContent = t.hanzi || '';
+          cell.querySelector('.cell-pinyin').textContent = t.pinyin || '';
+        } else {
+          cell.setAttribute('aria-label', `ページ${pageIdx + 1} 単語${wordNo} 通し${w.serial}`);
+          cell.innerHTML = `<div class="num">${wordNo}</div><div class="serial">#${w.serial}</div>`;
+        }
         cell.addEventListener('click', () => Player.playIndex(myFlatIndex));
         cellEls[myFlatIndex] = cell;
         grid.appendChild(cell);
@@ -454,6 +486,98 @@
       pagesGridWrap.appendChild(section);
     });
   }
+
+  // ================= 単語テキスト（漢字・ピンイン）の読み込み（Issue #3） =================
+  // Mac上のWhisper等で起こした vocab.json（650件の配列）を現在の単語帳に紐付ける。
+  //   要素: { seq, page, index, hanzi, pinyin, gloss, low_confidence, ... }
+  // 紐付けは page + index をキーにする（確実）。IndexedDB の book.vocab に辞書で保存。
+  //   book.vocab = { "001/0": { hanzi, pinyin, gloss, low_confidence }, ... }
+  // テキストが無い単語帳は従来通り番号表示（vocab 未設定 → vocabFor が null）。
+  // vocab は元音声から再計算される派生キャッシュ(pages)とは独立し、page+index キーで
+  // 保持するため、SPLIT_VERSION 更新に伴う自動再分割の後も紐付けが保たれる。
+  function parseVocabArray(arr) {
+    if (!Array.isArray(arr)) throw new Error('JSONの形式が配列ではありません');
+    const map = {};
+    let n = 0;
+    for (const it of arr) {
+      if (!it || it.page == null || it.index == null) continue;
+      const page = String(it.page);
+      const idx = Number(it.index);
+      if (!isFinite(idx)) continue;
+      map[`${page}/${idx}`] = {
+        hanzi: it.hanzi != null ? String(it.hanzi) : '',
+        pinyin: it.pinyin != null ? String(it.pinyin) : '',
+        gloss: it.gloss != null ? String(it.gloss) : '',
+        low_confidence: !!it.low_confidence,
+      };
+      n++;
+    }
+    if (n === 0) throw new Error('page/index を持つ有効な項目がありません');
+    return map;
+  }
+
+  // 現在の単語帳の実セグメント(page+index)のうち、テキストが埋まった数を数える。
+  function countVocabMatches(book) {
+    if (!book || !book.vocab) return { matched: 0, total: 0 };
+    let matched = 0, total = 0;
+    book.book.pages.forEach((p) => {
+      p.segments.forEach((seg) => {
+        total++;
+        if (book.vocab[`${p.page}/${seg.index}`]) matched++;
+      });
+    });
+    return { matched, total };
+  }
+
+  function refreshVocabBar() {
+    const has = !!(currentBook && currentBook.vocab);
+    vocabClearBtn.classList.toggle('hidden', !has);
+    if (has) {
+      const { matched, total } = countVocabMatches(currentBook);
+      vocabBarTitle.textContent = '漢字・ピンイン表示中';
+      vocabBarSub.textContent = `${matched}/${total} 語にテキストを紐付け済み`;
+    } else {
+      vocabBarTitle.textContent = '漢字・ピンインを表示';
+      vocabBarSub.textContent = '単語テキスト(JSON)を読み込むと一覧に表示されます';
+    }
+  }
+
+  vocabFile.addEventListener('change', async () => {
+    const file = vocabFile.files && vocabFile.files[0];
+    vocabFile.value = ''; // 同じファイルを続けて選べるようにリセット
+    if (!file || !currentBook) return;
+    let map;
+    try {
+      const text = await file.text();
+      map = parseVocabArray(JSON.parse(text));
+    } catch (err) {
+      alert('単語テキストを読み込めませんでした: ' + err.message);
+      return;
+    }
+    const meta = Object.assign({}, currentBook, { vocab: map });
+    await DB.updateBookMeta(meta);
+    currentBook = meta;
+    // 再生データ・一覧を作り直してテキストを反映
+    buildPlaylist(currentBook);
+    configureListen(currentBook);
+    renderPages(currentBook);
+    refreshVocabBar();
+    const { matched, total } = countVocabMatches(currentBook);
+    alert(`単語テキストを読み込みました。\n${matched}/${total} 語に紐付きました。`);
+  });
+
+  vocabClearBtn.addEventListener('click', async () => {
+    if (!currentBook || !currentBook.vocab) return;
+    if (!confirm('漢字・ピンインの表示を消去し、番号表示に戻しますか？')) return;
+    const meta = Object.assign({}, currentBook);
+    delete meta.vocab;
+    await DB.updateBookMeta(meta);
+    currentBook = meta;
+    buildPlaylist(currentBook);
+    configureListen(currentBook);
+    renderPages(currentBook);
+    refreshVocabBar();
+  });
 
   // ================= 分割の手動編集（残タスク #4） =================
   // 1ページの境界(cut点)・type・announce_end を手で調整し、per-book の分割位置JSONに

@@ -227,6 +227,18 @@ body {
   display: inline-flex; align-items: center; gap: 5px; }
 .ph-announce { color: var(--accent); }
 
+/* 単語テキスト（漢字・ピンイン）読み込みバー */
+.vocab-bar {
+  display: flex; align-items: center; gap: 10px;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 12px; padding: 12px 14px; margin: 10px 2px 16px;
+}
+.vocab-bar-main { flex: 1; min-width: 0; }
+.vocab-bar-title { font-size: 14px; font-weight: 700; color: var(--text); }
+.vocab-bar-sub { font-size: 12px; color: var(--text-sub); margin-top: 3px; }
+.vocab-bar-btn { position: relative; flex: none; }
+.vocab-clear-btn { flex: none; }
+
 .words-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(72px, 1fr));
@@ -244,6 +256,24 @@ body {
 .cell:active { background: var(--surface-2); }
 .cell .num { font-size: 24px; font-weight: 800; line-height: 1; color: var(--text); }
 .cell .serial { font-size: 12px; color: var(--text-sub); margin-top: 4px; }
+
+/* テキスト付きセル（漢字・ピンイン表示）。番号は小さくバッジで残す。 */
+.cell.has-text { min-height: 76px; padding: 6px 6px 8px; justify-content: center; gap: 3px; }
+.cell .cell-badge {
+  position: absolute; top: 5px; left: 8px;
+  font-size: 11px; font-weight: 700; color: var(--text-sub);
+  display: inline-flex; align-items: center; gap: 2px;
+}
+.cell .cell-lc { color: var(--active); font-weight: 800; }
+.cell .cell-hanzi {
+  font-size: 20px; font-weight: 700; line-height: 1.15; color: var(--text);
+  text-align: center; word-break: break-word;
+}
+.cell .cell-pinyin {
+  font-size: 11px; line-height: 1.2; color: var(--text-sub);
+  text-align: center; word-break: break-word;
+}
+.cell.playing .cell-hanzi { color: var(--active); }
 .cell.announce::after {
   content: ""; position: absolute; top: 6px; right: 8px;
   width: 6px; height: 6px; border-radius: 50%; background: var(--accent);
@@ -407,6 +437,15 @@ body {
 .fp-num { font-size: 72px; font-weight: 800; line-height: 1; color: var(--text); }
 #full-player.playing-state .fp-num { color: var(--active); }
 .fp-serial { font-size: 20px; color: var(--text-sub); margin-top: 6px; }
+/* 漢字・ピンイン（テキストがあるときだけ表示） */
+.fp-text { margin-top: 14px; text-align: center; }
+.fp-hanzi { font-size: 40px; font-weight: 800; line-height: 1.2; color: var(--text); word-break: break-word; }
+#full-player.playing-state .fp-hanzi { color: var(--active); }
+.fp-pinyin { font-size: 18px; color: var(--text-sub); margin-top: 6px; }
+.fp-gloss { font-size: 15px; color: var(--text-sub); margin-top: 8px; }
+.fp-text.low-conf .fp-hanzi::after {
+  content: " ?"; color: var(--active); font-size: 0.6em; vertical-align: super;
+}
 .fp-blocks { font-size: 14px; color: var(--text-sub); margin-top: 12px; }
 
 .fp-seek { display: flex; align-items: center; gap: 10px; width: 100%; max-width: 460px; margin: 34px 0 8px; }

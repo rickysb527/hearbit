@@ -6,7 +6,7 @@
  *   - 同一オリジンの App Shell: cache-first（オフラインで確実に起動）
  *   - それ以外: network-first フォールバック（開発中の外部取得など）
  */
-const CACHE = 'hearbit-v5';
+const CACHE = 'hearbit-v6';
 
 // スコープ（app/）基準の相対パス。sw.js は app/ 直下に置く前提。
 const ASSETS = [
