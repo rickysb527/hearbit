@@ -47,6 +47,8 @@
   const vocabFilterBar = document.getElementById('vocab-filter-bar');
   const vocabFilterBtn = document.getElementById('vocab-filter-btn');
   const vocabFilterCount = document.getElementById('vocab-filter-count');
+  const vocabStarFilterBtn = document.getElementById('vocab-star-filter-btn');
+  const vocabStarFilterCount = document.getElementById('vocab-star-filter-count');
 
   // --- DOM: 分割再計算オーバーレイ ---
   const resplitOverlay = document.getElementById('resplit-overlay');
@@ -66,6 +68,7 @@
   let listenWords = [];   // 機能B用の単語リスト（ListenBuild.collectWords）
   let listenSize = 50;    // 現在選択中のチャンクサイズ（50/100）
   let vocabFilterLowOnly = false; // 「要確認のみ表示」フィルタ（low_confidence だけ）
+  let vocabFilterStarOnly = false; // 「スターのみ表示」フィルタ（starred だけ）
 
   const ROOTS = ['books', 'settings'];
 
@@ -330,11 +333,72 @@
   }
 
   // 単語テキスト（漢字・ピンイン）の紐付け。book.vocab は page/index をキーにした辞書。
-  // { "001/0": { hanzi, pinyin, gloss, low_confidence }, ... }。無ければ null を返す。
+  // { "001/0": { hanzi, pinyin, gloss, low_confidence, starred }, ... }。無ければ null を返す。
   function vocabFor(book, page, segIndex) {
     const v = book && book.vocab;
     if (!v) return null;
     return v[`${page}/${segIndex}`] || null;
+  }
+
+  // ================= スター（お気に入り） =================
+  // スター状態は book.vocab[page/index].starred（真偽）で持つ。テキスト（漢字・ピンイン）が
+  // 無いエントリでもスターだけ立てられる（番号表示のままお気に入り可）。page+index キーなので
+  // 分割再計算・境界編集後もスターは保たれる（vocab は派生 pages と独立した辞書）。
+  function isStarred(book, page, segIndex) {
+    const t = vocabFor(book, page, segIndex);
+    return !!(t && t.starred);
+  }
+
+  // 現在の単語帳でスターが立っている実セグメント数。
+  function countStarred(book) {
+    if (!book || !book.vocab) return 0;
+    let n = 0;
+    book.book.pages.forEach((p) => {
+      p.segments.forEach((seg) => {
+        const t = book.vocab[`${p.page}/${seg.index}`];
+        if (t && t.starred) n++;
+      });
+    });
+    return n;
+  }
+
+  // 機能B（聞き流し）の listenWords（collectWords 順＝全単語の順序）のうち、
+  // starred な要素の global index 配列を順序どおりに返す（スター単語だけの連結トラック用）。
+  function starredListenIndices() {
+    const out = [];
+    listenWords.forEach((w, i) => {
+      if (isStarred(currentBook, w.page, w.seg.index)) out.push(i);
+    });
+    return out;
+  }
+
+  // スターをトグルして永続化し、依存表示（一覧・プレーヤー・フィルタ・聞き流し入口）へ即反映。
+  // テキスト未読込の単語帳でも空辞書を用意して新規エントリを作る（starred のみ）。
+  async function toggleStar(page, segIndex) {
+    if (!currentBook) return;
+    const key = `${page}/${segIndex}`;
+    const cur = (currentBook.vocab && currentBook.vocab[key]) || null;
+    const entry = Object.assign(
+      { hanzi: '', pinyin: '', gloss: '', low_confidence: false },
+      cur,
+      { starred: !(cur && cur.starred) },
+    );
+    const vocab = Object.assign({}, currentBook.vocab || {}, { [key]: entry });
+    const meta = Object.assign({}, currentBook, { vocab });
+    await DB.updateBookMeta(meta);
+    currentBook = meta;
+    // 一覧セル・プレーヤー・フィルタ入口・聞き流し入口を最新化。
+    // ※ configureListen（= Listen.configure → stop）は呼ばない。スター状態は collectWords の
+    //   単語リストに影響せず、聞き流し再生中に星を付けても再生を止めないため。
+    //   スター聞き流しの対象は starredListenIndices() で currentBook.vocab から都度計算する。
+    buildPlaylist(currentBook, { preserveIndex: true });
+    renderPages(currentBook);
+    refreshVocabBar();
+    renderStarListen(); // 「スター単語を聞き流す」の件数/活性だけ更新（範囲チップは不変）
+    if (typeof Player !== 'undefined' && Player.refreshCurrent) Player.refreshCurrent();
+    const pIdx = (typeof Player !== 'undefined' && Player.getIndex) ? Player.getIndex() : -1;
+    if (pIdx >= 0) highlightCell(pIdx);
+    return entry.starred;
   }
 
   // フラットな単語リストを構築（prev/next・Media Session のため）
@@ -363,6 +427,7 @@
           announce_end: seg.announce_end != null ? seg.announce_end : null,
           wordNo, serial, pageLabel,
           text, // { hanzi, pinyin, gloss, low_confidence } | null
+          starred: !!(text && text.starred),
         });
       });
     });
@@ -372,6 +437,7 @@
       bookName: book.name,
       getBlobFor: (page) => DB.getAudio(book.id, page),
       onCellChange: highlightCell,
+      onToggleStar: (page, segIndex) => toggleStar(page, segIndex),
       preserveIndex: !!(opts && opts.preserveIndex),
     });
   }
@@ -412,6 +478,18 @@
     listenSizeSeg.querySelectorAll('.seg-btn').forEach((x) =>
       x.classList.toggle('active', parseInt(x.dataset.size, 10) === listenSize));
     renderListenRanges();
+    renderStarListen();
+  }
+
+  // 「スター単語を聞き流す」入口の状態更新。スター0件のときは無効（押せない・グレー）。
+  function renderStarListen() {
+    const btn = document.getElementById('listen-star-btn');
+    if (!btn) return;
+    const n = starredListenIndices().length;
+    const countEl = document.getElementById('listen-star-count');
+    if (countEl) countEl.textContent = n ? `${n}語` : '0語';
+    btn.disabled = n === 0;
+    btn.setAttribute('aria-disabled', String(n === 0));
   }
 
   function renderListenRanges() {
@@ -469,19 +547,27 @@
         const w = playlist[myFlatIndex];
         const hasText = !!(w.text && (w.text.hanzi || w.text.pinyin));
         const isLow = !!(w.text && w.text.low_confidence);
+        const starred = !!w.starred;
         // 「要確認のみ表示」フィルタ: low_confidence の単語だけ残す。
         if (vocabFilterLowOnly && !isLow) return;
+        // 「スターのみ表示」フィルタ: starred の単語だけ残す。
+        if (vocabFilterStarOnly && !starred) return;
         visibleInPage++;
         const cell = document.createElement('div');
         cell.className = 'cell' + (seg.type === 'word+announce' ? ' announce' : '')
           + (hasText ? ' has-text' : '')
-          + (isLow ? ' low-conf' : '');
+          + (isLow ? ' low-conf' : '')
+          + (starred ? ' starred' : '');
         cell.setAttribute('role', 'button');
         // テキスト編集ボタン（テキスト読込済みのときだけ表示）。長押しでも開ける。
         const editBtn = currentBook && currentBook.vocab
           ? `<button class="cell-edit" type="button" aria-label="テキストを編集" tabindex="-1">` +
             `<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4z"/></svg></button>`
           : '';
+        // スターボタン（全セルに常設）。テキストの有無に関わらず押せる（番号表示でもスター可）。
+        const starBtn = `<button class="cell-star${starred ? ' on' : ''}" type="button" ` +
+          `aria-pressed="${starred}" aria-label="${starred ? 'スターを外す' : 'スターを付ける'}" tabindex="-1">` +
+          `<svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><path d="M12 2.5l2.9 5.9 6.5.95-4.7 4.58 1.11 6.47L12 17.9l-5.81 3.06L7.3 14.48 2.6 9.9l6.5-.95z"/></svg></button>`;
         if (hasText) {
           const t = w.text;
           const lc = t.low_confidence ? '<span class="cell-lc" aria-label="認識が不確か">?</span>' : '';
@@ -489,17 +575,23 @@
             `ページ${pageIdx + 1} 単語${wordNo} ${t.hanzi || ''} ${t.pinyin || ''}`.trim());
           cell.innerHTML =
             `<div class="cell-badge">${wordNo}${lc}</div>` +
-            editBtn +
+            starBtn + editBtn +
             `<div class="cell-hanzi"></div>` +
             `<div class="cell-pinyin"></div>`;
           cell.querySelector('.cell-hanzi').textContent = t.hanzi || '';
           cell.querySelector('.cell-pinyin').textContent = t.pinyin || '';
         } else {
           cell.setAttribute('aria-label', `ページ${pageIdx + 1} 単語${wordNo} 通し${w.serial}`);
-          cell.innerHTML = editBtn +
+          cell.innerHTML = starBtn + editBtn +
             `<div class="num">${wordNo}</div><div class="serial">#${w.serial}</div>`;
         }
         cell.addEventListener('click', () => Player.playIndex(myFlatIndex));
+        // スターボタン: タップでトグル（再生はさせない）。
+        const sb = cell.querySelector('.cell-star');
+        if (sb) sb.addEventListener('click', (e) => {
+          e.stopPropagation();
+          toggleStar(p.page, seg.index);
+        });
         // 編集ボタン: タップで編集モーダル（再生はさせない）
         const eb = cell.querySelector('.cell-edit');
         if (eb) eb.addEventListener('click', (e) => {
@@ -514,17 +606,19 @@
         grid.appendChild(cell);
       });
 
-      // フィルタで空になったページは見出しごと隠す（要確認だけを見やすく）
-      if (vocabFilterLowOnly && visibleInPage === 0) return;
+      // フィルタで空になったページは見出しごと隠す（絞り込みを見やすく）
+      if ((vocabFilterLowOnly || vocabFilterStarOnly) && visibleInPage === 0) return;
       section.appendChild(grid);
       pagesGridWrap.appendChild(section);
     });
 
     // フィルタ適用時に該当が1件も無ければ案内を出す
-    if (vocabFilterLowOnly && !pagesGridWrap.children.length) {
+    if ((vocabFilterLowOnly || vocabFilterStarOnly) && !pagesGridWrap.children.length) {
       const empty = document.createElement('div');
       empty.className = 'vocab-filter-empty';
-      empty.textContent = '要確認（?）の単語はありません。';
+      empty.textContent = vocabFilterStarOnly
+        ? 'スター（★）を付けた単語はありません。'
+        : '要確認（?）の単語はありません。';
       pagesGridWrap.appendChild(empty);
     }
   }
@@ -535,7 +629,7 @@
     const LONG_MS = 500, MOVE_TOL = 10;
     const clear = () => { if (timer) { clearTimeout(timer); timer = null; } };
     el.addEventListener('pointerdown', (e) => {
-      if (e.target.closest('.cell-edit')) return; // 編集ボタン自身は除外
+      if (e.target.closest('.cell-edit') || e.target.closest('.cell-star')) return; // ボタン自身は除外
       fired = false; sx = e.clientX; sy = e.clientY;
       clear();
       timer = setTimeout(() => { fired = true; timer = null; onLongPress(); }, LONG_MS);
@@ -579,17 +673,28 @@
     return map;
   }
 
-  // 現在の単語帳の実セグメント(page+index)のうち、テキストが埋まった数を数える。
+  // 現在の単語帳の実セグメント(page+index)のうち、テキスト（漢字/ピンイン）が埋まった数を数える。
+  // starred だけのエントリ（テキスト空）は「紐付け済み」に含めない。
   function countVocabMatches(book) {
     if (!book || !book.vocab) return { matched: 0, total: 0 };
     let matched = 0, total = 0;
     book.book.pages.forEach((p) => {
       p.segments.forEach((seg) => {
         total++;
-        if (book.vocab[`${p.page}/${seg.index}`]) matched++;
+        const t = book.vocab[`${p.page}/${seg.index}`];
+        if (t && (t.hanzi || t.pinyin)) matched++;
       });
     });
     return { matched, total };
+  }
+
+  // テキスト（漢字/ピンイン）が1件でも紐付いているか。starred のみのエントリは含めない。
+  function hasVocabText(book) {
+    if (!book || !book.vocab) return false;
+    return Object.keys(book.vocab).some((k) => {
+      const t = book.vocab[k];
+      return t && (t.hanzi || t.pinyin);
+    });
   }
 
   // 現在の単語帳の実セグメントのうち low_confidence が付いた数。
@@ -606,9 +711,10 @@
   }
 
   function refreshVocabBar() {
-    const has = !!(currentBook && currentBook.vocab);
-    vocabClearBtn.classList.toggle('hidden', !has);
-    if (has) {
+    // 「テキスト表示中」は実テキスト（漢字/ピンイン）の有無で判定（starred のみは表示扱いにしない）。
+    const hasText = hasVocabText(currentBook);
+    vocabClearBtn.classList.toggle('hidden', !(currentBook && currentBook.vocab));
+    if (hasText) {
       const { matched, total } = countVocabMatches(currentBook);
       vocabBarTitle.textContent = '漢字・ピンイン表示中';
       vocabBarSub.textContent = `${matched}/${total} 語にテキストを紐付け済み`;
@@ -617,16 +723,40 @@
       vocabBarSub.textContent = '単語テキスト(JSON)を読み込むと一覧に表示されます';
     }
     // 要確認フィルタ: テキスト読込済み かつ 要確認が1件以上あるときだけ出す。
+    // スターフィルタ: スターが1件以上あるとき出す（テキスト未読込＝番号表示でもスター可）。
+    const has = hasText;
     const lowN = has ? countLowConfidence(currentBook) : 0;
-    const showFilter = has && lowN > 0;
-    vocabFilterBar.classList.toggle('hidden', !showFilter);
-    if (!showFilter && vocabFilterLowOnly) vocabFilterLowOnly = false; // 無くなったら解除
+    const starN = countStarred(currentBook);
+    const showLowFilter = has && lowN > 0;
+    const showStarFilter = starN > 0;
+    // フィルタバーは「要確認」または「スター」のどちらかが出るときに表示。
+    vocabFilterBar.classList.toggle('hidden', !(showLowFilter || showStarFilter));
+
+    vocabFilterBtn.classList.toggle('hidden', !showLowFilter);
+    if (!showLowFilter && vocabFilterLowOnly) vocabFilterLowOnly = false; // 無くなったら解除
     vocabFilterBtn.setAttribute('aria-pressed', String(vocabFilterLowOnly));
     vocabFilterCount.textContent = lowN ? `（${lowN}）` : '';
+
+    if (vocabStarFilterBtn) {
+      vocabStarFilterBtn.classList.toggle('hidden', !showStarFilter);
+      if (!showStarFilter && vocabFilterStarOnly) vocabFilterStarOnly = false; // スター0件で解除
+      vocabStarFilterBtn.setAttribute('aria-pressed', String(vocabFilterStarOnly));
+      vocabStarFilterCount.textContent = starN ? `（${starN}）` : '';
+    }
   }
 
   vocabFilterBtn.addEventListener('click', () => {
     vocabFilterLowOnly = !vocabFilterLowOnly;
+    if (vocabFilterLowOnly) vocabFilterStarOnly = false; // フィルタは排他（同時適用しない）
+    vocabFilterBtn.setAttribute('aria-pressed', String(vocabFilterLowOnly));
+    if (vocabStarFilterBtn) vocabStarFilterBtn.setAttribute('aria-pressed', String(vocabFilterStarOnly));
+    renderPages(currentBook);
+  });
+
+  if (vocabStarFilterBtn) vocabStarFilterBtn.addEventListener('click', () => {
+    vocabFilterStarOnly = !vocabFilterStarOnly;
+    if (vocabFilterStarOnly) vocabFilterLowOnly = false; // フィルタは排他
+    vocabStarFilterBtn.setAttribute('aria-pressed', String(vocabFilterStarOnly));
     vocabFilterBtn.setAttribute('aria-pressed', String(vocabFilterLowOnly));
     renderPages(currentBook);
   });
@@ -658,8 +788,17 @@
   vocabClearBtn.addEventListener('click', async () => {
     if (!currentBook || !currentBook.vocab) return;
     if (!confirm('漢字・ピンインの表示を消去し、番号表示に戻しますか？')) return;
+    // テキスト（漢字・ピンイン・訳・要確認）だけ消し、スターは残す。starred の付いた
+    // エントリはテキストを空にして残す（番号表示のままスターは保持）。それ以外は削除。
+    const kept = {};
+    for (const k of Object.keys(currentBook.vocab)) {
+      if (currentBook.vocab[k] && currentBook.vocab[k].starred) {
+        kept[k] = { hanzi: '', pinyin: '', gloss: '', low_confidence: false, starred: true };
+      }
+    }
     const meta = Object.assign({}, currentBook);
-    delete meta.vocab;
+    if (Object.keys(kept).length > 0) meta.vocab = kept;
+    else delete meta.vocab;
     await DB.updateBookMeta(meta);
     currentBook = meta;
     buildPlaylist(currentBook);
@@ -983,6 +1122,17 @@
   const lpPrev = document.getElementById('lp-prev');
   const lpNext = document.getElementById('lp-next');
   const lpCollapse = document.getElementById('lp-collapse');
+  const lpStar = document.getElementById('lp-star');
+
+  // 聞き流しプレーヤーのスターボタンを現在語の starred で更新。
+  function updateListenStar() {
+    if (!lpStar) return;
+    const cw = (typeof Listen !== 'undefined' && Listen.currentWord) ? Listen.currentWord() : null;
+    const on = !!(cw && isStarred(currentBook, cw.page, cw.segIndex));
+    lpStar.classList.toggle('on', on);
+    lpStar.setAttribute('aria-pressed', String(on));
+    lpStar.setAttribute('aria-label', on ? 'スターを外す' : 'スターを付ける');
+  }
 
   const RING_R = 106;
   const RING_C = 2 * Math.PI * RING_R; // 円周（stroke-dasharray 用）
@@ -1016,12 +1166,15 @@
   }
 
   function showListenFull(info) {
-    lpSub.textContent = `単語のみ · ${info.size}語（${info.from}–${info.to}）`;
+    lpSub.textContent = info.mode === 'starred'
+      ? `★ スター単語 · ${info.wordCount}語`
+      : `単語のみ · ${info.size}語（${info.from}–${info.to}）`;
     lpTotal.textContent = String(info.wordCount);
     lpCur.textContent = '1';
     // 開始時点は最初の語（テキストは onProgress/refreshText が確定するまで番号表示）。
     renderListenWord(null, 1);
     setRing(0);
+    updateListenStar();
     lp.classList.remove('hidden');
   }
 
@@ -1039,6 +1192,7 @@
       lpTotal.textContent = String(wordCount);
       // 中央表示: テキストがあれば漢字・ピンイン、無ければトラック内の語順「単語 N」。
       renderListenWord(text, wordNo);
+      updateListenStar();
     },
     onLoading(loading, done, all) {
       lpLoading.classList.toggle('hidden', !loading);
@@ -1046,7 +1200,9 @@
       if (loading && done != null) lpLoadingText.textContent = `音声を用意中… ${done}/${all}`;
     },
     onHeader(h) {
-      lpSub.textContent = `単語のみ · ${h.size}語（${h.from}–${h.to}）`;
+      lpSub.textContent = h.mode === 'starred'
+        ? `★ スター単語 · ${h.wordCount}語`
+        : `単語のみ · ${h.size}語（${h.from}–${h.to}）`;
       lpTotal.textContent = String(h.wordCount);
     },
     hideFull() { lp.classList.add('hidden'); },
@@ -1056,6 +1212,20 @@
   lpPrev.addEventListener('click', () => Listen.prev());
   lpNext.addEventListener('click', () => Listen.next());
   lpCollapse.addEventListener('click', () => { Listen.stop(); });
+  if (lpStar) lpStar.addEventListener('click', () => {
+    const cw = Listen.currentWord && Listen.currentWord();
+    if (!cw) return;
+    toggleStar(cw.page, cw.segIndex).then(() => updateListenStar());
+  });
+
+  // 「スター単語を聞き流す」入口。スター単語だけを連結1本で再生（チャンク分けなし）。
+  const listenStarBtn = document.getElementById('listen-star-btn');
+  if (listenStarBtn) listenStarBtn.addEventListener('click', () => {
+    const indices = starredListenIndices();
+    if (indices.length === 0) return; // 0件は無効表示だが二重ガード
+    showListenFull({ mode: 'starred', wordCount: indices.length });
+    Listen.playStarred(indices);
+  });
 
   // 上部タブ（単語 / 聞き流し）
   document.getElementById('book-tabs').addEventListener('click', (e) => {

@@ -161,11 +161,16 @@
           </label>
           <button id="vocab-clear-btn" class="ghost-btn vocab-clear-btn hidden" type="button">消去</button>
         </div>
-        <!-- 要確認（low_confidence）だけに絞るフィルタ。テキスト読込済みのときだけ表示。 -->
+        <!-- 絞り込みフィルタ。要確認(low_confidence) / スター(お気に入り)。該当が1件以上あるときだけ各ボタンを表示。 -->
         <div id="vocab-filter-bar" class="vocab-filter-bar hidden">
           <button id="vocab-filter-btn" class="ghost-btn vocab-filter-btn" type="button" aria-pressed="false">
             <span class="cell-lc" aria-hidden="true">?</span> 要確認のみ表示
             <span id="vocab-filter-count" class="vocab-filter-count"></span>
+          </button>
+          <button id="vocab-star-filter-btn" class="ghost-btn vocab-filter-btn vocab-star-filter-btn hidden" type="button" aria-pressed="false">
+            <svg class="vf-star" viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path d="M12 2.5l2.9 5.9 6.5.95-4.7 4.58 1.11 6.47L12 17.9l-5.81 3.06L7.3 14.48 2.6 9.9l6.5-.95z"/></svg>
+            スターのみ表示
+            <span id="vocab-star-filter-count" class="vocab-filter-count"></span>
           </button>
         </div>
         <div id="pages-grid-wrap"></div>
@@ -189,6 +194,16 @@
         <div class="listen-opt">
           <div class="listen-opt-label">範囲</div>
           <div class="listen-ranges" id="listen-ranges" role="listbox" aria-label="範囲を選ぶ"></div>
+        </div>
+
+        <!-- スター単語だけを連結1本で聞き流す（チャンク分けなし）。スター0件のときは無効。 -->
+        <div class="listen-opt">
+          <div class="listen-opt-label">お気に入り</div>
+          <button id="listen-star-btn" class="listen-star-btn" type="button" disabled aria-disabled="true">
+            <svg class="ls-star" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M12 2.5l2.9 5.9 6.5.95-4.7 4.58 1.11 6.47L12 17.9l-5.81 3.06L7.3 14.48 2.6 9.9l6.5-.95z"/></svg>
+            <span class="ls-main">スター単語を聞き流す</span>
+            <span class="ls-count" id="listen-star-count">0語</span>
+          </button>
         </div>
       </div>
     </section>
@@ -239,8 +254,8 @@
           <polyline points="6 9 12 15 18 9"/>
         </svg>
       </button>
-      <button class="icon-btn" aria-hidden="true" tabindex="-1" style="visibility:hidden">
-        <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><circle cx="5" cy="12" r="1.9"/><circle cx="12" cy="12" r="1.9"/><circle cx="19" cy="12" r="1.9"/></svg>
+      <button id="fp-star" class="icon-btn star-btn" type="button" aria-pressed="false" aria-label="スターを付ける">
+        <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><path d="M12 2.5l2.9 5.9 6.5.95-4.7 4.58 1.11 6.47L12 17.9l-5.81 3.06L7.3 14.48 2.6 9.9l6.5-.95z"/></svg>
       </button>
     </div>
 
@@ -291,8 +306,8 @@
         </svg>
       </button>
       <div class="lp-title" id="lp-title">聞き流し</div>
-      <button class="icon-btn" aria-hidden="true" tabindex="-1" style="visibility:hidden">
-        <svg viewBox="0 0 24 24" width="24" height="24"></svg>
+      <button id="lp-star" class="icon-btn star-btn" type="button" aria-pressed="false" aria-label="スターを付ける">
+        <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><path d="M12 2.5l2.9 5.9 6.5.95-4.7 4.58 1.11 6.47L12 17.9l-5.81 3.06L7.3 14.48 2.6 9.9l6.5-.95z"/></svg>
       </button>
     </div>
 

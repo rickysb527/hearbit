@@ -59,30 +59,32 @@ const Listen = (() => {
   const pageCache = new Map(); // page -> { audioBuffer }
 
   // ================= トラック構築 =================
-  /* 指定範囲(rangeFrom..rangeTo, 0-based 半開区間) の単語を切り出して
+  /* 単語の global index 配列（words[] への参照。順序どおり）を切り出して
    * 1本の AudioBuffer に連結する。境界(各単語の先頭サンプル秒)配列も返す。
+   *
+   * 範囲再生（50/100語）もスター単語再生も、この共通ルートで作る。範囲は
+   * [rangeFrom, rangeTo) の連番 index、スターは starred の global index 配列（飛び番あり）。
+   * meta には表示用の情報（mode/label/size など）を持たせる。
    */
-  async function buildTrack(rangeFrom, rangeTo, size, onProgress) {
+  async function buildTrackFromIndices(indices, meta, onProgress) {
     const myToken = ++buildToken;
     const sr = audioCtx().sampleRate;
     const channels = 1; // モノラルで連結（容量/処理を軽く。散歩用途で十分）
     const gapSamples = Math.round(GAP_SEC * sr);
 
-    const slice = words.slice(rangeFrom, rangeTo);
-
     // 1) 必要ページを decode（キャッシュ利用）し、各単語の [start,end] サンプル区間を集める。
     //    wordonly 範囲（単語+訳の先頭2ブロック）は、そのページの無音区間から遅延確定する
     //    （元音声139MBを一度に decode しないため、必要ページだけ処理）。
     const clips = [];
-    for (let i = 0; i < slice.length; i++) {
+    for (let i = 0; i < indices.length; i++) {
       if (myToken !== buildToken) return null; // 途中でキャンセル
-      const w = slice[i];
+      const w = words[indices[i]];
       const { audioBuffer, silences } = await getDecoded(w.page);
       if (myToken !== buildToken) return null;
       const [s, e] = ListenBuild.wordonlyRange(w.seg, silences);
       const data = extractMono(audioBuffer, s, e);
       clips.push(data);
-      if (onProgress) onProgress(i + 1, slice.length);
+      if (onProgress) onProgress(i + 1, indices.length);
       // decode/切り出しは重いので UI に制御を返す
       await new Promise((r) => setTimeout(r, 0));
     }
@@ -106,13 +108,22 @@ const Listen = (() => {
       pos += clips[i].length;
     }
 
-    return {
+    return Object.assign({
       buffer: out,
       boundaries,
       wordCount: clips.length,
-      rangeFrom, rangeTo, size,
+      indices: indices.slice(), // トラック内語順(0-based) → words[] の global index
       duration: out.duration,
-    };
+    }, meta);
+  }
+
+  /* 指定範囲(rangeFrom..rangeTo, 0-based 半開区間) の単語を切り出して連結する。
+   * 連番 index を作って buildTrackFromIndices に委譲。
+   */
+  async function buildTrack(rangeFrom, rangeTo, size, onProgress) {
+    const indices = [];
+    for (let i = rangeFrom; i < rangeTo; i++) indices.push(i);
+    return buildTrackFromIndices(indices, { mode: 'range', rangeFrom, rangeTo, size }, onProgress);
   }
   let buildToken = 0;
 
@@ -203,10 +214,11 @@ const Listen = (() => {
   }
 
   // 連結トラック内の語順(0-based) → 元の words[] の要素（page/seg を持つ）。
+  // track.indices が語順→global index の対応表（範囲/スターとも共通）。
   function trackWord(wiInTrack) {
-    if (!track || wiInTrack < 0) return null;
-    const globalIdx = track.rangeFrom + wiInTrack;
-    return words[globalIdx] || null;
+    if (!track || wiInTrack < 0 || !track.indices) return null;
+    const globalIdx = track.indices[wiInTrack];
+    return words[globalIdx] != null ? words[globalIdx] : null;
   }
   // 現在語のテキスト（漢字・ピンイン・訳）。textFor が無い/未紐付けなら null。
   function textForTrackWord(wiInTrack) {
@@ -254,8 +266,8 @@ const Listen = (() => {
   function startWatch() { if (rafId != null) cancelAnimationFrame(rafId); rafId = requestAnimationFrame(tick); }
 
   // ================= 公開操作 =================
-  /* トラックを構築して再生開始。rangeFrom/To は 0-based 半開。 */
-  async function playRange(rangeFrom, rangeTo, size, { autoplay = true } = {}) {
+  // トラック構築 → 状態確定 → 再生開始 の共通処理（範囲/スターで共有）。
+  async function startTrack(buildFn, { autoplay = true } = {}) {
     // 排他制御: 機能A(Player)と同時に鳴らさない。聞き流し開始時は必ず機能Aを停止する。
     if (typeof Player !== 'undefined' && Player.stop) Player.stop();
     audioCtx(); // ユーザー操作起点で AudioContext を起こす（iOS）
@@ -263,7 +275,7 @@ const Listen = (() => {
     onLoadingUI(true);
     let built;
     try {
-      built = await buildTrack(rangeFrom, rangeTo, size, (done, all) => onLoadingUI(true, done, all));
+      built = await buildFn((done, all) => onLoadingUI(true, done, all));
     } catch (e) {
       console.warn('[Listen] buildTrack failed', e);
       onLoadingUI(false);
@@ -278,6 +290,23 @@ const Listen = (() => {
     updateHeaderUI();
     if (autoplay) playFrom(0);
     else { updateProgressUI(0); currentWordInTrack = 0; if (onBoundary) onBoundary(0); updateMediaMetadata(); }
+  }
+
+  /* トラックを構築して再生開始。rangeFrom/To は 0-based 半開。 */
+  async function playRange(rangeFrom, rangeTo, size, opts = {}) {
+    return startTrack((prog) => buildTrack(rangeFrom, rangeTo, size, prog), opts);
+  }
+
+  /* スター単語だけを連結1本で再生（チャンク分けなし）。
+   * indices は words[] の global index 配列（順序どおり・飛び番あり）。
+   */
+  async function playStarred(indices, opts = {}) {
+    const list = (indices || []).slice();
+    if (list.length === 0) return; // 0件は呼び出し側でガードするが二重に防ぐ
+    return startTrack(
+      (prog) => buildTrackFromIndices(list, { mode: 'starred', wordTotal: list.length }, prog),
+      opts,
+    );
   }
 
   function pause() {
@@ -357,11 +386,14 @@ const Listen = (() => {
     if (t && (t.hanzi || t.pinyin)) {
       title = [t.hanzi, t.pinyin].filter(Boolean).join('  ') + `  (${n}/${track.wordCount})`;
     }
+    const album = track.mode === 'starred'
+      ? `★ スター単語 · ${track.wordCount}語`
+      : `${track.size}語 · ${track.rangeFrom + 1}–${track.rangeTo}`;
     try {
       navigator.mediaSession.metadata = new MediaMetadata({
         title,
         artist: bookName || 'Hearbit',
-        album: `${track.size}語 · ${track.rangeFrom + 1}–${track.rangeTo}`,
+        album,
         artwork: [
           { src: 'icons/icon-192.png', sizes: '192x192', type: 'image/png' },
           { src: 'icons/icon-512.png', sizes: '512x512', type: 'image/png' },
@@ -390,7 +422,11 @@ const Listen = (() => {
   function onLoadingUI(loading, done, all) { ui.onLoading(loading, done, all); }
   function updateHeaderUI() {
     if (!track) return;
-    ui.onHeader({ size: track.size, from: track.rangeFrom + 1, to: track.rangeTo, wordCount: track.wordCount });
+    if (track.mode === 'starred') {
+      ui.onHeader({ mode: 'starred', wordCount: track.wordCount });
+    } else {
+      ui.onHeader({ mode: 'range', size: track.size, from: track.rangeFrom + 1, to: track.rangeTo, wordCount: track.wordCount });
+    }
   }
   function hideFull() { ui.hideFull(); }
 
@@ -413,9 +449,17 @@ const Listen = (() => {
     updateMediaMetadata();
   }
 
+  // 現在トラックで鳴っている語の { page, segIndex } を返す（スター操作用）。無ければ null。
+  function currentWord() {
+    const w = trackWord(currentWordInTrack >= 0 ? currentWordInTrack : 0);
+    if (!w) return null;
+    return { page: w.page, segIndex: w.seg.index };
+  }
+
   return {
     configure,
-    playRange, prev, next, toggle, pause, resume, stop, refreshText,
+    playRange, playStarred, prev, next, toggle, pause, resume, stop, refreshText,
+    currentWord,
     getWordCount: () => words.length,
     isActive: () => !!track,
     isPlaying: () => isPlaying,
