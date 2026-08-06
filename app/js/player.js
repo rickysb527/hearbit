@@ -28,6 +28,7 @@ const Player = (() => {
   const fpGloss = document.getElementById('fp-gloss');
   const fpBlocks = document.getElementById('fp-blocks');
   const fpCollapse = document.getElementById('fp-collapse');
+  const fpStar = document.getElementById('fp-star');
   const fpToggle = document.getElementById('fp-toggle');
   const fpPrev = document.getElementById('fp-prev');
   const fpNext = document.getElementById('fp-next');
@@ -44,6 +45,7 @@ const Player = (() => {
   let bookName = '';      // Media Session artist
   let getBlobFor = null;  // async (page) => Blob  ページ音声Blob取得関数（app.jsから注入）
   let onCellChange = null;// (index) => void  一覧セルのハイライト更新（app.jsから注入）
+  let onToggleStar = null;// async (page, segIndex) => void  スター切替（app.jsから注入）
 
   let currentUrl = null;
   let currentBlobPage = null; // 現在ロード中の元音声ページ（同ページ内移動でsrc再利用）
@@ -104,11 +106,22 @@ const Player = (() => {
       fpGloss.textContent = hasGloss ? t.gloss : '';
     }
     fpBlocks.textContent = (w.length >= 8) ? '単語 → 訳 → 例文' : '単語 → 訳';
+    updateStar();
     fpDur.textContent = fmt(lengthOf(w));
     // 全画面プレーヤーの ◀◀/▶▶ も先頭/末尾で無効化（ロック画面と挙動を揃える）
     fpPrev.disabled = currentIndex <= 0;
     fpNext.disabled = currentIndex >= playlist.length - 1;
     updateMediaMetadata();
+  }
+
+  // 全画面プレーヤーのスターボタン表示を現在語の starred で更新。
+  function updateStar() {
+    if (!fpStar) return;
+    const w = playlist[currentIndex];
+    const on = !!(w && w.starred);
+    fpStar.classList.toggle('on', on);
+    fpStar.setAttribute('aria-pressed', String(on));
+    fpStar.setAttribute('aria-label', on ? 'スターを外す' : 'スターを付ける');
   }
 
   function updateSeek() {
@@ -369,6 +382,16 @@ const Player = (() => {
   miniExpand.addEventListener('click', showFull);
   mini.addEventListener('click', (e) => { if (e.target.closest('button')) return; showFull(); });
   fpCollapse.addEventListener('click', hideFull);
+  if (fpStar) fpStar.addEventListener('click', () => {
+    const w = playlist[currentIndex];
+    if (!w || !onToggleStar) return;
+    // 楽観更新（即時にトグル反映）。app.js 側で永続化 → refreshCurrent で確定表示。
+    w.starred = !w.starred;
+    updateStar();
+    Promise.resolve(onToggleStar(w.page, w.segIndex)).catch(() => {
+      w.starred = !w.starred; updateStar(); // 失敗時は戻す
+    });
+  });
 
   // シークバー（タップ/ドラッグ）
   function seekFromEvent(e) {
@@ -392,6 +415,7 @@ const Player = (() => {
     bookName = opts.bookName || '';
     getBlobFor = opts.getBlobFor;
     onCellChange = opts.onCellChange || null;
+    if (opts.onToggleStar !== undefined) onToggleStar = opts.onToggleStar;
     // テキスト編集など「同じ単語帳の再構成」では、再生位置を保つ（-1 に落とさない）。
     // 単語数が変わった（＝別の単語帳/分割変更）場合のみ位置をリセットする。
     if (opts.preserveIndex && playlist.length === prevLen && prevIndex >= 0 && prevIndex < playlist.length) {

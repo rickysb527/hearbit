@@ -11,6 +11,7 @@
  */
 import http from 'http';
 import { spawn } from 'child_process';
+import { rmSync } from 'fs';
 
 const PORT = 8123;
 const BASE = `http://localhost:${PORT}/index.html`;
@@ -32,6 +33,8 @@ function check(name, cond, extra) {
 }
 
 async function main() {
+  // 前回プロファイルの Service Worker キャッシュ（旧バージョンJS）を掴まないよう毎回破棄する。
+  try { rmSync('/tmp/hb-chrome-verify', { recursive: true, force: true }); } catch (e) {}
   const chrome = spawn(CHROME, [
     `--remote-debugging-port=${DBG}`, '--headless=new', '--no-sandbox',
     '--disable-gpu',
@@ -235,6 +238,95 @@ async function main() {
     // Media Session タイトルに漢字が入る（metadata 参照）
     const msTitle = await evalP(`(() => { try { return navigator.mediaSession.metadata ? navigator.mediaSession.metadata.title : null; } catch(e){ return 'no-ms'; } })()`);
     check('Media Session タイトルに漢字（あれば）', msTitle == null || msTitle === 'no-ms' || /阿姨/.test(msTitle) || /聞き流し/.test(msTitle), String(msTitle));
+
+    // ================= スター（お気に入り） =================
+    // 聞き流しプレーヤー(lp-star)で現在語（阿姨 = 001/0）にスターを付ける。
+    await evalP('document.getElementById("lp-star").click(); true');
+    await sleep(200);
+    const lpStarOn = await evalP('document.getElementById("lp-star").classList.contains("on")');
+    check('聞き流しプレーヤーのスターがON表示', lpStarOn);
+    const star001 = await evalP(`(async () => { const b = await DB.getBook('book_verify'); return b.vocab['001/0'] && b.vocab['001/0'].starred === true; })()`);
+    check('lp-star で 001/0 が starred:true 永続化', star001);
+
+    // 聞き流しを閉じて単語タブへ戻る
+    await evalP('document.getElementById("lp-collapse").click(); true');
+    await sleep(150);
+    await evalP(`(() => { document.querySelector('#book-tabs .tab[data-tab="words"]').click(); return true; })()`);
+    await sleep(150);
+
+    // 一覧セル: 阿姨(001/0) はスター済み → .starred と .cell-star.on
+    const cellStarState = await evalP(`(() => {
+      const c = [...document.querySelectorAll('#pages-grid-wrap .cell')].find(x => (x.querySelector('.cell-hanzi')||{}).textContent === '阿姨');
+      return c ? { starred: c.classList.contains('starred'), btnOn: !!(c.querySelector('.cell-star') && c.querySelector('.cell-star.on')) } : null;
+    })()`);
+    check('一覧セル(阿姨)が starred 表示', cellStarState && cellStarState.starred, JSON.stringify(cellStarState));
+    check('一覧セルのスターボタンが on', cellStarState && cellStarState.btnOn);
+
+    // 別セル(愛好 = 001/1)にも一覧のスターボタンでスターを付ける（合計2件）
+    await evalP(`(() => {
+      const c = [...document.querySelectorAll('#pages-grid-wrap .cell')].find(x => (x.querySelector('.cell-hanzi')||{}).textContent === '愛好');
+      c.querySelector('.cell-star').click(); return true;
+    })()`);
+    await sleep(200);
+    const starCount = await evalP(`(async () => { const b = await DB.getBook('book_verify'); return Object.values(b.vocab).filter(v => v.starred).length; })()`);
+    check('一覧スターボタンで2件目を永続化（計2件）', starCount === 2, `n=${starCount}`);
+
+    // スターフィルタが出現し、件数バッジ=2
+    const starFilterInfo = await evalP(`(() => {
+      const btn = document.getElementById('vocab-star-filter-btn');
+      return { shown: !btn.classList.contains('hidden'), count: document.getElementById('vocab-star-filter-count').textContent };
+    })()`);
+    check('スターフィルタが表示される', starFilterInfo && starFilterInfo.shown, JSON.stringify(starFilterInfo));
+    check('スターフィルタの件数バッジ=（2）', starFilterInfo && /2/.test(starFilterInfo.count), starFilterInfo && starFilterInfo.count);
+
+    // スターフィルタON → starred の2件だけ表示
+    const filteredN = await evalP(`(() => { document.getElementById('vocab-star-filter-btn').click(); return document.querySelectorAll('#pages-grid-wrap .cell').length; })()`);
+    check('スターフィルタで starred の2件だけ表示', filteredN === 2, `n=${filteredN}`);
+    // フィルタ解除
+    await evalP('document.getElementById("vocab-star-filter-btn").click(); true');
+    await sleep(100);
+
+    // 全画面プレーヤー(fp-star)でスターを外す/付ける（阿姨 001/0 を再生 → fp-star トグル）
+    await evalP(`(() => {
+      const c = [...document.querySelectorAll('#pages-grid-wrap .cell')].find(x => (x.querySelector('.cell-hanzi')||{}).textContent === '阿姨');
+      c.click(); return true;
+    })()`);
+    await sleep(300);
+    const fpStarBefore = await evalP('document.getElementById("fp-star").classList.contains("on")');
+    check('全画面プレーヤーのスターが現在語(阿姨=済)を反映', fpStarBefore);
+    await evalP('document.getElementById("fp-star").click(); true');
+    await sleep(250);
+    const fpStarAfter = await evalP('document.getElementById("fp-star").classList.contains("on")');
+    const star001Off = await evalP(`(async () => { const b = await DB.getBook('book_verify'); return !(b.vocab['001/0'] && b.vocab['001/0'].starred); })()`);
+    check('fp-star でスターOFFに（表示）', !fpStarAfter);
+    check('fp-star でスターOFFを永続化', star001Off);
+    // 再度ONに戻す（以降のスター聞き流しで2件にする）
+    await evalP('document.getElementById("fp-star").click(); true');
+    await sleep(250);
+    await evalP('document.getElementById("fp-collapse").click(); true');
+
+    // 聞き流しタブ → 「スター単語を聞き流す」が活性・件数2 → 起動して連結トラックが再生
+    await evalP(`(() => { document.querySelector('#book-tabs .tab[data-tab="listen"]').click(); return true; })()`);
+    await sleep(150);
+    const starBtnState = await evalP(`(() => { const b = document.getElementById('listen-star-btn'); return { disabled: b.disabled, count: document.getElementById('listen-star-count').textContent }; })()`);
+    check('スター聞き流しボタンが活性', starBtnState && !starBtnState.disabled, JSON.stringify(starBtnState));
+    check('スター聞き流しボタンの件数=2語', starBtnState && /2/.test(starBtnState.count), starBtnState && starBtnState.count);
+    await evalP('document.getElementById("listen-star-btn").click(); true');
+    let starTrack = null;
+    for (let i = 0; i < 60; i++) {
+      starTrack = await evalP(`(() => {
+        const lp = document.getElementById('listen-player');
+        return { open: !lp.classList.contains('hidden'), total: document.getElementById('lp-total').textContent,
+          sub: document.getElementById('lp-sub').textContent, hanzi: document.getElementById('lp-hanzi').textContent };
+      })()`);
+      if (starTrack.open && starTrack.hanzi) break;
+      await sleep(200);
+    }
+    check('スター聞き流しプレーヤーが開く', starTrack && starTrack.open, JSON.stringify(starTrack));
+    check('スター聞き流しの総語数=2（starred のみの連結）', starTrack && starTrack.total === '2', starTrack && starTrack.total);
+    check('スター聞き流しのサブ表示が「スター単語」', starTrack && /スター単語/.test(starTrack.sub), starTrack && starTrack.sub);
+    // 先頭語は starred の先頭 = 阿姨(001/0)
+    check('スター聞き流しの先頭語が 阿姨', starTrack && starTrack.hanzi === '阿姨', starTrack && starTrack.hanzi);
 
     await send('Target.closeTarget', { targetId });
     ws.close();
