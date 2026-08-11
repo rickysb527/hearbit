@@ -145,9 +145,14 @@
     booksEmpty.classList.toggle('hidden', books.length > 0);
 
     books.sort((a, b) => a.createdAt - b.createdAt);
+    const todayStr = SRS.toDateStr(new Date());
     for (const b of books) {
       const pageCount = b.book.pages.length;
       const wordCount = b.book.pages.reduce((s, p) => s + p.word_count, 0);
+      // 復習バッジ: 期限到来（nextDue <= 今日）の単語数。0 のときは出さない。
+      const dueN = SRS.dueCount(b.srs, todayStr);
+      const dueBadge = dueN > 0
+        ? `<span class="book-due-badge" aria-label="復習 ${dueN}語">復習 ${dueN}</span>` : '';
 
       const el = document.createElement('div');
       el.className = 'book-item';
@@ -159,7 +164,7 @@
           </svg>
         </div>
         <div class="book-main">
-          <div class="book-name"></div>
+          <div class="book-name-row"><span class="book-name"></span>${dueBadge}</div>
           <div class="book-meta">${pageCount}ページ · ${wordCount}単語</div>
           <div class="book-offline">
             <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
@@ -325,6 +330,7 @@
     renderListenOptions();
     renderPages(book);
     refreshVocabBar();
+    refreshTypingEntry();
     // タブは「単語」に戻す
     document.querySelectorAll('#book-tabs .tab').forEach(t => t.classList.toggle('active', t.dataset.tab === 'words'));
     document.getElementById('tab-words').classList.add('active');
@@ -673,6 +679,27 @@
     return map;
   }
 
+  // 単語テキスト再読み込み時のマージ: 新 map（テキストは新ファイル優先）に、既存 vocab の
+  // starred を page/index キーで引き継ぐ。既存だけにあるキー（新ファイルに無い＝スターのみの
+  // エントリ等）も starred が付いていれば残す（テキストは空のまま番号表示でスター保持）。
+  function mergeVocabPreserveStar(oldVocab, newMap) {
+    if (!oldVocab) return newMap;
+    const merged = {};
+    // まず新 map をベースに、既存 starred を上乗せ。
+    for (const k of Object.keys(newMap)) {
+      const wasStar = !!(oldVocab[k] && oldVocab[k].starred);
+      merged[k] = wasStar ? Object.assign({}, newMap[k], { starred: true }) : newMap[k];
+    }
+    // 新 map に無い既存キーのうち starred のものは残す（スターが消えないように）。
+    for (const k of Object.keys(oldVocab)) {
+      if (merged[k]) continue;
+      if (oldVocab[k] && oldVocab[k].starred) {
+        merged[k] = { hanzi: '', pinyin: '', gloss: '', low_confidence: false, starred: true };
+      }
+    }
+    return merged;
+  }
+
   // 現在の単語帳の実セグメント(page+index)のうち、テキスト（漢字/ピンイン）が埋まった数を数える。
   // starred だけのエントリ（テキスト空）は「紐付け済み」に含めない。
   function countVocabMatches(book) {
@@ -773,6 +800,9 @@
       alert('単語テキストを読み込めませんでした: ' + err.message);
       return;
     }
+    // 既存 vocab の starred を page/index キーで引き継ぐ（テキストは新ファイル優先）。
+    // 再読み込みでスターが消えないようにするマージ。srs は vocab と別辞書なので影響しない。
+    map = mergeVocabPreserveStar(currentBook.vocab, map);
     const meta = Object.assign({}, currentBook, { vocab: map });
     await DB.updateBookMeta(meta);
     currentBook = meta;
@@ -1236,6 +1266,115 @@
     document.getElementById('tab-words').classList.toggle('active', btn.dataset.tab === 'words');
     document.getElementById('tab-listen').classList.toggle('active', btn.dataset.tab === 'listen');
   });
+
+  // ================= タイピング学習 + 忘却曲線復習（SRS） =================
+  // 出題候補は playlist（effStart/end/text/starred を持つ全単語）から組み立てる。
+  //   scope='all'     : hanzi が空でない全単語
+  //   scope='starred' : そのうち starred のもの
+  //   scope='review'  : そのうち SRS 復習キュー（nextDue <= 今日）のもの
+  // 訳モードの「gloss も空でない」絞り込みは Typing 側で行う（形式トグルで動的に変わるため）。
+  function typingCandidates(scope) {
+    const srs = currentBook && currentBook.srs;
+    const today = SRS.toDateStr(new Date());
+    // review スコープは「期限到来キーの集合」に含まれる単語だけ許可する。
+    const dueSet = (scope === 'review')
+      ? new Set(SRS.dueKeys(srs, today)) : null;
+    const out = [];
+    for (const w of playlist) {
+      const t = w.text;
+      const hanzi = t && t.hanzi ? String(t.hanzi).trim() : '';
+      if (!hanzi) continue; // hanzi 空は対象外（音声だけの単語は出題しない）
+      if (scope === 'starred' && !w.starred) continue;
+      if (scope === 'review') {
+        if (!dueSet.has(`${w.page}/${w.segIndex}`)) continue;
+      }
+      out.push({
+        page: w.page,
+        segIndex: w.segIndex,
+        effStart: w.effStart,
+        end: w.end,
+        hanzi,
+        pinyin: t && t.pinyin ? String(t.pinyin) : '',
+        gloss: t && t.gloss ? String(t.gloss) : '',
+        starred: !!w.starred,
+      });
+    }
+    return out;
+  }
+
+  // 現在の単語帳の復習キュー件数（今日以前）。バッジ表示に使う。
+  function currentDueCount() {
+    if (!currentBook) return 0;
+    return SRS.dueCount(currentBook.srs, SRS.toDateStr(new Date()));
+  }
+
+  // タイピング導線の「復習 N」専用ボタン（復習キュー件数）を更新。0件なら隠す。
+  function refreshTypingEntry() {
+    const btn = document.getElementById('typing-review-btn');
+    const cnt = document.getElementById('typing-review-count');
+    if (!btn) return;
+    const n = currentDueCount();
+    if (cnt) cnt.textContent = n > 0 ? `復習 ${n}` : '復習';
+    btn.classList.toggle('hidden', n === 0);
+  }
+
+  // SRS を差し替え保存し、currentBook を更新（vocab と同じく book メタの一部）。
+  async function saveSrs(newSrs) {
+    if (!currentBook) return;
+    const meta = Object.assign({}, currentBook, { srs: newSrs });
+    await DB.updateBookMeta(meta);
+    currentBook = meta;
+  }
+
+  // 「実は正解」: vocab[page/index].hanzi を入力値で上書き・low_confidence=false で保存。
+  // テキスト未読込の単語帳でも空辞書を用意して作る（TextEdit と同じ流儀）。
+  async function markActuallyCorrect(page, segIndex, hanzi) {
+    if (!currentBook) return;
+    const key = `${page}/${segIndex}`;
+    const cur = (currentBook.vocab && currentBook.vocab[key]) || null;
+    const entry = Object.assign(
+      { hanzi: '', pinyin: '', gloss: '', low_confidence: false },
+      cur,
+      { hanzi: String(hanzi).trim(), low_confidence: false },
+    );
+    const vocab = Object.assign({}, currentBook.vocab || {}, { [key]: entry });
+    const meta = Object.assign({}, currentBook, { vocab });
+    await DB.updateBookMeta(meta);
+    currentBook = meta;
+    // 一覧・機能A/Bの表示へ即反映（漢字が変わる・? が外れる）。
+    buildPlaylist(currentBook, { preserveIndex: true });
+    configureListen(currentBook);
+    renderPages(currentBook);
+    refreshVocabBar();
+  }
+
+  // Typing へフックを注入（1回だけ）。
+  Typing.init({
+    getCandidates: (scope) => typingCandidates(scope),
+    getBlobFor: (page) => (currentBook ? DB.getAudio(currentBook.id, page) : null),
+    getSrs: () => (currentBook && currentBook.srs) || {},
+    saveSrs: (newSrs) => saveSrs(newSrs),
+    markActuallyCorrect: (page, segIndex, hanzi) => markActuallyCorrect(page, segIndex, hanzi),
+    today: () => SRS.toDateStr(new Date()),
+    // 閉じたら一覧・バッジを最新化（間違えた単語のキュー入り等を反映）。
+    onClose: () => { renderPages(currentBook); refreshVocabBar(); refreshTypingEntry(); },
+  });
+
+  // タイピングを開く導線
+  const typingOpenBtn = document.getElementById('typing-open-btn');
+  if (typingOpenBtn) typingOpenBtn.addEventListener('click', () => {
+    if (!currentBook) return;
+    Typing.open();
+  });
+  // 「復習 N」ボタン: 範囲選択を飛ばして復習キューセッションを直接開始（仕様どおり）。
+  const typingReviewBtn = document.getElementById('typing-review-btn');
+  if (typingReviewBtn) typingReviewBtn.addEventListener('click', () => {
+    if (!currentBook) return;
+    Typing.openReview();
+  });
+  // 全画面の閉じるボタン（ヘッダー）
+  const typingCloseBtn = document.getElementById('typing-close');
+  if (typingCloseBtn) typingCloseBtn.addEventListener('click', () => Typing.close());
 
   // --- ユーティリティ ---
   function pageIdFromName(name, idx) {

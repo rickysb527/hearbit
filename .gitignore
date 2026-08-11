@@ -43,3 +43,4 @@ data/tmp/
 # 単語テキストデータ（単語帳の掲載順に依存＝編集著作物由来のため公開しない。手元管理）
 data/vocab.json
 data/vocab.json.old_v1
+data/vocab.json.old_v2

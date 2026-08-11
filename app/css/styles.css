@@ -658,3 +658,141 @@ body.mini-open #view-pages { padding-bottom: calc(72px + env(safe-area-inset-bot
 }
 .ph-edit-btn:active { background: var(--surface-2); }
 .ph-manual { color: var(--accent); font-size: 12px; font-weight: 700; }
+
+/* ============================================================================
+ * タイピング学習 + 忘却曲線復習（SRS）
+ * ティール=通常/正解、赤(--danger)=不正解。既存トーンに調和させる。
+ * ============================================================================ */
+
+/* 単語帳カード: 名前行 + 復習バッジ */
+.book-name-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.book-due-badge {
+  display: inline-flex; align-items: center;
+  background: var(--active-weak); color: var(--active);
+  border-radius: 999px; padding: 2px 9px; font-size: 12px; font-weight: 700;
+  line-height: 1.4; white-space: nowrap;
+}
+
+/* 単語タブ上部の「タイピングで覚える」導線 + 「復習 N」直行ボタン */
+.typing-open-row { display: flex; gap: 8px; margin-bottom: 12px; }
+.typing-open-btn {
+  flex: 1; display: flex; align-items: center; gap: 10px;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 13px 14px;
+  color: var(--text); font-size: 15px; font-weight: 700; cursor: pointer;
+  box-shadow: var(--shadow);
+}
+.typing-open-btn:active { background: var(--surface-2); }
+.typing-open-btn .to-ic { color: var(--accent); flex-shrink: 0; }
+.typing-open-btn .to-main { flex: 1; text-align: left; }
+.typing-open-btn .to-chev { color: var(--text-sub); flex-shrink: 0; }
+.typing-review-btn {
+  display: inline-flex; align-items: center; gap: 6px; flex-shrink: 0;
+  background: var(--active-weak); color: var(--active);
+  border: 1px solid color-mix(in srgb, var(--active) 45%, var(--border));
+  border-radius: var(--radius); padding: 0 14px;
+  font-size: 13px; font-weight: 700; cursor: pointer; white-space: nowrap;
+  box-shadow: var(--shadow);
+}
+.typing-review-btn:active { filter: brightness(0.96); }
+
+/* 全画面オーバーレイ */
+.typing-view {
+  position: fixed; inset: 0; z-index: 60;
+  background: var(--bg); color: var(--text);
+  display: flex; flex-direction: column;
+  padding-top: env(safe-area-inset-top);
+}
+.typing-view.hidden { display: none; }
+.typing-header {
+  display: flex; align-items: center; gap: 8px;
+  padding: 8px 10px; border-bottom: 1px solid var(--border);
+}
+.typing-title { flex: 1; text-align: center; font-size: 17px; font-weight: 700; }
+.typing-header-spacer { width: 42px; }
+.typing-scroll {
+  flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch;
+  padding: 16px 16px calc(24px + env(safe-area-inset-bottom));
+}
+
+/* --- 開始（範囲選択） --- */
+.typing-lead { font-size: 14px; color: var(--text-sub); line-height: 1.7; margin: 0 0 18px; }
+.typing-lead b { color: var(--text); }
+.typing-opt { margin-bottom: 22px; }
+.typing-opt-label { font-size: 13px; font-weight: 700; color: var(--text-sub); margin-bottom: 8px; }
+.typing-opt-hint { font-size: 12px; color: var(--text-sub); margin-top: 8px; line-height: 1.6; }
+.typing-mode .seg-btn { padding: 9px 22px; font-size: 14px; }
+.typing-ranges { display: flex; flex-direction: column; gap: 10px; }
+.typing-range {
+  display: flex; align-items: center; gap: 8px;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 14px 16px;
+  color: var(--text); font-size: 15px; font-weight: 700; cursor: pointer;
+}
+.typing-range:active:not(:disabled) { background: var(--surface-2); }
+.typing-range:disabled { opacity: 0.4; cursor: default; }
+.typing-range .tr-main { flex: 1; text-align: left; display: inline-flex; align-items: center; gap: 6px; }
+.typing-range .tr-star { color: var(--star); }
+.typing-range .tr-count { font-size: 13px; color: var(--text-sub); font-weight: 700; }
+.typing-range-review .tr-main { color: var(--active); }
+
+/* --- 出題 --- */
+.typing-quiz .tq-top {
+  display: flex; align-items: center; gap: 10px; margin-bottom: 22px;
+}
+.tq-progress { flex: 1; text-align: center; font-size: 15px; font-weight: 700; color: var(--text-sub); }
+.tq-progress #tq-cur { color: var(--accent); }
+.tq-scope { font-size: 12px; font-weight: 700; color: var(--text-sub); }
+.tq-body { display: flex; flex-direction: column; gap: 16px; }
+.tq-prompt { min-height: 72px; display: flex; align-items: center; justify-content: center; }
+.tq-gloss { font-size: 30px; font-weight: 800; text-align: center; line-height: 1.4; }
+.tq-replay {
+  display: inline-flex; align-items: center; gap: 10px;
+  background: var(--accent-weak); color: var(--accent);
+  border: none; border-radius: 999px; padding: 12px 22px;
+  font-size: 15px; font-weight: 700; cursor: pointer;
+}
+.tq-replay:active { filter: brightness(0.96); }
+.tq-input {
+  width: 100%; box-sizing: border-box;
+  font-size: 24px; text-align: center; font-weight: 700;
+  padding: 14px 12px; border: 2px solid var(--border); border-radius: 12px;
+  background: var(--surface); color: var(--text);
+}
+.tq-input:focus { outline: none; border-color: var(--accent); }
+.tq-input:disabled { opacity: 0.9; }
+.tq-submit, .tq-next { width: 100%; }
+
+.tq-feedback { border-radius: var(--radius); padding: 16px; text-align: center; }
+.tq-feedback.correct { background: var(--accent-weak); }
+.tq-feedback.wrong { background: color-mix(in srgb, var(--danger) 12%, var(--surface)); }
+.tq-mark { font-size: 20px; font-weight: 800; margin-bottom: 8px; }
+.tq-feedback.correct .tq-mark { color: var(--accent); }
+.tq-feedback.wrong .tq-mark { color: var(--danger); }
+.tq-yours { font-size: 14px; color: var(--text-sub); margin-bottom: 10px; }
+.tq-yours b { color: var(--text); }
+.tq-answer { margin-top: 4px; }
+.tq-ans-hanzi { font-size: 30px; font-weight: 800; }
+.tq-ans-pinyin { font-size: 15px; color: var(--text-sub); margin-top: 2px; }
+.tq-ans-gloss { font-size: 14px; color: var(--text-sub); margin-top: 4px; }
+.tq-actually {
+  margin-top: 14px; width: 100%; font-size: 13px;
+}
+.tq-fixed-note { font-size: 12px; color: var(--accent); margin-top: 10px; }
+
+/* --- 結果 --- */
+.tr-score { text-align: center; margin: 8px 0 24px; }
+.tr-score-big { font-size: 44px; font-weight: 800; color: var(--accent); }
+.tr-score-sub { font-size: 14px; color: var(--text-sub); margin-top: 2px; }
+.tr-allright { text-align: center; color: var(--accent); font-weight: 700; font-size: 15px; margin-bottom: 24px; }
+.tr-wrong-title { font-size: 13px; font-weight: 700; color: var(--text-sub); margin-bottom: 10px; }
+.tr-wrong-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 24px; }
+.tr-wrong-item {
+  background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+  padding: 10px 14px; display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap;
+}
+.tr-wh { font-size: 18px; font-weight: 800; }
+.tr-wp { font-size: 13px; color: var(--text-sub); }
+.tr-wg { font-size: 13px; color: var(--text-sub); margin-left: auto; }
+.tr-actions { display: flex; flex-direction: column; gap: 10px; }
+.tr-actions .primary-btn, .tr-actions .ghost-btn { width: 100%; }
