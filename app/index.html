@@ -149,6 +149,22 @@
 
       <!-- 単語タブ -->
       <div id="tab-words" class="tab-panel active">
+        <!-- タイピング学習の導線。「タイピングで覚える」は範囲選択へ。
+             復習キュー（今日分）が溜まっていれば右側に「復習 N」の専用ボタンを出し、
+             タップで範囲選択を飛ばして復習キューセッションを直接開始する（仕様どおり）。 -->
+        <div class="typing-open-row">
+          <button id="typing-open-btn" class="typing-open-btn" type="button">
+            <svg class="to-ic" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M8 14h8"/>
+            </svg>
+            <span class="to-main">タイピングで覚える</span>
+            <svg class="to-chev" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 6 15 12 9 18"/></svg>
+          </button>
+          <button id="typing-review-btn" class="typing-review-btn hidden" type="button" aria-label="復習キューを開始">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a9 9 0 1 1-3-6.7"/><polyline points="21 3 21 9 15 9"/></svg>
+            <span id="typing-review-count">復習</span>
+          </button>
+        </div>
         <!-- 単語テキスト（漢字・ピンイン）の読み込み口。無い間は番号表示のまま。 -->
         <div id="vocab-bar" class="vocab-bar">
           <div class="vocab-bar-main">
@@ -419,12 +435,34 @@
     </div>
   </div>
 
+  <!-- ===== タイピング学習（全画面オーバーレイ） ===== -->
+  <div id="typing-view" class="typing-view hidden" aria-label="タイピング学習">
+    <div class="typing-header">
+      <button id="typing-close" class="icon-btn" aria-label="閉じる">
+        <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+      <div class="typing-title">タイピング</div>
+      <div class="typing-header-spacer" aria-hidden="true"></div>
+    </div>
+    <div class="typing-scroll">
+      <div id="typing-setup" class="typing-setup"></div>
+      <div id="typing-quiz" class="typing-quiz hidden"></div>
+      <div id="typing-result" class="typing-result hidden"></div>
+    </div>
+  </div>
+  <audio id="typing-audio" preload="auto"></audio>
+
+  <!-- 成功・完了系の通知（トースト）。エラーは alert のまま。 -->
+  <div id="toast-host" class="toast-host" aria-live="polite" aria-atomic="true"></div>
+
   <script src="js/db.js"></script>
   <script src="js/splitter.js"></script>
   <script src="js/listen-build.js"></script>
   <script src="js/editor.js"></script>
   <script src="js/player.js"></script>
   <script src="js/listen.js"></script>
+  <script src="js/srs.js"></script>
+  <script src="js/typing.js"></script>
   <script src="js/app.js"></script>
   <script>
     // Service Worker 登録（PWA / オフライン起動）

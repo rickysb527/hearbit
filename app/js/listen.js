@@ -449,6 +449,21 @@ const Listen = (() => {
     updateMediaMetadata();
   }
 
+  /* あるページ・セグメントの「単語+訳」範囲 [startSec, endSec] を返す（機能Bと同一ロジック）。
+   * タイピング（typing.js）の音声モードから流用する共通口。ページを decode + 無音解析して
+   * wordonlyRange を確定する。結果は getDecoded の pageCache に載る（機能Bと共有・セッション内キャッシュ）。
+   * Listen は現在の単語帳で configure 済み（getBlobFor が現行 book）なので、typing も同じ book で使う。
+   * decode/解析に失敗したら null を返す → 呼び出し側は effStart〜end にフォールバックする。 */
+  async function resolveWordonly(page, seg) {
+    if (!getBlobFor) return null;
+    try {
+      const { silences } = await getDecoded(page);
+      return ListenBuild.wordonlyRange(seg, silences); // [s, e] 秒
+    } catch (e) {
+      return null;
+    }
+  }
+
   // 現在トラックで鳴っている語の { page, segIndex } を返す（スター操作用）。無ければ null。
   function currentWord() {
     const w = trackWord(currentWordInTrack >= 0 ? currentWordInTrack : 0);
@@ -459,7 +474,7 @@ const Listen = (() => {
   return {
     configure,
     playRange, playStarred, prev, next, toggle, pause, resume, stop, refreshText,
-    currentWord,
+    currentWord, resolveWordonly,
     getWordCount: () => words.length,
     isActive: () => !!track,
     isPlaying: () => isPlaying,
