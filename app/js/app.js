@@ -312,6 +312,38 @@
   }
   function hideResplit() { resplitOverlay.classList.add('hidden'); }
 
+  // ================= トースト通知（成功・完了系） =================
+  // 成功時に「失敗したように見える」alert を避けるための軽量トースト。
+  // 画面下部（safe-area 考慮）に 2.8 秒表示してフェード＆スライドで自動消去。
+  //   showToast('保存しました', { type: 'success' })  type: 'success'(既定) | 'info'
+  // エラー系は従来どおり alert を使う（このトーストは使わない）。
+  const toastHost = document.getElementById('toast-host');
+  function showToast(message, opts) {
+    if (!toastHost) return;
+    const type = (opts && opts.type) || 'success';
+    const el = document.createElement('div');
+    el.className = `toast toast-${type}`;
+    el.setAttribute('role', 'status');
+    const icon = type === 'success'
+      ? `<svg class="toast-ic" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>`
+      : `<svg class="toast-ic" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>`;
+    const span = document.createElement('span');
+    span.className = 'toast-msg';
+    span.textContent = message; // テキストは textContent（XSS 安全）
+    el.innerHTML = icon;
+    el.appendChild(span);
+    toastHost.appendChild(el);
+    // 入場アニメ（次フレームで .show を付ける）
+    requestAnimationFrame(() => el.classList.add('show'));
+    // 自動消去（フェードアウト後に DOM から除去）
+    setTimeout(() => {
+      el.classList.remove('show');
+      el.addEventListener('transitionend', () => el.remove(), { once: true });
+      // transitionend が来ない場合の保険
+      setTimeout(() => { if (el.parentNode) el.remove(); }, 400);
+    }, 2800);
+  }
+
   // ================= ② ページ/単語一覧（番号グリッド） =================
   async function openBook(book) {
     Player.stop();
@@ -812,7 +844,7 @@
     renderPages(currentBook);
     refreshVocabBar();
     const { matched, total } = countVocabMatches(currentBook);
-    alert(`単語テキストを読み込みました。\n${matched}/${total} 語に紐付きました。`);
+    showToast(`単語テキストを読み込みました（${matched}/${total} 語）`, { type: 'success' });
   });
 
   vocabClearBtn.addEventListener('click', async () => {
@@ -1293,6 +1325,9 @@
         segIndex: w.segIndex,
         effStart: w.effStart,
         end: w.end,
+        // 「単語+訳」だけを再生する wordonly 抽出（機能Bと同一）に渡す seg 相当。
+        // wordPlayRange/wordonlyRange が参照するのは start/end/announce_end/index。
+        seg: { index: w.segIndex, start: w.start, end: w.end, type: w.type, announce_end: w.announce_end },
         hanzi,
         pinyin: t && t.pinyin ? String(t.pinyin) : '',
         gloss: t && t.gloss ? String(t.gloss) : '',

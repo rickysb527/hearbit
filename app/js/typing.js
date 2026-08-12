@@ -73,9 +73,12 @@ const Typing = (() => {
     return t;
   }
 
-  /* ============ 音声（機能Aと同じ位置指定再生） ============ */
+  /* ============ 音声（「単語+訳」だけを位置指定再生） ============ */
   let curBlobUrl = null;
   let curBlobPage = null;
+  // wordonly 範囲のセッション内キャッシュ（key="page/segIndex" → [s,e] 秒 or null）。
+  // 出題単語のページだけをオンデマンドに無音解析して確定する（機能Bと同じ Listen 側で解析）。
+  const wordonlyCache = new Map();
 
   function stopAudio() {
     audioToken++;
@@ -83,9 +86,29 @@ const Typing = (() => {
     try { audio.pause(); } catch (e) {}
   }
 
+  // 出題音声の再生範囲 [start, end] 秒を返す。音声モードでは「単語+訳」だけに絞る（例文を流さない）。
+  // wordonly が確定できない/解析失敗なら effStart〜end（従来）にフォールバック。
+  async function rangeFor(w) {
+    const key = `${w.page}/${w.segIndex}`;
+    let wo = wordonlyCache.get(key);
+    if (wo === undefined) {
+      wo = null;
+      if (typeof Listen !== 'undefined' && Listen.resolveWordonly && w.seg) {
+        try { wo = await Listen.resolveWordonly(w.page, w.seg); } catch (e) { wo = null; }
+      }
+      wordonlyCache.set(key, wo);
+    }
+    // wordonly[0..1] が妥当（s<e、範囲内）なら採用。そうでなければ effStart〜end。
+    if (wo && wo.length === 2 && wo[1] > wo[0]) return [wo[0], wo[1]];
+    return [w.effStart, w.end];
+  }
+
   async function playSegment(w) {
     stopAudio();
     const myToken = ++audioToken;
+    // 「単語+訳」範囲を確定（オンデマンド解析・キャッシュ）。解析中に別操作が入ったら中断。
+    const [st, end] = await rangeFor(w);
+    if (myToken !== audioToken) return;
     // ページが変わるときだけ Blob を差し替え（同ページは seek のみ）。
     if (curBlobPage !== w.page || !curBlobUrl) {
       if (curBlobUrl) { URL.revokeObjectURL(curBlobUrl); curBlobUrl = null; }
@@ -103,8 +126,6 @@ const Typing = (() => {
       });
       if (myToken !== audioToken) return;
     }
-    const st = w.effStart;
-    const end = w.end;
     try { audio.currentTime = st; } catch (e) {}
     try { await audio.play(); } catch (e) { return; }
     if (myToken !== audioToken) { audio.pause(); return; }
@@ -145,6 +166,7 @@ const Typing = (() => {
   function close() {
     stopAudio();
     if (curBlobUrl) { URL.revokeObjectURL(curBlobUrl); curBlobUrl = null; curBlobPage = null; }
+    wordonlyCache.clear(); // 別の単語帳を開いたときに前の book の範囲を使い回さない
     view.classList.add('hidden');
     if (hooks && hooks.onClose) hooks.onClose();
   }

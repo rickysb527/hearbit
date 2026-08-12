@@ -44,3 +44,4 @@ data/tmp/
 data/vocab.json
 data/vocab.json.old_v1
 data/vocab.json.old_v2
+app/vocab.json
