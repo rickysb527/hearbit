@@ -7,10 +7,14 @@
  * iOS はロック中にバックグラウンドの JS 実行を絞る。機能A(player.js)のように
  * audio.onended → 次を再生 という「都度JSで繋ぐ」方式は、ロック中に止まりうる。
  * 機能Bは散歩用途（画面オフ・ロック中）が主眼なので、
- *   各単語の「単語+訳」区間の PCM を切り出して 1本の AudioBuffer に連結し、
- *   AudioBufferSourceNode 1ソースとして再生する。
- * ソースは1つなので、いったん start すればロック中も OS 側でそのまま流れ続ける
- * （JS が動かなくても最後まで途切れない）。これが最も確実な方式。
+ *   各単語の「単語+訳」区間の PCM を切り出して 1本に連結し、WAV にして <audio> 要素で再生する。
+ * 1本なので、いったん play すればロック中も OS 側でそのまま流れ続ける。
+ *
+ * なぜ Web Audio(AudioBufferSourceNode) ではなく <audio> で鳴らすのか:
+ *   iOS では Web Audio の AudioContext が suspended / interrupted になったり、running のまま
+ *   時計が止まったりして「⏸表示なのに無音」になり、ホーム画面に戻る/画面を消すと止まることもあった。
+ *   <audio> 要素は機能A(player.js)と同じ「メディア再生」扱いで、バックグラウンド・ロック中も流れ、
+ *   消音スイッチの影響も受けない。AudioContext は decode（PCM 取得）にだけ使う。
  *
  * ============================================================================
  * wordonly の抽出ロジック（build_chunks.py 準拠 / listen-build.js に純関数化）
@@ -25,99 +29,47 @@
 const Listen = (() => {
   const GAP_SEC = ListenBuild.GAP_SEC; // 単語間ギャップ（build_chunks.py と同じ 0.3s）
 
-  // --- Web Audio ---
+  // --- decode 用 AudioContext（再生には使わない。suspended のままでも decode はできる）---
   let ctx = null;
   function audioCtx() {
     if (!ctx) {
       const AC = window.AudioContext || window.webkitAudioContext;
       ctx = new AC();
-      ctx.onstatechange = onCtxStateChange;
     }
     return ctx;
   }
 
-  /* AudioContext が running になるまで resume を試みる。running なら true。
-   * iOS Safari では新規タブの初回・重い処理の直後・割り込み(着信/通知)の後に
-   * suspended / interrupted のまま残ることがある。その状態で source.start しても
-   * 無音かつ currentTime が進まない（=「⏸表示なのに無音・リング停止」の実機バグ）。
-   * resume() はユーザー操作外だと拒否されたり、Promise が解決しないことがあるので
-   * タイムアウト付きで待つ。resume() の呼び出し自体は同期で行うため、タップ起点
-   * （▶ボタン）から呼べばユーザー操作として扱われる。 */
-  const RESUME_TIMEOUT_MS = 1500;
-  async function ensureRunning() {
-    if (ctxStalled) recreateCtx(); // 時計が止まった AudioContext は捨てて作り直す（操作起点で呼ばれる）
-    const c = audioCtx();
-    if (c.state === 'running') return true;
-    let p;
-    try { p = c.resume(); } catch (e) { return false; }
+  // --- 再生用 <audio> 要素（機能A の #audio-el とは別。排他は Player.stop / Listen.stop で取る）---
+  let audioEl = null;
+  function el() {
+    if (!audioEl) {
+      audioEl = new Audio();
+      audioEl.preload = 'auto';
+      // OS 側の操作（着信での中断・イヤホン操作など）も含め、要素の状態に UI を合わせる。
+      audioEl.addEventListener('play', onElPlay);
+      audioEl.addEventListener('pause', onElPause);
+      audioEl.addEventListener('ended', onElEnded);
+    }
+    return audioEl;
+  }
+  // いまの要素が現在トラックを鳴らしているか（アンロック用の無音や前トラックのイベントを無視するため）
+  function isTrackSrc() { return !!(track && audioEl && audioEl.src === track.url); }
+
+  /* iOS は play() をユーザー操作の中でしか許さない。トラック構築は数秒かかり操作の外になるので、
+   * タップ直後（同期）に短い無音を play して要素を「操作で再生した」状態にしておく。
+   * 以後、同じ要素の play() は操作外でも通る。 */
+  let silentUrl = null;
+  function unlock() {
     try {
-      await Promise.race([p, new Promise((r) => setTimeout(r, RESUME_TIMEOUT_MS))]);
-    } catch (e) { /* NotAllowedError 等 → 下の state 判定に任せる */ }
-    return c.state === 'running';
-  }
-
-  /* 時計停止の検知: iOS では AudioContext が state='running' のまま currentTime が進まず、
-   * 無音になることがある（「⏸表示なのに無音・リング停止」の実機再発。state を見る対策では防げない）。
-   * 再生中に currentTime が STALL_MS 以上動かなければ止まったとみなし、一時停止＋▶を促す。
-   * 次の ▶（ユーザー操作）で AudioContext を作り直す。AudioBuffer はコンテキストに依存しないので
-   * 連結済みトラックやページキャッシュはそのまま使える。
-   * ※ 監視は rAF で回すので、画面ロック中・バックグラウンド中は検知できない（解除後に検知）。
-   *   ロックしたまま時計が止まるケースは対象外。 */
-  const STALL_MS = 1500;        // 一度進んだ後に止まったと判定するまで
-  const STALL_START_MS = 3000;  // 開始直後に最初に進むまでの猶予（作り直し直後・Bluetooth 切替中は遅れる）
-  const TICK_GAP_MS = 500;      // tick の間がこれ以上空いたら（ロック/バックグラウンド復帰）観測し直す
-  let ctxStalled = false;
-  let watchCtxTime = 0;   // 最後に観測した ctx.currentTime
-  let watchWallTime = 0;  // それを観測した時刻（performance.now）
-  let lastTickAt = 0;     // 前回 tick の時刻
-  let watchAdvanced = false; // 開始後に一度でも時計が進んだか
-  function resetStallWatch() {
-    watchCtxTime = ctx ? ctx.currentTime : 0;
-    watchWallTime = lastTickAt = performance.now();
-    watchAdvanced = false;
-  }
-  function checkStall() {
-    const now = performance.now();
-    const gap = now - lastTickAt;
-    lastTickAt = now;
-    // running 以外は onCtxStateChange に任せる（割り込みからの自動再開を奪わない）
-    if (!ctx || ctx.state !== 'running') return false;
-    // 観測していなかった空白期間（rAF 停止中）は数えない
-    if (gap > TICK_GAP_MS) { watchCtxTime = ctx.currentTime; watchWallTime = now; return false; }
-    const ct = ctx.currentTime;
-    if (ct !== watchCtxTime) { watchCtxTime = ct; watchWallTime = now; watchAdvanced = true; return false; }
-    if (now - watchWallTime < (watchAdvanced ? STALL_MS : STALL_START_MS)) return false;
-    console.warn('[Listen] AudioContext clock stalled', ctx.state);
-    pause();
-    ctxStalled = true;
-    ui.onNotice('blocked');
-    return true;
-  }
-  function recreateCtx() {
-    ctxStalled = false;
-    const old = ctx;
-    ctx = null;
-    gainNode = null;
-    if (old) {
-      old.onstatechange = null;
-      try { const p = old.close(); if (p && p.catch) p.catch(() => {}); } catch (e) {}
-    }
-    audioCtx(); // ユーザー操作の中で作り直せば running で始まる
-  }
-
-  /* AudioContext の状態変化に再生状態を合わせる。
-   * - 再生中に止められた（iOS の着信・Siri 等の割り込み）→ 一時停止にする。
-   *   止まった時計のまま「再生中」表示を続けないため。
-   * - running に戻った → 割り込み/自動再開失敗で止めていた場合だけ、続きから自動で再開する
-   *   （散歩中の着信後に ▶ を押さなくても戻る）。ユーザーが自分で止めた場合は再開しない。 */
-  let pausedByCtx = false;
-  function onCtxStateChange() {
-    if (!ctx || !track) return;
-    if (ctx.state === 'running') {
-      if (pausedByCtx && !isPlaying && !pendingPlay) { pausedByCtx = false; playFrom(offsetInBuffer); }
-      return;
-    }
-    if (isPlaying) { pause(); pausedByCtx = true; }
+      if (!silentUrl) {
+        const { wav } = ListenBuild.encodeWav(new Float32Array(2205), 22050); // 0.1 秒の無音
+        silentUrl = URL.createObjectURL(new Blob([wav], { type: 'audio/wav' }));
+      }
+      const a = el();
+      a.src = silentUrl;
+      const p = a.play();
+      if (p && p.catch) p.catch(() => {});
+    } catch (e) {}
   }
 
   // --- 状態 ---
@@ -128,16 +80,12 @@ const Listen = (() => {
   let onBoundary = null;      // (wordIdxInTrack) => void  UI更新コールバック
 
   // 現在ロード中のトラック（連結1本）の情報
-  let track = null;           // { buffer, boundaries[], wordCount, rangeFrom, rangeTo, size }
-  let sourceNode = null;      // 現在の AudioBufferSourceNode
-  let gainNode = null;
+  let track = null;           // { url(WAV blob URL), duration, boundaries[], wordCount, indices, ... }
   let isPlaying = false;
   let playToken = 0;
-  let pendingPlay = false;    // playFrom が AudioContext の再開を待っている間 true
 
-  // 再生位置の基準（AudioContext.currentTime ベースで算出）
-  let startedAtCtxTime = 0;   // source.start した時の ctx.currentTime
-  let offsetInBuffer = 0;     // その時のバッファ内オフセット（pause/seek 用）
+  // 停止中の再生位置（秒）。再生中は audioEl.currentTime が正。
+  let offsetInBuffer = 0;
   let rafId = null;
   let currentWordInTrack = -1;
 
@@ -146,7 +94,7 @@ const Listen = (() => {
 
   // ================= トラック構築 =================
   /* 単語の global index 配列（words[] への参照。順序どおり）を切り出して
-   * 1本の AudioBuffer に連結する。境界(各単語の先頭サンプル秒)配列も返す。
+   * 1本に連結し WAV（<audio> 用の blob URL）にする。境界(各単語の先頭秒)配列も返す。
    *
    * 範囲再生（50/100語）もスター単語再生も、この共通ルートで作る。範囲は
    * [rangeFrom, rangeTo) の連番 index、スターは starred の global index 配列（飛び番あり）。
@@ -155,7 +103,6 @@ const Listen = (() => {
   async function buildTrackFromIndices(indices, meta, onProgress) {
     const myToken = ++buildToken;
     const sr = audioCtx().sampleRate;
-    const channels = 1; // モノラルで連結（容量/処理を軽く。散歩用途で十分）
     const gapSamples = Math.round(GAP_SEC * sr);
 
     // 1) 必要ページを decode（キャッシュ利用）し、各単語の [start,end] サンプル区間を集める。
@@ -181,8 +128,7 @@ const Listen = (() => {
       if (i > 0) totalLen += gapSamples;
       totalLen += clips[i].length;
     }
-    const out = audioCtx().createBuffer(channels, Math.max(1, totalLen), sr);
-    const outData = out.getChannelData(0);
+    const outData = new Float32Array(Math.max(1, totalLen));
 
     // 3) 連結しつつ、各単語の先頭秒（境界）を記録
     const boundaries = [];
@@ -194,12 +140,16 @@ const Listen = (() => {
       pos += clips[i].length;
     }
 
+    // 4) WAV にして <audio> 用の URL に（PCM はここで手放す）
+    const { wav } = ListenBuild.encodeWav(outData, sr);
+    const url = URL.createObjectURL(new Blob([wav], { type: 'audio/wav' }));
+
     return Object.assign({
-      buffer: out,
+      url,
       boundaries,
       wordCount: clips.length,
       indices: indices.slice(), // トラック内語順(0-based) → words[] の global index
-      duration: out.duration,
+      duration: outData.length / sr,
     }, meta);
   }
 
@@ -261,59 +211,69 @@ const Listen = (() => {
   }
 
   // ================= 再生コア =================
-  function stopSource() {
-    if (sourceNode) {
-      try { sourceNode.onended = null; sourceNode.stop(); } catch (e) {}
-      try { sourceNode.disconnect(); } catch (e) {}
-      sourceNode = null;
-    }
+  function stopWatch() {
     if (rafId != null) { cancelAnimationFrame(rafId); rafId = null; }
   }
+  function revokeTrack(t) { if (t && t.url) { try { URL.revokeObjectURL(t.url); } catch (e) {} } }
 
+  /* offsetSec から再生する。要素に現在トラックが載っていなければ載せて metadata を待つ。
+   * ▶ タップ（ユーザー操作）から呼ばれた時は、載っていれば await を挟まず同期で play() する。 */
   async function playFrom(offsetSec) {
     if (!track) return;
-    stopSource();
     const myToken = ++playToken;
-    // 待機中は「停止中・開始待ち」として扱う。位置は offsetInBuffer に置き、待機中の
-    // ⏮/⏭（nav）はここを動かすだけ → 待機明けに最新の位置から鳴らす。
+    const a = el();
     offsetInBuffer = Math.min(Math.max(offsetSec, 0), track.duration);
-    isPlaying = false;
-    pendingPlay = true;
-    // AudioContext が動いていることを確認してから鳴らす（止まっていれば無音になるため）。
-    const running = await ensureRunning();
-    if (myToken !== playToken || !track) return; // 待機中に stop/pause/別の playFrom が入った
-    pendingPlay = false;
-    if (!running) {
-      // 自動では再開できなかった → 一時停止状態にして ▶ タップ（ユーザー操作）での再開を促す。
-      // 後から running に戻ったら onCtxStateChange が自動で続きを鳴らす。
-      pausedByCtx = true;
+    if (!isTrackSrc()) {
+      a.src = track.url;
+      a.load();
+      await new Promise((resolve) => {
+        if (a.readyState >= 1) { resolve(); return; }
+        const done = () => { a.removeEventListener('loadedmetadata', done); a.removeEventListener('error', done); resolve(); };
+        a.addEventListener('loadedmetadata', done);
+        a.addEventListener('error', done);
+      });
+      if (myToken !== playToken || !track) return; // 待機中に stop/pause/別の playFrom が入った
+    }
+    try { a.currentTime = offsetInBuffer; } catch (e) {}
+    try {
+      await a.play();
+    } catch (e) {
+      if (myToken !== playToken) return;
+      // NotAllowedError 等: 自動では鳴らせない → 一時停止表示にして ▶ タップ（ユーザー操作）を促す
+      console.warn('[Listen] play() failed', e);
+      isPlaying = false;
       setPlayingUI(false);
       updateProgressUI(offsetInBuffer);
       ui.onNotice('blocked');
-      return;
     }
-    const c = audioCtx();
-    const src = c.createBufferSource();
-    src.buffer = track.buffer;
-    if (!gainNode) { gainNode = c.createGain(); gainNode.connect(c.destination); }
-    src.connect(gainNode);
-    src.onended = () => {
-      if (myToken !== playToken) return; // stop/seek による差し替えは無視
-      onTrackEnded();
-    };
-    startedAtCtxTime = c.currentTime;
-    src.start(0, offsetInBuffer);
-    resetStallWatch();
-    sourceNode = src;
+  }
+
+  // <audio> のイベント → 状態/UI。自分の play/pause だけでなく OS 側の中断・再開もここで拾う。
+  function onElPlay() {
+    if (!isTrackSrc()) return;
     isPlaying = true;
     setPlayingUI(true);
     startWatch();
+    updateMediaMetadata();
+  }
+  function onElPause() {
+    if (!isTrackSrc() || audioEl.ended) return; // 末尾は ended で処理
+    offsetInBuffer = audioEl.currentTime;
+    isPlaying = false;
+    stopWatch();
+    setPlayingUI(false);
+    updateProgressUI(offsetInBuffer);
+    updateMediaMetadata();
+  }
+  function onElEnded() {
+    if (!isTrackSrc()) return;
+    onTrackEnded();
   }
 
   function currentPos() {
     if (!track) return 0;
-    if (!isPlaying) return offsetInBuffer;
-    return Math.min(offsetInBuffer + (audioCtx().currentTime - startedAtCtxTime), track.duration);
+    if (!isPlaying || !isTrackSrc()) return offsetInBuffer;
+    return Math.min(audioEl.currentTime, track.duration);
   }
 
   // 連結トラック内の語順(0-based) → 元の words[] の要素（page/seg を持つ）。
@@ -345,7 +305,7 @@ const Listen = (() => {
   function onTrackEnded() {
     isPlaying = false;
     offsetInBuffer = track ? track.duration : 0;
-    stopSource();
+    stopWatch();
     setPlayingUI(false);
     // 末尾で停止（機能A同様、自動で次トラックへは進まない）。UI は最終語で止める。
     currentWordInTrack = track ? track.wordCount - 1 : -1;
@@ -356,7 +316,6 @@ const Listen = (() => {
 
   // ================= 監視ループ（進捗/境界更新） =================
   function tick() {
-    if (isPlaying && checkStall()) return; // 時計停止 → 一時停止にしたので監視ループも終了
     const pos = currentPos();
     updateProgressUI(pos);
     const wi = wordIndexAt(pos);
@@ -376,14 +335,13 @@ const Listen = (() => {
     if (typeof Player !== 'undefined' && Player.stop) Player.stop();
     // 前のトラックは準備中に鳴らし続けない（進捗表示が新トラックの見出しと混ざるのも防ぐ）。
     playToken++;
-    stopSource();
+    stopWatch();
     isPlaying = false;
-    pendingPlay = false;
-    pausedByCtx = false;
+    const prevTrack = track;
     track = null; // 準備中の ▶（全画面/ミニ/ロック画面）で前のトラックを鳴らし直さない
-    // ユーザー操作起点で AudioContext を起こす（iOS）。resume() はここで同期に呼ばれる。
-    // iOS では resume() の Promise が解決しないことがあるので待たない（再生直前に playFrom が確認する）。
-    ensureRunning();
+    // タップ直後（ユーザー操作の中）に要素をアンロック。前トラックの再生もこれで止まる。
+    unlock();
+    revokeTrack(prevTrack);
     onLoadingUI(true);
     let built;
     try {
@@ -395,7 +353,7 @@ const Listen = (() => {
       ui.onNotice('build-failed', e);
       return;
     }
-    if (!built) { onLoadingUI(false); return; } // キャンセル
+    if (!built) { onLoadingUI(false); return; } // キャンセル（構築済みなら URL は作られていない）
     track = built;
     currentWordInTrack = -1;
     offsetInBuffer = 0;
@@ -424,13 +382,12 @@ const Listen = (() => {
   }
 
   function pause() {
-    if (!track || (!isPlaying && !pendingPlay)) return;
-    if (isPlaying) offsetInBuffer = currentPos();
-    playToken++; // ensureRunning 待機中の playFrom を無効化
-    pendingPlay = false;
-    pausedByCtx = false; // 利用者の一時停止。割り込み起因なら呼び出し側が立て直す
+    if (!track) return;
+    playToken++; // metadata 待ち中の playFrom を無効化
+    if (isTrackSrc()) offsetInBuffer = audioEl.currentTime;
+    if (audioEl) audioEl.pause(); // 'pause' イベントで UI も揃う
     isPlaying = false;
-    stopSource();
+    stopWatch();
     setPlayingUI(false);
     updateMediaMetadata();
   }
@@ -439,7 +396,6 @@ const Listen = (() => {
     if (!track || isPlaying) return;
     // 末尾で止まっていたら頭から
     if (offsetInBuffer >= track.duration - 0.02) offsetInBuffer = 0;
-    pausedByCtx = false;
     playFrom(offsetInBuffer);
     updateMediaMetadata();
   }
@@ -477,14 +433,15 @@ const Listen = (() => {
   function stop() {
     playToken++;
     buildToken++;
-    stopSource();
+    stopWatch();
     isPlaying = false;
-    pendingPlay = false;
-    pausedByCtx = false;
     offsetInBuffer = 0;
     currentWordInTrack = -1;
     // track は保持しない（メモリ解放）。UI も閉じる。
+    const prevTrack = track;
     track = null;
+    if (audioEl) { audioEl.pause(); audioEl.removeAttribute('src'); try { audioEl.load(); } catch (e) {} }
+    revokeTrack(prevTrack);
     setPlayingUI(false);
     hideFull();
     if (navigator.mediaSession) {
@@ -606,5 +563,6 @@ const Listen = (() => {
     isPlaying: () => isPlaying,
     // 検証用
     _extractMono: extractMono,
+    _audioEl: () => audioEl,
   };
 })();
