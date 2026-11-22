@@ -486,9 +486,12 @@ const Listen = (() => {
     const n = currentWordInTrack >= 0 ? currentWordInTrack + 1 : 1;
     // ロック画面タイトル: 漢字(+ピンイン)があればそれを優先。無ければ「聞き流し n/total」。
     const t = textForTrackWord(currentWordInTrack >= 0 ? currentWordInTrack : 0);
-    let title = `聞き流し ${n}/${track.wordCount}`;
+    // 番号は通し番号（No.51）＋トラック内の位置（1/50）。
+    const w = trackWord(currentWordInTrack >= 0 ? currentWordInTrack : 0);
+    const pos = (w ? `No.${w.serial} · ` : '') + `${n}/${track.wordCount}`;
+    let title = `聞き流し ${pos}`;
     if (t && (t.hanzi || t.pinyin)) {
-      title = [t.hanzi, t.pinyin].filter(Boolean).join('  ') + `  (${n}/${track.wordCount})`;
+      title = [t.hanzi, t.pinyin].filter(Boolean).join('  ') + `  (${pos})`;
     }
     const album = track.mode === 'starred'
       ? `★ スター単語 · ${track.wordCount}語`
@@ -522,7 +525,9 @@ const Listen = (() => {
     const ratio = track.duration > 0 ? Math.min(pos / track.duration, 1) : 0;
     const wi = wordIndexAt(pos);
     // 第4引数: 現在語のテキスト（漢字・ピンイン・訳）。無ければ null（番号フォールバック）。
-    ui.onProgress(ratio, wi + 1, track.wordCount, textForTrackWord(wi));
+    // 第5引数: 単語帳全体での通し番号（51–100 の1語目なら 51）。
+    const w = trackWord(wi);
+    ui.onProgress(ratio, wi + 1, track.wordCount, textForTrackWord(wi), w ? w.serial : null);
   }
   function onLoadingUI(loading, done, all) { ui.onLoading(loading, done, all); }
   function updateHeaderUI() {

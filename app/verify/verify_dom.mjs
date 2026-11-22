@@ -261,7 +261,7 @@ async function main() {
     let ms = await miniState();
     check('▼でミニ化: 全画面が閉じミニが出る', !ms.lpOpen && ms.miniOpen && ms.bodyCls, JSON.stringify(ms));
     check('▼でミニ化: 再生は止まらない', ms.active && ms.playing, JSON.stringify(ms));
-    check('ミニのラベル「聞き流し n/N · 漢字」', /^聞き流し \d+\/\d+/.test(ms.label) && /阿姨|愛好|安静/.test(ms.label), ms.label);
+    check('ミニのラベル「聞き流し No.n (k/N) · 漢字」', /^聞き流し No\.\d+ \(\d+\/\d+\)/.test(ms.label) && /阿姨|愛好|安静/.test(ms.label), ms.label);
     await evalP('document.getElementById("lm-toggle").click(); true');
     await sleep(100);
     ms = await miniState();
@@ -374,6 +374,18 @@ async function main() {
     check('スター聞き流しのサブ表示が「スター単語」', starTrack && /スター単語/.test(starTrack.sub), starTrack && starTrack.sub);
     // 先頭語は starred の先頭 = 阿姨(001/0)
     check('スター聞き流しの先頭語が 阿姨', starTrack && starTrack.hanzi === '阿姨', starTrack && starTrack.hanzi);
+
+    // 通し番号: 途中から始まる範囲（3語目〜）では No. が通し番号、k/N はトラック内の位置
+    await evalP('Listen.playRange(2, 4, 50); true');
+    let serialInfo = null;
+    for (let i = 0; i < 40; i++) {
+      serialInfo = await evalP(`({ serial: document.getElementById('lp-serial').textContent,
+        cur: document.getElementById('lp-cur').textContent, total: document.getElementById('lp-total').textContent,
+        playing: Listen.isPlaying() })`);
+      if (serialInfo.playing) break;
+      await sleep(200);
+    }
+    check('途中からの範囲: 通し番号は 3、範囲内の位置は 1/2', serialInfo.serial === '3' && serialInfo.cur === '1' && serialInfo.total === '2', JSON.stringify(serialInfo));
 
     // 再生中（ミニ）の単語帳を一覧から削除 → 停止・ミニ消去、★操作で DB に復活しない
     await evalP('document.getElementById("lp-collapse").click(); true');
