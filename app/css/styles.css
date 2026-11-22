@@ -818,6 +818,10 @@ body.mini-open .view.active, body.listen-mini-open .view.active { padding-bottom
   display: flex; flex-direction: column; align-items: center; gap: 8px;
   padding: 0 16px;
 }
+/* ルート画面でミニ（64px + 上端の線）を出している間は、その上に出す */
+body.tabbar-open.mini-open .toast-host, body.tabbar-open.listen-mini-open .toast-host {
+  bottom: calc(var(--tabbar-h) + 1px + 65px + 12px + env(safe-area-inset-bottom));
+}
 .toast {
   display: inline-flex; align-items: center; gap: 9px;
   max-width: 92%; box-sizing: border-box;
