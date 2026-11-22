@@ -375,6 +375,22 @@ async function main() {
     // 先頭語は starred の先頭 = 阿姨(001/0)
     check('スター聞き流しの先頭語が 阿姨', starTrack && starTrack.hanzi === '阿姨', starTrack && starTrack.hanzi);
 
+    // 再生中（ミニ）の単語帳を一覧から削除 → 停止・ミニ消去、★操作で DB に復活しない
+    await evalP('document.getElementById("lp-collapse").click(); true');
+    await sleep(100);
+    await evalP('document.getElementById("back-btn").click(); true');
+    await sleep(200);
+    await evalP('window.confirm = () => true; document.querySelector("#books-list .book-item .book-del").click(); true');
+    await sleep(400);
+    const afterDel = await evalP(`(async () => ({
+      active: Listen.isActive(), miniOpen: !document.getElementById('listen-mini').classList.contains('hidden'),
+      exists: !!(await DB.getBook('book_verify')) }))()`);
+    check('再生中の単語帳を削除すると聞き流し停止・ミニ消去', !afterDel.active && !afterDel.miniOpen, JSON.stringify(afterDel));
+    await evalP('document.getElementById("lp-star").click(); true');
+    await sleep(300);
+    const resurrected = await evalP(`(async () => !!(await DB.getBook('book_verify')))()`);
+    check('削除後の★操作で単語帳が復活しない', !afterDel.exists && !resurrected, `exists=${afterDel.exists} resurrected=${resurrected}`);
+
     await send('Target.closeTarget', { targetId });
     ws.close();
   } finally {
