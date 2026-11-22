@@ -309,8 +309,9 @@ const Listen = (() => {
   async function startTrack(buildFn, { autoplay = true } = {}) {
     // 排他制御: 機能A(Player)と同時に鳴らさない。聞き流し開始時は必ず機能Aを停止する。
     if (typeof Player !== 'undefined' && Player.stop) Player.stop();
-    audioCtx(); // ユーザー操作起点で AudioContext を起こす（iOS）
-    if (ctx && ctx.state === 'suspended') { try { await ctx.resume(); } catch (e) {} }
+    // ユーザー操作起点で AudioContext を起こす（iOS）。resume() はここで同期に呼ばれる。
+    // iOS では resume() の Promise が解決しないことがあるので待たない（再生直前に playFrom が確認する）。
+    ensureRunning();
     onLoadingUI(true);
     let built;
     try {
@@ -329,7 +330,7 @@ const Listen = (() => {
     onLoadingUI(false);
     setupMediaSession();
     updateHeaderUI();
-    if (autoplay) playFrom(0);
+    if (autoplay) await playFrom(0);
     else { updateProgressUI(0); currentWordInTrack = 0; if (onBoundary) onBoundary(0); updateMediaMetadata(); }
   }
 
