@@ -31,7 +31,7 @@
 ## 重要な前提・制約
 
 - **最終形はブラウザ内完結**: 音声の読み込み・無音検知・分割・再生をすべて端末内で行う。音声は外に出さない。
-- **技術スタック**: 素のHTML/CSS/JS（フレームワークなし・ビルド不要・依存最小）＋ PWA。フロントで音声処理は Web Audio API。
+- **技術スタック**: 素のHTML/CSS/JS（フレームワークなし・ビルド不要・依存最小）＋ PWA。音声の解析（decode・無音検知・分割）は Web Audio API、**再生は `<audio>` 要素**（機能A・Bとも。理由は「設計上の重要ポイント」）。
 - **容量最適化**: 端末に保存するのは【元音声 + 分割位置JSON（数KB）】のみ。分割後の音声は別途保存せず、再生時に「元音声の◯秒〜◯秒」を位置指定で鳴らす。HSK3級で元音声139MB程度。
 - **保存先**: IndexedDB（Service Workerキャッシュより堅く、明示管理できる）。
 - **著作権**: 完全個人利用・非商用。音声はリポジトリにもサーバにも置かない。
@@ -176,7 +176,7 @@ afplay audio/words/002_02.mp3
 - **Issue**: GitHub Issue でタスク管理（#1 機能B, #2 機能C）。
 - **コミット**: 音声はコミットされない前提。スクリプト・メタデータ・アプリコードを対象に。
   - コミットメッセージ末尾に `Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>`
-- リモート: `origin`（GitHub, private, rickysb527/vocab-audio-separator）
+- リモート: `origin`（GitHub, **public**, rickysb527/hearbit）。公開されるのはコードのみ（音声は git 管理外）。
 
 ## 現在の状況
 
@@ -191,13 +191,50 @@ afplay audio/words/002_02.mp3
   - [x] 単語一覧UI（番号表示）＋ 機能A（タップ再生・位置指定・アナウンス飛ばし）
   - [x] PWA化（manifest + Service Worker）＋ Media Session（ロック画面で前/次/再生）
   - [x] iPhone実機: ホーム画面追加・単語タップ再生・ロック画面操作を確認
-- [~] **機能B**: 聞き流し（feat/summary-audio）— Python版ロジック完成・wordonly採用
-  - [x] 単語部分抽出（wordonly=単語+訳）・50/100語で連結1本を生成（build_chunks.py）
-  - [ ] アプリ（PWA）への統合＝聞き流しタブ・連結再生UI（未）
-  - [ ] JS移植（現状Python版で生成。アプリ内生成への移植）
-- [ ] 残タスク（Issue管理）: #3 テキスト表示 / #4 手動で分割し直す / #5 音声の追加読み込み
+- [x] **機能B**: 聞き流し — アプリに統合済み・iPhone実機でバックグラウンド/ロック中の連続再生を確認
+  - [x] 単語部分抽出（wordonly=単語+訳）・50/100語で連結1本（Python: build_chunks.py / JS: listen-build.js）
+  - [x] 聞き流しタブ・円形プログレス・スター単語の聞き流し・ミニプレーヤー（▼で閉じても再生継続）
+  - [x] 番号は単語帳全体の通し番号「No.51 (1/50)」で表示
+  - [x] 再生は連結1本を WAV(blob) にして `<audio>` 要素で鳴らす（2026-11-23 PR #18）
+- [x] 単語テキスト（漢字・ピンイン・訳）の紐付け・手動修正、要確認/スター、タイピング＋SRS
+- [x] 分割の手動編集（#4）
+- [x] PWA 更新導線: 設定にバージョン表示＋「更新があります」バナー（PR #16）
+- [x] 短いアナウンス（「形容詞」等）の境界取り違えを修正（PR #19、SPLIT_VERSION 3）
+- [ ] 残タスク（Issue管理）: #3 テキスト表示の拡充 / #5 音声の追加読み込み / **#20 汎用化（ブロックの役割モデル＋アナウンスのユーザー確認）**
 
 ### 設計上の重要ポイント
 - **まとめ音声は1本に連結して再生**: iOSはバックグラウンドでJS実行を絞るため、
   `audio.onended`で次を再生する方式はロック中に止まりうる。連結した1本なら確実に流れる。
 - **オフライン再生**: 一度読み込めば端末内データだけで動く（Macも電波も不要）→ 散歩に対応。
+- **再生は必ず `<audio>` 要素で（Web Audio で鳴らさない）**: iOS の AudioContext は suspended/interrupted に
+  なったり、running のまま時計が止まったりして「⏸表示なのに無音」になる。状態変化に反応して止める処理を
+  入れると、今度はホーム画面に戻る/画面オフで止まった（PR #14〜#17 で発生 → #18 で `<audio>` 方式に変更して解消）。
+  `<audio>` は「メディア再生」扱いでバックグラウンド・ロック中も流れ、消音スイッチの影響も受けない。
+  AudioContext は decode（PCM 取得）専用。iOS は操作外の `play()` を拒否するので、聞き流しはタップ直後に
+  無音を play して要素をアンロックしてから構築・再生する。
+- **アナウンスの判定は暫定**: 長さヒューリスティック＋HSK3級は正解データ。他の単語帳への汎用化は #20 で設計中
+  （ブロックに役割を持たせ、推定＋ユーザー確認で確定）。
+
+## デプロイ・バージョン運用（重要）
+- 本番: https://rickysb527.github.io/hearbit/ （GitHub Pages、main のルートを公開。`/hearbit/` は `app/` にリダイレクト）。
+  main にマージすると1分弱で反映（`gh api repos/rickysb527/hearbit/pages/builds/latest` が built になる）。
+- **アプリのバージョン**: デプロイのたびに `app/js/version.js` の `APP_VERSION` と `app/sw.js` の `VERSION` を
+  **両方 +1**（キャッシュ名 `hearbit-v<VERSION>` は自動生成）。`node app/verify/verify_version.js` で一致を確認。
+  ホーム画面の PWA はリロードできないため、設定画面に版を表示し、SW の版が新しければ「更新があります」バナー
+  （タップで再読み込み）を出す。実機確認を頼む時は、まず設定の版が最新か見てもらう。
+- **分割ロジックのバージョン**: `splitter.js` / `listen-build.js` の分割・抽出ロジックを変えたら
+  `SPLIT_VERSION`（splitter.js）も +1。既存の単語帳は開いた時に元音声から自動再分割される（手動編集ページは保護）。
+  Python 版（build_metadata.py）も同じ修正を入れ、`node app/verify/verify_split.js all` で 98/98 一致を確認する。
+
+## 自動テスト（app/verify）
+```bash
+export PATH="/opt/homebrew/bin:$PATH"
+node app/verify/verify_split.js all        # 分割: JS ⇔ Python 一致（全98ページ）
+node app/verify/verify_listen.js all       # 聞き流しの wordonly 抽出・チャンク
+node app/verify/verify_listen_playback.js  # 聞き流しの再生ロジック（<audio> 方式・WAV 変換）
+node app/verify/verify_version.js          # APP_VERSION と sw.js VERSION の一致・SW プリキャッシュ
+node app/verify/verify_update.mjs          # 更新導線（実Chrome・自前サーバ）
+# 実Chromeの UI 統合テストは事前に app/ で静的サーバを立てる（無いと "Splitter is not defined" で落ちる）
+(cd app && python3 -m http.server 8123 &) && node app/verify/verify_dom.mjs
+# その他: verify_cache / verify_editor / verify_star / verify_srs / verify_textedit / verify_typing / verify_vocab
+```
