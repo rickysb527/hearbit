@@ -7,7 +7,7 @@
  *   - それ以外: network-first フォールバック（開発中の外部取得など）
  */
 // js/version.js の APP_VERSION と必ず同じ値にする（デプロイごとに両方 +1。verify_version.js で確認）。
-const VERSION = 13;
+const VERSION = 14;
 const CACHE = 'hearbit-v' + VERSION;
 
 // スコープ（app/）基準の相対パス。sw.js は app/ 直下に置く前提。

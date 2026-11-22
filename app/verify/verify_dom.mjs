@@ -248,6 +248,13 @@ async function main() {
     const star001 = await evalP(`(async () => { const b = await DB.getBook('book_verify'); return b.vocab['001/0'] && b.vocab['001/0'].starred === true; })()`);
     check('lp-star で 001/0 が starred:true 永続化', star001);
 
+    // 聞き流しは <audio> 要素（WAV blob）で鳴らす（iOS のバックグラウンド/ロック中再生のため）
+    const el0 = await evalP(`(() => { const a = Listen._audioEl(); return a ? { src: a.src, t: a.currentTime, paused: a.paused } : null; })()`);
+    await sleep(1000);
+    const el1 = await evalP(`(() => { const a = Listen._audioEl(); return a ? { src: a.src, t: a.currentTime, paused: a.paused, dur: a.duration } : null; })()`);
+    check('聞き流しは <audio> 要素で blob の WAV を再生', el1 && /^blob:/.test(el1.src) && !el1.paused, JSON.stringify(el1));
+    check('<audio> の再生位置が進む（実際に鳴っている）', el0 && el1 && el1.t > el0.t + 0.5, JSON.stringify({ el0, el1 }));
+
     // ================= 聞き流しミニ（▼で閉じても再生継続・下部常駐） =================
     const miniState = () => evalP(`(() => {
       const lm = document.getElementById('listen-mini');
