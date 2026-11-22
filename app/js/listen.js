@@ -328,6 +328,7 @@ const Listen = (() => {
     isPlaying = false;
     pendingPlay = false;
     pausedByCtx = false;
+    track = null; // 準備中の ▶（全画面/ミニ/ロック画面）で前のトラックを鳴らし直さない
     // ユーザー操作起点で AudioContext を起こす（iOS）。resume() はここで同期に呼ばれる。
     // iOS では resume() の Promise が解決しないことがあるので待たない（再生直前に playFrom が確認する）。
     ensureRunning();
