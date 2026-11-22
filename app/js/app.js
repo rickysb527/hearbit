@@ -1477,6 +1477,56 @@
   }
   const sleep = (ms) => new Promise(r => setTimeout(r, ms));
 
+  // ================= 更新のお知らせ（PWA はリロードできないため） =================
+  // いま動いているコードの版（APP_VERSION）と、SW が持っている版を比べる。
+  // SW の方が新しい＝新しい版は届いているが画面は古いコードのまま → バナーを出し、タップで再読み込み。
+  // 再生中に勝手に再読み込みすると音が止まるので、自動ではなくタップ式にする。
+  const updateBanner = document.getElementById('update-banner');
+  const updateCheckBtn = document.getElementById('update-check-btn');
+  document.getElementById('app-version').textContent = `v${APP_VERSION}`;
+
+  // SW の版を問い合わせる。SW が無い/応答しない時は null。
+  function askSwVersion() {
+    const ctrl = navigator.serviceWorker && navigator.serviceWorker.controller;
+    if (!ctrl) return Promise.resolve(null);
+    return new Promise((resolve) => {
+      const ch = new MessageChannel();
+      const timer = setTimeout(() => resolve(null), 2000);
+      ch.port1.onmessage = (e) => { clearTimeout(timer); resolve((e.data && e.data.version) || null); };
+      ctrl.postMessage({ type: 'GET_VERSION' }, [ch.port2]);
+    });
+  }
+  async function checkForUpdate() {
+    const v = await askSwVersion();
+    const newer = v != null && v > APP_VERSION;
+    if (newer) document.getElementById('update-banner-ver').textContent = `v${v}`;
+    updateBanner.classList.toggle('hidden', !newer);
+    return newer;
+  }
+  // サーバに新しい sw.js があるか確認 → あれば install → activate（skipWaiting）→ controllerchange。
+  async function updateSw() {
+    if (!('serviceWorker' in navigator)) return;
+    try { const reg = await navigator.serviceWorker.getRegistration(); if (reg) await reg.update(); } catch (e) {}
+  }
+  updateBanner.addEventListener('click', () => location.reload());
+  updateCheckBtn.addEventListener('click', async () => {
+    updateCheckBtn.disabled = true;
+    await updateSw();
+    // 新しい SW の install/activate を少し待ってから比べる
+    await sleep(1500);
+    const newer = await checkForUpdate();
+    updateCheckBtn.disabled = false;
+    if (!newer) showToast(`最新です（v${APP_VERSION}）`, { type: 'info' });
+  });
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.addEventListener('controllerchange', checkForUpdate);
+    // iOS の PWA は閉じても中断→再開になりがち。前面に戻るたびに更新を確認する。
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible') updateSw().then(checkForUpdate);
+    });
+    navigator.serviceWorker.ready.then(checkForUpdate);
+  }
+
   // --- 起動 ---
   showView('books');
   renderBooks();

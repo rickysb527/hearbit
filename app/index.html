@@ -112,6 +112,10 @@
             <button data-theme="dark" class="seg-btn">ダーク</button>
           </div>
         </div>
+        <div class="settings-row">
+          <span>バージョン <b id="app-version">-</b></span>
+          <button id="update-check-btn" class="settings-btn" type="button">更新を確認</button>
+        </div>
       </div>
       <div class="settings-note">
         Hearbit — 聞きたい言葉を、すぐそこに。<br/>
@@ -261,6 +265,11 @@
       <svg class="ic-pause hidden" viewBox="0 0 24 24" width="22" height="22" fill="currentColor" aria-hidden="true"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg>
     </button>
   </div>
+
+  <!-- ===== 更新のお知らせ（新しい版が届いたら表示。タップで再読み込み） ===== -->
+  <button id="update-banner" class="update-banner hidden" type="button">
+    新しいバージョン（<span id="update-banner-ver"></span>）があります — タップで更新
+  </button>
 
   <!-- ===== 聞き流しミニプレーヤー（全画面を閉じても再生を続け、下部に常駐） ===== -->
   <div id="listen-mini" class="mini-bar hidden" aria-label="聞き流しミニプレーヤー">
@@ -481,6 +490,7 @@
   <script src="js/listen.js"></script>
   <script src="js/srs.js"></script>
   <script src="js/typing.js"></script>
+  <script src="js/version.js"></script>
   <script src="js/app.js"></script>
   <script>
     // Service Worker 登録（PWA / オフライン起動）
