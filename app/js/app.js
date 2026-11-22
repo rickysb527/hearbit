@@ -82,6 +82,8 @@
     headerBrand.classList.toggle('hidden', !root);
     headerContext.classList.toggle('hidden', root);
     tabBar.classList.toggle('hidden', !root);
+    // ミニプレーヤー（単語/聞き流し）をタブバーの上に出すための目印（CSS 側で bottom をずらす）
+    document.body.classList.toggle('tabbar-open', root);
 
     if (root) {
       tabBar.querySelectorAll('.tabbar-btn').forEach(b =>
