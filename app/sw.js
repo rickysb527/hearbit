@@ -68,6 +68,8 @@ self.addEventListener('activate', (event) => {
 // GitHub Pages は max-age=600 なので、通常の fetch だとデプロイ直後 10 分は古い HTML/JS が返り、
 // それを新しいキャッシュへ put して「新しい JS × 古い HTML」などの食い違いを作ってしまう。
 // navigate モードの Request に init を付けて作り直すのは環境により失敗するので URL で取る。
+// ※ URL で取るとリダイレクトを追う。スコープ内のページ遷移先がリダイレクトされる構成にすると
+//   「リダイレクト済み応答」をナビゲーションに返して失敗するので、URL 構成を変える時は要注意。
 function freshFetch(req) {
   return fetch(req.url, { cache: 'no-cache', credentials: 'same-origin' });
 }
