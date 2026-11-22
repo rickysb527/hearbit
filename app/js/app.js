@@ -1187,6 +1187,13 @@
   const lpNext = document.getElementById('lp-next');
   const lpCollapse = document.getElementById('lp-collapse');
   const lpStar = document.getElementById('lp-star');
+  // 聞き流しミニ（全画面を閉じても再生を続け、下部に常駐）
+  const lm = document.getElementById('listen-mini');
+  const lmLabel = document.getElementById('lm-label');
+  const lmFill = document.getElementById('lm-progress-fill');
+  const lmToggle = document.getElementById('lm-toggle');
+  const lmExpand = document.getElementById('lm-expand');
+  let lmPrefix = '聞き流し'; // スター聞き流しは「★ 聞き流し」
 
   // 聞き流しプレーヤーのスターボタンを現在語の starred で更新。
   function updateListenStar() {
@@ -1239,6 +1246,25 @@
     renderListenWord(null, 1);
     setRing(0);
     updateListenStar();
+    lmPrefix = info.mode === 'starred' ? '★ 聞き流し' : '聞き流し';
+    lmLabel.textContent = `${lmPrefix} 1/${info.wordCount}`;
+    lmFill.style.width = '0%';
+    hideListenMini(); // 新しいトラックは全画面で始める
+    lp.classList.remove('hidden');
+  }
+
+  // 全画面 ⇄ ミニ の切替。再生は止めない（停止は Listen.stop → hideFull で両方閉じる）。
+  function showListenMini() {
+    lp.classList.add('hidden');
+    lm.classList.remove('hidden');
+    document.body.classList.add('listen-mini-open');
+  }
+  function hideListenMini() {
+    lm.classList.add('hidden');
+    document.body.classList.remove('listen-mini-open');
+  }
+  function expandListen() {
+    hideListenMini();
     lp.classList.remove('hidden');
   }
 
@@ -1249,9 +1275,17 @@
       lp.classList.toggle('playing-anim', playing);
       lpToggle.querySelector('.ic-play').classList.toggle('hidden', playing);
       lpToggle.querySelector('.ic-pause').classList.toggle('hidden', !playing);
+      lm.classList.toggle('paused', !playing);
+      lm.classList.toggle('playing-anim', playing);
+      lmToggle.querySelector('.ic-play').classList.toggle('hidden', playing);
+      lmToggle.querySelector('.ic-pause').classList.toggle('hidden', !playing);
     },
     onProgress(ratio, wordNo, wordCount, text) {
       setRing(ratio);
+      // ミニ: 「聞き流し 12/50 · 漢字」＋進捗バー
+      const hanzi = text && text.hanzi;
+      lmLabel.textContent = `${lmPrefix} ${wordNo}/${wordCount}` + (hanzi ? ` · ${hanzi}` : '');
+      lmFill.style.width = `${(ratio * 100).toFixed(2)}%`;
       lpCur.textContent = String(wordNo);
       lpTotal.textContent = String(wordCount);
       // 中央表示: テキストがあれば漢字・ピンイン、無ければトラック内の語順「単語 N」。
@@ -1262,6 +1296,8 @@
       lpLoading.classList.toggle('hidden', !loading);
       lpRingWrap.classList.toggle('dim', loading);
       if (loading && done != null) lpLoadingText.textContent = `音声を用意中… ${done}/${all}`;
+      // 準備中にミニ化された場合もミニで進み具合が分かるように
+      if (loading) lmLabel.textContent = done != null ? `音声を用意中… ${done}/${all}` : '音声を用意中…';
     },
     onHeader(h) {
       lpSub.textContent = h.mode === 'starred'
@@ -1269,7 +1305,7 @@
         : `単語のみ · ${h.size}語（${h.from}–${h.to}）`;
       lpTotal.textContent = String(h.wordCount);
     },
-    hideFull() { lp.classList.add('hidden'); },
+    hideFull() { lp.classList.add('hidden'); hideListenMini(); }, // 停止時: 全画面もミニも閉じる
     onNotice(kind, err) {
       if (kind === 'blocked') {
         // iOS が自動再開を許さなかった → ▶ タップ（ユーザー操作）なら再開できる。
@@ -1285,7 +1321,11 @@
   lpToggle.addEventListener('click', () => Listen.toggle());
   lpPrev.addEventListener('click', () => Listen.prev());
   lpNext.addEventListener('click', () => Listen.next());
-  lpCollapse.addEventListener('click', () => { Listen.stop(); });
+  // ▼: 再生は続けたままミニ化（他の画面を操作できる）。
+  lpCollapse.addEventListener('click', showListenMini);
+  lmToggle.addEventListener('click', () => Listen.toggle());
+  lmExpand.addEventListener('click', expandListen);
+  lm.addEventListener('click', (e) => { if (e.target.closest('button')) return; expandListen(); });
   if (lpStar) lpStar.addEventListener('click', () => {
     const cw = Listen.currentWord && Listen.currentWord();
     if (!cw) return;

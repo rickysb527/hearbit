@@ -538,7 +538,7 @@ body {
 #listen-mini.paused .lm-progress-fill { background: var(--accent); }
 /* ルート画面（単語帳一覧・設定）では下部タブバーの上に出す（タブバーを隠さない） */
 body.tabbar-open #mini-player, body.tabbar-open #listen-mini {
-  bottom: calc(var(--tabbar-h) + env(safe-area-inset-bottom));
+  bottom: calc(var(--tabbar-h) + 1px + env(safe-area-inset-bottom)); /* +1px = タブバー上端の border */
   padding-bottom: 0;
 }
 
