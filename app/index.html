@@ -262,6 +262,24 @@
     </button>
   </div>
 
+  <!-- ===== 聞き流しミニプレーヤー（全画面を閉じても再生を続け、下部に常駐） ===== -->
+  <div id="listen-mini" class="mini-bar hidden" aria-label="聞き流しミニプレーヤー">
+    <div class="lm-progress" aria-hidden="true"><div class="lm-progress-fill" id="lm-progress-fill"></div></div>
+    <button id="lm-expand" class="mini-expand" aria-label="聞き流しプレーヤーを開く">
+      <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <polyline points="18 15 12 9 6 15"/>
+      </svg>
+    </button>
+    <div class="mini-label" id="lm-label">聞き流し</div>
+    <div class="wave" aria-hidden="true">
+      <span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+    </div>
+    <button id="lm-toggle" class="mini-toggle" aria-label="再生 / 一時停止">
+      <svg class="ic-play" viewBox="0 0 24 24" width="22" height="22" fill="currentColor" aria-hidden="true"><polygon points="6 4 20 12 6 20"/></svg>
+      <svg class="ic-pause hidden" viewBox="0 0 24 24" width="22" height="22" fill="currentColor" aria-hidden="true"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg>
+    </button>
+  </div>
+
   <!-- ===== 全画面プレーヤー（③ 機能A） ===== -->
   <div id="full-player" class="hidden" aria-label="全画面プレーヤー">
     <div class="fp-top">
@@ -316,7 +334,7 @@
   <!-- ===== 全画面プレーヤー（③ 機能B: 聞き流し / 円形プログレス） ===== -->
   <div id="listen-player" class="hidden" aria-label="聞き流しプレーヤー">
     <div class="fp-top">
-      <button id="lp-collapse" class="icon-btn" aria-label="閉じる">
+      <button id="lp-collapse" class="icon-btn" aria-label="ミニ化">
         <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
           <polyline points="6 9 12 15 18 9"/>
         </svg>

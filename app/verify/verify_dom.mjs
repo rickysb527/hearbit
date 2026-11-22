@@ -248,9 +248,56 @@ async function main() {
     const star001 = await evalP(`(async () => { const b = await DB.getBook('book_verify'); return b.vocab['001/0'] && b.vocab['001/0'].starred === true; })()`);
     check('lp-star で 001/0 が starred:true 永続化', star001);
 
-    // 聞き流しを閉じて単語タブへ戻る
+    // ================= 聞き流しミニ（▼で閉じても再生継続・下部常駐） =================
+    const miniState = () => evalP(`(() => {
+      const lm = document.getElementById('listen-mini');
+      return { lpOpen: !document.getElementById('listen-player').classList.contains('hidden'),
+        miniOpen: !lm.classList.contains('hidden'), active: Listen.isActive(), playing: Listen.isPlaying(),
+        label: document.getElementById('lm-label').textContent,
+        bodyCls: document.body.classList.contains('listen-mini-open') };
+    })()`);
     await evalP('document.getElementById("lp-collapse").click(); true');
     await sleep(150);
+    let ms = await miniState();
+    check('▼でミニ化: 全画面が閉じミニが出る', !ms.lpOpen && ms.miniOpen && ms.bodyCls, JSON.stringify(ms));
+    check('▼でミニ化: 再生は止まらない', ms.active && ms.playing, JSON.stringify(ms));
+    check('ミニのラベル「聞き流し n/N · 漢字」', /^聞き流し \d+\/\d+/.test(ms.label) && /阿姨|愛好|安静/.test(ms.label), ms.label);
+    await evalP('document.getElementById("lm-toggle").click(); true');
+    await sleep(100);
+    ms = await miniState();
+    check('ミニの⏸で一時停止', ms.active && !ms.playing && await evalP('document.getElementById("listen-mini").classList.contains("paused")'), JSON.stringify(ms));
+    await evalP('document.getElementById("lm-toggle").click(); true');
+    await sleep(150);
+    ms = await miniState();
+    check('ミニの▶で再開', ms.playing, JSON.stringify(ms));
+    await evalP('document.getElementById("lm-expand").click(); true');
+    await sleep(100);
+    ms = await miniState();
+    check('ミニの▲で全画面に戻る', ms.lpOpen && !ms.miniOpen && ms.playing, JSON.stringify(ms));
+    await evalP('document.getElementById("lp-collapse").click(); true');
+    await sleep(100);
+
+    // ミニのまま単語タブへ → 再生継続
+    await evalP(`(() => { document.querySelector('#book-tabs .tab[data-tab="words"]').click(); return true; })()`);
+    await sleep(150);
+    ms = await miniState();
+    check('単語タブへ移ってもミニ再生が続く', ms.miniOpen && ms.playing, JSON.stringify(ms));
+    // 単語帳一覧（ルート）へ戻る → 再生継続 & ミニがタブバーを覆わない
+    await evalP('document.getElementById("back-btn").click(); true');
+    await sleep(200);
+    const rootMini = await evalP(`(() => {
+      const lm = document.getElementById('listen-mini').getBoundingClientRect();
+      const tb = document.getElementById('tab-bar').getBoundingClientRect();
+      return { playing: Listen.isPlaying(), miniOpen: !document.getElementById('listen-mini').classList.contains('hidden'),
+        miniBottom: Math.round(lm.bottom), tabTop: Math.round(tb.top), tabH: Math.round(tb.height) };
+    })()`);
+    check('単語帳一覧へ戻ってもミニ再生が続く', rootMini.playing && rootMini.miniOpen, JSON.stringify(rootMini));
+    check('ミニがタブバーを覆わない（タブバーの上に出る）', rootMini.tabH > 0 && rootMini.miniBottom <= rootMini.tabTop, JSON.stringify(rootMini));
+    // 単語帳を開き直す → 停止（仕様: 単語側と同じ）
+    await evalP(`(() => { const b = [...document.querySelectorAll('#books-list .book-item')][0]; b && b.click(); return !!b; })()`);
+    for (let i = 0; i < 30; i++) { if (await evalP('document.getElementById("view-pages").classList.contains("active")')) break; await sleep(100); }
+    ms = await miniState();
+    check('単語帳を開き直すと聞き流しは停止しミニも消える', !ms.active && !ms.miniOpen && !ms.bodyCls, JSON.stringify(ms));
     await evalP(`(() => { document.querySelector('#book-tabs .tab[data-tab="words"]').click(); return true; })()`);
     await sleep(150);
 
@@ -327,6 +374,22 @@ async function main() {
     check('スター聞き流しのサブ表示が「スター単語」', starTrack && /スター単語/.test(starTrack.sub), starTrack && starTrack.sub);
     // 先頭語は starred の先頭 = 阿姨(001/0)
     check('スター聞き流しの先頭語が 阿姨', starTrack && starTrack.hanzi === '阿姨', starTrack && starTrack.hanzi);
+
+    // 再生中（ミニ）の単語帳を一覧から削除 → 停止・ミニ消去、★操作で DB に復活しない
+    await evalP('document.getElementById("lp-collapse").click(); true');
+    await sleep(100);
+    await evalP('document.getElementById("back-btn").click(); true');
+    await sleep(200);
+    await evalP('window.confirm = () => true; document.querySelector("#books-list .book-item .book-del").click(); true');
+    await sleep(400);
+    const afterDel = await evalP(`(async () => ({
+      active: Listen.isActive(), miniOpen: !document.getElementById('listen-mini').classList.contains('hidden'),
+      exists: !!(await DB.getBook('book_verify')) }))()`);
+    check('再生中の単語帳を削除すると聞き流し停止・ミニ消去', !afterDel.active && !afterDel.miniOpen, JSON.stringify(afterDel));
+    await evalP('document.getElementById("lp-star").click(); true');
+    await sleep(300);
+    const resurrected = await evalP(`(async () => !!(await DB.getBook('book_verify')))()`);
+    check('削除後の★操作で単語帳が復活しない', !afterDel.exists && !resurrected, `exists=${afterDel.exists} resurrected=${resurrected}`);
 
     await send('Target.closeTarget', { targetId });
     ws.close();

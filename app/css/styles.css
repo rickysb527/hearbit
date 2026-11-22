@@ -489,7 +489,7 @@ body {
 .fp-wave span { width: 4px; }
 /* 再生中のみアニメ（.playing クラスで発火） */
 .playing-anim .wave span, .playing-anim.fp-wave span, .fp-wave.playing-anim span,
-#mini-player.playing-anim .wave span {
+#mini-player.playing-anim .wave span, #listen-mini.playing-anim .wave span {
   animation: eq 0.9s ease-in-out infinite;
 }
 .wave span:nth-child(1),.fp-wave span:nth-child(1){animation-delay:0s}
@@ -503,8 +503,8 @@ body {
 .fp-wave span:nth-child(9){animation-delay:.12s}
 @keyframes eq { 0%,100%{height:25%} 50%{height:100%} }
 
-/* ===== ミニプレーヤー ===== */
-#mini-player {
+/* ===== ミニプレーヤー（単語 #mini-player / 聞き流し #listen-mini 共通） ===== */
+#mini-player, #listen-mini {
   position: fixed; left: 0; right: 0;
   bottom: 0;
   z-index: 40;
@@ -530,8 +530,17 @@ body {
   background: var(--active); color: var(--active-on);
 }
 /* 一時停止中はティール塗り(▶) */
-#mini-player.paused .mini-toggle { background: var(--accent); color: var(--accent-on); }
-#mini-player.paused .wave span { animation: none !important; height: 30% !important; opacity: 0.5; }
+#mini-player.paused .mini-toggle, #listen-mini.paused .mini-toggle { background: var(--accent); color: var(--accent-on); }
+#mini-player.paused .wave span, #listen-mini.paused .wave span { animation: none !important; height: 30% !important; opacity: 0.5; }
+/* 聞き流しミニ: 上端の細い進捗バー（トラック全体に対する位置） */
+.lm-progress { position: absolute; left: 0; right: 0; top: 0; height: 3px; background: var(--border); }
+.lm-progress-fill { height: 100%; width: 0; background: var(--active); }
+#listen-mini.paused .lm-progress-fill { background: var(--accent); }
+/* ルート画面（単語帳一覧・設定）では下部タブバーの上に出す（タブバーを隠さない） */
+body.tabbar-open #mini-player, body.tabbar-open #listen-mini {
+  bottom: calc(var(--tabbar-h) + 1px + env(safe-area-inset-bottom)); /* +1px = タブバー上端の border */
+  padding-bottom: 0;
+}
 
 /* ===== 全画面プレーヤー ===== */
 #full-player {
@@ -592,6 +601,8 @@ body {
 /* ===== 下部タブバー ===== */
 #tab-bar {
   display: flex;
+  /* 常に画面下端に固定（ミニプレーヤーをこの上に重ねるため位置を確定させる） */
+  position: sticky; bottom: 0; z-index: 30;
   border-top: 1px solid var(--border);
   background: var(--surface);
   padding-bottom: env(safe-area-inset-bottom);
@@ -606,7 +617,7 @@ body {
 .tabbar-btn.active { color: var(--accent); }
 
 /* ミニプレーヤー表示時、②のコンテンツ末尾に余白を確保 */
-body.mini-open #view-pages { padding-bottom: calc(72px + env(safe-area-inset-bottom)); }
+body.mini-open .view.active, body.listen-mini-open .view.active { padding-bottom: calc(72px + env(safe-area-inset-bottom)); }
 
 /* ===== 分割の手動編集（#4） ===== */
 .editor-lead { font-size: 13px; line-height: 1.7; color: var(--text-sub); margin: 8px 2px 14px; }
@@ -806,6 +817,10 @@ body.mini-open #view-pages { padding-bottom: calc(72px + env(safe-area-inset-bot
   z-index: 80; pointer-events: none;
   display: flex; flex-direction: column; align-items: center; gap: 8px;
   padding: 0 16px;
+}
+/* ルート画面でミニ（64px + 上端の線）を出している間は、その上に出す */
+body.tabbar-open.mini-open .toast-host, body.tabbar-open.listen-mini-open .toast-host {
+  bottom: calc(var(--tabbar-h) + 1px + 65px + 12px + env(safe-area-inset-bottom));
 }
 .toast {
   display: inline-flex; align-items: center; gap: 9px;
