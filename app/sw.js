@@ -41,10 +41,9 @@ self.addEventListener('install', (event) => {
       // （GitHub Pages は max-age=600。通すとデプロイ直後に古い JS を新キャッシュへ入れてしまう）
       .then((cache) => cache.addAll(ASSETS.map((u) => new Request(u, { cache: 'reload' }))))
       .then(() => self.skipWaiting())
-      .catch((err) => {
-        // 一部アセットが欠けていても install 自体は続行（開発時の欠損に強く）
-        console.warn('[SW] precache partial failure', err);
-      })
+      // 失敗（通信断など）は握りつぶさない → install 失敗としてブラウザが次の update で再試行する。
+      // 握りつぶすと空キャッシュの SW が waiting で固まり、更新が届かなくなる。
+      // アセットの欠損は verify_version.js（ASSETS が全て実在する）で事前に防ぐ。
   );
 });
 
@@ -65,8 +64,16 @@ self.addEventListener('activate', (event) => {
  *     裏で fetch して新しければキャッシュを更新 → 次回アクセスから最新になる。
  *   activate 時の旧キャッシュ削除（上）と組み合わせ、CACHE 名を上げれば確実に総入れ替えできる。
  */
+// SW からの取得は HTTP キャッシュを経由せず必ずサーバに再検証させる（cache:'no-cache'）。
+// GitHub Pages は max-age=600 なので、通常の fetch だとデプロイ直後 10 分は古い HTML/JS が返り、
+// それを新しいキャッシュへ put して「新しい JS × 古い HTML」などの食い違いを作ってしまう。
+// navigate モードの Request に init を付けて作り直すのは環境により失敗するので URL で取る。
+function freshFetch(req) {
+  return fetch(req.url, { cache: 'no-cache', credentials: 'same-origin' });
+}
+
 function networkFirst(req) {
-  return fetch(req)
+  return freshFetch(req)
     .then((res) => {
       if (res && res.status === 200 && res.type === 'basic') {
         const copy = res.clone();
@@ -80,7 +87,7 @@ function networkFirst(req) {
 function staleWhileRevalidate(req) {
   return caches.open(CACHE).then((cache) =>
     cache.match(req).then((cached) => {
-      const network = fetch(req)
+      const network = freshFetch(req)
         .then((res) => {
           if (res && res.status === 200 && res.type === 'basic') cache.put(req, res.clone());
           return res;
