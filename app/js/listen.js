@@ -60,20 +60,33 @@ const Listen = (() => {
    * 無音になることがある（「⏸表示なのに無音・リング停止」の実機再発。state を見る対策では防げない）。
    * 再生中に currentTime が STALL_MS 以上動かなければ止まったとみなし、一時停止＋▶を促す。
    * 次の ▶（ユーザー操作）で AudioContext を作り直す。AudioBuffer はコンテキストに依存しないので
-   * 連結済みトラックやページキャッシュはそのまま使える。 */
-  const STALL_MS = 1500;
+   * 連結済みトラックやページキャッシュはそのまま使える。
+   * ※ 監視は rAF で回すので、画面ロック中・バックグラウンド中は検知できない（解除後に検知）。
+   *   ロックしたまま時計が止まるケースは対象外。 */
+  const STALL_MS = 1500;        // 一度進んだ後に止まったと判定するまで
+  const STALL_START_MS = 3000;  // 開始直後に最初に進むまでの猶予（作り直し直後・Bluetooth 切替中は遅れる）
+  const TICK_GAP_MS = 500;      // tick の間がこれ以上空いたら（ロック/バックグラウンド復帰）観測し直す
   let ctxStalled = false;
   let watchCtxTime = 0;   // 最後に観測した ctx.currentTime
   let watchWallTime = 0;  // それを観測した時刻（performance.now）
+  let lastTickAt = 0;     // 前回 tick の時刻
+  let watchAdvanced = false; // 開始後に一度でも時計が進んだか
   function resetStallWatch() {
     watchCtxTime = ctx ? ctx.currentTime : 0;
-    watchWallTime = performance.now();
+    watchWallTime = lastTickAt = performance.now();
+    watchAdvanced = false;
   }
   function checkStall() {
     const now = performance.now();
+    const gap = now - lastTickAt;
+    lastTickAt = now;
+    // running 以外は onCtxStateChange に任せる（割り込みからの自動再開を奪わない）
+    if (!ctx || ctx.state !== 'running') return false;
+    // 観測していなかった空白期間（rAF 停止中）は数えない
+    if (gap > TICK_GAP_MS) { watchCtxTime = ctx.currentTime; watchWallTime = now; return false; }
     const ct = ctx.currentTime;
-    if (ct !== watchCtxTime) { watchCtxTime = ct; watchWallTime = now; return false; }
-    if (now - watchWallTime < STALL_MS) return false;
+    if (ct !== watchCtxTime) { watchCtxTime = ct; watchWallTime = now; watchAdvanced = true; return false; }
+    if (now - watchWallTime < (watchAdvanced ? STALL_MS : STALL_START_MS)) return false;
     console.warn('[Listen] AudioContext clock stalled', ctx.state);
     pause();
     ctxStalled = true;
@@ -85,7 +98,10 @@ const Listen = (() => {
     const old = ctx;
     ctx = null;
     gainNode = null;
-    if (old) { old.onstatechange = null; try { old.close(); } catch (e) {} }
+    if (old) {
+      old.onstatechange = null;
+      try { const p = old.close(); if (p && p.catch) p.catch(() => {}); } catch (e) {}
+    }
     audioCtx(); // ユーザー操作の中で作り直せば running で始まる
   }
 
@@ -488,10 +504,10 @@ const Listen = (() => {
     const t = textForTrackWord(currentWordInTrack >= 0 ? currentWordInTrack : 0);
     // 番号は通し番号（No.51）＋トラック内の位置（1/50）。
     const w = trackWord(currentWordInTrack >= 0 ? currentWordInTrack : 0);
-    const pos = (w ? `No.${w.serial} · ` : '') + `${n}/${track.wordCount}`;
+    const pos = w ? `No.${w.serial} (${n}/${track.wordCount})` : `${n}/${track.wordCount}`;
     let title = `聞き流し ${pos}`;
     if (t && (t.hanzi || t.pinyin)) {
-      title = [t.hanzi, t.pinyin].filter(Boolean).join('  ') + `  (${pos})`;
+      title = [t.hanzi, t.pinyin].filter(Boolean).join('  ') + `  ${pos}`;
     }
     const album = track.mode === 'starred'
       ? `★ スター単語 · ${track.wordCount}語`
