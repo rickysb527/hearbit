@@ -185,7 +185,11 @@
       });
       el.querySelector('.book-del').addEventListener('click', async (e) => {
         e.stopPropagation();
-        if (confirm(`「${b.name}」を削除しますか？`)) { await DB.deleteBook(b.id); renderBooks(); }
+        if (confirm(`「${b.name}」を削除しますか？`)) {
+          // 再生中（ミニ表示中）の単語帳なら止めて手放す。残すと★操作で削除済みの単語帳が DB に復活する。
+          if (currentBook && currentBook.id === b.id) { Player.stop(); Listen.stop(); currentBook = null; }
+          await DB.deleteBook(b.id); renderBooks();
+        }
       });
       booksList.appendChild(el);
     }
@@ -1250,6 +1254,7 @@
     lmLabel.textContent = `${lmPrefix} 1/${info.wordCount}`;
     lmFill.style.width = '0%';
     hideListenMini(); // 新しいトラックは全画面で始める
+    listenUI.onPlaying(false); // 準備中は停止表示（準備中にミニ化しても ▶ の見た目を状態と揃える）
     lp.classList.remove('hidden');
   }
 
