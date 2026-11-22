@@ -6,7 +6,9 @@
  *   - 同一オリジンの App Shell: cache-first（オフラインで確実に起動）
  *   - それ以外: network-first フォールバック（開発中の外部取得など）
  */
-const CACHE = 'hearbit-v11';
+// js/version.js の APP_VERSION と必ず同じ値にする（デプロイごとに両方 +1。verify_version.js で確認）。
+const VERSION = 12;
+const CACHE = 'hearbit-v' + VERSION;
 
 // スコープ（app/）基準の相対パス。sw.js は app/ 直下に置く前提。
 const ASSETS = [
@@ -22,6 +24,7 @@ const ASSETS = [
   './js/listen.js',
   './js/srs.js',
   './js/typing.js',
+  './js/version.js',
   './js/app.js',
   './icons/icon.svg',
   './icons/icon-192.png',
@@ -34,7 +37,9 @@ const ASSETS = [
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE)
-      .then((cache) => cache.addAll(ASSETS))
+      // cache:'reload' = ブラウザの HTTP キャッシュを通さず必ずサーバから取る。
+      // （GitHub Pages は max-age=600。通すとデプロイ直後に古い JS を新キャッシュへ入れてしまう）
+      .then((cache) => cache.addAll(ASSETS.map((u) => new Request(u, { cache: 'reload' }))))
       .then(() => self.skipWaiting())
       .catch((err) => {
         // 一部アセットが欠けていても install 自体は続行（開発時の欠損に強く）
@@ -86,6 +91,14 @@ function staleWhileRevalidate(req) {
     })
   );
 }
+
+// ページから「この SW の版は？」を問い合わせる（MessageChannel で返答）。
+// ページ側は自分の APP_VERSION と比べ、SW の方が新しければ「更新があります」を出す。
+self.addEventListener('message', (event) => {
+  if (event.data && event.data.type === 'GET_VERSION' && event.ports[0]) {
+    event.ports[0].postMessage({ type: 'VERSION', version: VERSION });
+  }
+});
 
 self.addEventListener('fetch', (event) => {
   const req = event.request;
