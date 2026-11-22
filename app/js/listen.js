@@ -31,8 +31,35 @@ const Listen = (() => {
     if (!ctx) {
       const AC = window.AudioContext || window.webkitAudioContext;
       ctx = new AC();
+      ctx.onstatechange = onCtxStateChange;
     }
     return ctx;
+  }
+
+  /* AudioContext が running になるまで resume を試みる。running なら true。
+   * iOS Safari では新規タブの初回・重い処理の直後・割り込み(着信/通知)の後に
+   * suspended / interrupted のまま残ることがある。その状態で source.start しても
+   * 無音かつ currentTime が進まない（=「⏸表示なのに無音・リング停止」の実機バグ）。
+   * resume() はユーザー操作外だと拒否されたり、Promise が解決しないことがあるので
+   * タイムアウト付きで待つ。resume() の呼び出し自体は同期で行うため、タップ起点
+   * （▶ボタン）から呼べばユーザー操作として扱われる。 */
+  const RESUME_TIMEOUT_MS = 1500;
+  async function ensureRunning() {
+    const c = audioCtx();
+    if (c.state === 'running') return true;
+    let p;
+    try { p = c.resume(); } catch (e) { return false; }
+    try {
+      await Promise.race([p, new Promise((r) => setTimeout(r, RESUME_TIMEOUT_MS))]);
+    } catch (e) { /* NotAllowedError 等 → 下の state 判定に任せる */ }
+    return c.state === 'running';
+  }
+
+  /* 再生中に AudioContext が止められた（iOS の割り込み等）ら、UI を一時停止に合わせる。
+   * 止まった時計のまま「再生中」表示を続けないため。▶で再開できる。 */
+  function onCtxStateChange() {
+    if (!ctx || ctx.state === 'running' || !isPlaying || !track) return;
+    pause();
   }
 
   // --- 状態 ---
@@ -184,21 +211,33 @@ const Listen = (() => {
     if (rafId != null) { cancelAnimationFrame(rafId); rafId = null; }
   }
 
-  function playFrom(offsetSec) {
+  async function playFrom(offsetSec) {
     if (!track) return;
     stopSource();
+    const myToken = ++playToken;
+    const target = Math.min(Math.max(offsetSec, 0), track.duration);
+    // AudioContext が動いていることを確認してから鳴らす（止まっていれば無音になるため）。
+    const running = await ensureRunning();
+    if (myToken !== playToken || !track) return; // 待機中に stop/pause/seek された
+    if (!running) {
+      // 自動では再開できなかった → 一時停止状態にして ▶ タップ（ユーザー操作）での再開を促す。
+      offsetInBuffer = target;
+      isPlaying = false;
+      setPlayingUI(false);
+      updateProgressUI(target);
+      ui.onNotice('blocked');
+      return;
+    }
     const c = audioCtx();
-    if (c.state === 'suspended') c.resume();
     const src = c.createBufferSource();
     src.buffer = track.buffer;
     if (!gainNode) { gainNode = c.createGain(); gainNode.connect(c.destination); }
     src.connect(gainNode);
-    const myToken = ++playToken;
     src.onended = () => {
       if (myToken !== playToken) return; // stop/seek による差し替えは無視
       onTrackEnded();
     };
-    offsetInBuffer = Math.min(Math.max(offsetSec, 0), track.duration);
+    offsetInBuffer = target;
     startedAtCtxTime = c.currentTime;
     src.start(0, offsetInBuffer);
     sourceNode = src;
@@ -279,6 +318,8 @@ const Listen = (() => {
     } catch (e) {
       console.warn('[Listen] buildTrack failed', e);
       onLoadingUI(false);
+      // 無言で止まると原因が分からないので UI に知らせる（再発時の切り分け用にエラー名も渡す）。
+      ui.onNotice('build-failed', e);
       return;
     }
     if (!built) { onLoadingUI(false); return; } // キャンセル
@@ -312,6 +353,7 @@ const Listen = (() => {
   function pause() {
     if (!track || !isPlaying) return;
     offsetInBuffer = currentPos();
+    playToken++; // ensureRunning 待機中の playFrom を無効化
     isPlaying = false;
     stopSource();
     setPlayingUI(false);
@@ -410,6 +452,7 @@ const Listen = (() => {
     onLoading: () => {},    // (loading, done, all)
     onHeader: () => {},     // ({ size, from, to, wordCount })
     hideFull: () => {},
+    onNotice: () => {},     // (kind: 'blocked' | 'build-failed', error?)
   };
   function setPlayingUI(p) { ui.onPlaying(p); if (navigator.mediaSession) { try { navigator.mediaSession.playbackState = p ? 'playing' : 'paused'; } catch (e) {} } }
   function updateProgressUI(pos) {
