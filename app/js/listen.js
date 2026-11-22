@@ -322,6 +322,12 @@ const Listen = (() => {
   async function startTrack(buildFn, { autoplay = true } = {}) {
     // 排他制御: 機能A(Player)と同時に鳴らさない。聞き流し開始時は必ず機能Aを停止する。
     if (typeof Player !== 'undefined' && Player.stop) Player.stop();
+    // 前のトラックは準備中に鳴らし続けない（進捗表示が新トラックの見出しと混ざるのも防ぐ）。
+    playToken++;
+    stopSource();
+    isPlaying = false;
+    pendingPlay = false;
+    pausedByCtx = false;
     // ユーザー操作起点で AudioContext を起こす（iOS）。resume() はここで同期に呼ばれる。
     // iOS では resume() の Promise が解決しないことがあるので待たない（再生直前に playFrom が確認する）。
     ensureRunning();
