@@ -45,6 +45,7 @@ const Listen = (() => {
    * （▶ボタン）から呼べばユーザー操作として扱われる。 */
   const RESUME_TIMEOUT_MS = 1500;
   async function ensureRunning() {
+    if (ctxStalled) recreateCtx(); // 時計が止まった AudioContext は捨てて作り直す（操作起点で呼ばれる）
     const c = audioCtx();
     if (c.state === 'running') return true;
     let p;
@@ -53,6 +54,55 @@ const Listen = (() => {
       await Promise.race([p, new Promise((r) => setTimeout(r, RESUME_TIMEOUT_MS))]);
     } catch (e) { /* NotAllowedError 等 → 下の state 判定に任せる */ }
     return c.state === 'running';
+  }
+
+  /* 時計停止の検知: iOS では AudioContext が state='running' のまま currentTime が進まず、
+   * 無音になることがある（「⏸表示なのに無音・リング停止」の実機再発。state を見る対策では防げない）。
+   * 再生中に currentTime が STALL_MS 以上動かなければ止まったとみなし、一時停止＋▶を促す。
+   * 次の ▶（ユーザー操作）で AudioContext を作り直す。AudioBuffer はコンテキストに依存しないので
+   * 連結済みトラックやページキャッシュはそのまま使える。
+   * ※ 監視は rAF で回すので、画面ロック中・バックグラウンド中は検知できない（解除後に検知）。
+   *   ロックしたまま時計が止まるケースは対象外。 */
+  const STALL_MS = 1500;        // 一度進んだ後に止まったと判定するまで
+  const STALL_START_MS = 3000;  // 開始直後に最初に進むまでの猶予（作り直し直後・Bluetooth 切替中は遅れる）
+  const TICK_GAP_MS = 500;      // tick の間がこれ以上空いたら（ロック/バックグラウンド復帰）観測し直す
+  let ctxStalled = false;
+  let watchCtxTime = 0;   // 最後に観測した ctx.currentTime
+  let watchWallTime = 0;  // それを観測した時刻（performance.now）
+  let lastTickAt = 0;     // 前回 tick の時刻
+  let watchAdvanced = false; // 開始後に一度でも時計が進んだか
+  function resetStallWatch() {
+    watchCtxTime = ctx ? ctx.currentTime : 0;
+    watchWallTime = lastTickAt = performance.now();
+    watchAdvanced = false;
+  }
+  function checkStall() {
+    const now = performance.now();
+    const gap = now - lastTickAt;
+    lastTickAt = now;
+    // running 以外は onCtxStateChange に任せる（割り込みからの自動再開を奪わない）
+    if (!ctx || ctx.state !== 'running') return false;
+    // 観測していなかった空白期間（rAF 停止中）は数えない
+    if (gap > TICK_GAP_MS) { watchCtxTime = ctx.currentTime; watchWallTime = now; return false; }
+    const ct = ctx.currentTime;
+    if (ct !== watchCtxTime) { watchCtxTime = ct; watchWallTime = now; watchAdvanced = true; return false; }
+    if (now - watchWallTime < (watchAdvanced ? STALL_MS : STALL_START_MS)) return false;
+    console.warn('[Listen] AudioContext clock stalled', ctx.state);
+    pause();
+    ctxStalled = true;
+    ui.onNotice('blocked');
+    return true;
+  }
+  function recreateCtx() {
+    ctxStalled = false;
+    const old = ctx;
+    ctx = null;
+    gainNode = null;
+    if (old) {
+      old.onstatechange = null;
+      try { const p = old.close(); if (p && p.catch) p.catch(() => {}); } catch (e) {}
+    }
+    audioCtx(); // ユーザー操作の中で作り直せば running で始まる
   }
 
   /* AudioContext の状態変化に再生状態を合わせる。
@@ -253,6 +303,7 @@ const Listen = (() => {
     };
     startedAtCtxTime = c.currentTime;
     src.start(0, offsetInBuffer);
+    resetStallWatch();
     sourceNode = src;
     isPlaying = true;
     setPlayingUI(true);
@@ -305,6 +356,7 @@ const Listen = (() => {
 
   // ================= 監視ループ（進捗/境界更新） =================
   function tick() {
+    if (isPlaying && checkStall()) return; // 時計停止 → 一時停止にしたので監視ループも終了
     const pos = currentPos();
     updateProgressUI(pos);
     const wi = wordIndexAt(pos);
@@ -450,9 +502,12 @@ const Listen = (() => {
     const n = currentWordInTrack >= 0 ? currentWordInTrack + 1 : 1;
     // ロック画面タイトル: 漢字(+ピンイン)があればそれを優先。無ければ「聞き流し n/total」。
     const t = textForTrackWord(currentWordInTrack >= 0 ? currentWordInTrack : 0);
-    let title = `聞き流し ${n}/${track.wordCount}`;
+    // 番号は通し番号（No.51）＋トラック内の位置（1/50）。
+    const w = trackWord(currentWordInTrack >= 0 ? currentWordInTrack : 0);
+    const pos = w ? `No.${w.serial} (${n}/${track.wordCount})` : `${n}/${track.wordCount}`;
+    let title = `聞き流し ${pos}`;
     if (t && (t.hanzi || t.pinyin)) {
-      title = [t.hanzi, t.pinyin].filter(Boolean).join('  ') + `  (${n}/${track.wordCount})`;
+      title = [t.hanzi, t.pinyin].filter(Boolean).join('  ') + `  ${pos}`;
     }
     const album = track.mode === 'starred'
       ? `★ スター単語 · ${track.wordCount}語`
@@ -486,7 +541,9 @@ const Listen = (() => {
     const ratio = track.duration > 0 ? Math.min(pos / track.duration, 1) : 0;
     const wi = wordIndexAt(pos);
     // 第4引数: 現在語のテキスト（漢字・ピンイン・訳）。無ければ null（番号フォールバック）。
-    ui.onProgress(ratio, wi + 1, track.wordCount, textForTrackWord(wi));
+    // 第5引数: 単語帳全体での通し番号（51–100 の1語目なら 51）。
+    const w = trackWord(wi);
+    ui.onProgress(ratio, wi + 1, track.wordCount, textForTrackWord(wi), w ? w.serial : null);
   }
   function onLoadingUI(loading, done, all) { ui.onLoading(loading, done, all); }
   function updateHeaderUI() {

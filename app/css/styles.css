@@ -349,8 +349,10 @@ body {
   display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 .lp-gloss.hidden { display: none; }
 
-.lp-count { font-size: 22px; font-weight: 700; color: var(--text); margin: 20px 0 6px; }
-.lp-count #lp-cur { color: var(--active); }
+.lp-serial { font-size: 22px; font-weight: 700; color: var(--text); margin: 20px 0 2px; }
+.lp-serial #lp-serial { color: var(--active); }
+/* トラック内の位置（1 / 50）は補助情報として小さく */
+.lp-count { font-size: 14px; font-weight: 600; color: var(--text-sub); margin: 0 0 6px; }
 
 #listen-player .fp-controls { margin-top: 24px; }
 #listen-player.paused .fp-main { background: var(--accent); color: var(--accent-on); }

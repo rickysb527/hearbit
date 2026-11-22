@@ -1181,6 +1181,7 @@
   const lpGloss = document.getElementById('lp-gloss');
   const lpCur = document.getElementById('lp-cur');
   const lpTotal = document.getElementById('lp-total');
+  const lpSerial = document.getElementById('lp-serial');
   const lpRingFg = document.getElementById('lp-ring-fg');
   const lpRingDot = document.getElementById('lp-ring-dot');
   const lpLoading = document.getElementById('lp-loading');
@@ -1246,12 +1247,15 @@
       : `単語のみ · ${info.size}語（${info.from}–${info.to}）`;
     lpTotal.textContent = String(info.wordCount);
     lpCur.textContent = '1';
+    // 通し番号: 範囲なら開始番号（51–100 なら 51）、スターなら先頭のスター単語の番号
+    const firstSerial = info.mode === 'starred' ? info.firstSerial : info.from;
+    lpSerial.textContent = String(firstSerial || '-');
     // 開始時点は最初の語（テキストは onProgress/refreshText が確定するまで番号表示）。
-    renderListenWord(null, 1);
+    renderListenWord(null, firstSerial || 1);
     setRing(0);
     updateListenStar();
     lmPrefix = info.mode === 'starred' ? '★ 聞き流し' : '聞き流し';
-    lmLabel.textContent = `${lmPrefix} 1/${info.wordCount}`;
+    lmLabel.textContent = `${lmPrefix} ` + (firstSerial ? `No.${firstSerial} (1/${info.wordCount})` : `1/${info.wordCount}`);
     lmFill.style.width = '0%';
     hideListenMini(); // 新しいトラックは全画面で始める
     listenUI.onPlaying(false); // 準備中は停止表示（準備中にミニ化しても ▶ の見た目を状態と揃える）
@@ -1285,16 +1289,19 @@
       lmToggle.querySelector('.ic-play').classList.toggle('hidden', playing);
       lmToggle.querySelector('.ic-pause').classList.toggle('hidden', !playing);
     },
-    onProgress(ratio, wordNo, wordCount, text) {
+    // wordNo/wordCount = トラック内の位置（1/50）、serial = 単語帳全体の通し番号（No.51）
+    onProgress(ratio, wordNo, wordCount, text, serial) {
       setRing(ratio);
       // ミニ: 「聞き流し 12/50 · 漢字」＋進捗バー
       const hanzi = text && text.hanzi;
-      lmLabel.textContent = `${lmPrefix} ${wordNo}/${wordCount}` + (hanzi ? ` · ${hanzi}` : '');
+      const pos = serial ? `No.${serial} (${wordNo}/${wordCount})` : `${wordNo}/${wordCount}`;
+      lmLabel.textContent = `${lmPrefix} ${pos}` + (hanzi ? ` · ${hanzi}` : '');
+      lpSerial.textContent = String(serial || wordNo);
       lmFill.style.width = `${(ratio * 100).toFixed(2)}%`;
       lpCur.textContent = String(wordNo);
       lpTotal.textContent = String(wordCount);
       // 中央表示: テキストがあれば漢字・ピンイン、無ければトラック内の語順「単語 N」。
-      renderListenWord(text, wordNo);
+      renderListenWord(text, serial || wordNo);
       updateListenStar();
     },
     onLoading(loading, done, all) {
@@ -1342,7 +1349,7 @@
   if (listenStarBtn) listenStarBtn.addEventListener('click', () => {
     const indices = starredListenIndices();
     if (indices.length === 0) return; // 0件は無効表示だが二重ガード
-    showListenFull({ mode: 'starred', wordCount: indices.length });
+    showListenFull({ mode: 'starred', wordCount: indices.length, firstSerial: listenWords[indices[0]].serial });
     Listen.playStarred(indices);
   });
 
