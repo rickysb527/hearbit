@@ -45,6 +45,7 @@ const Listen = (() => {
    * （▶ボタン）から呼べばユーザー操作として扱われる。 */
   const RESUME_TIMEOUT_MS = 1500;
   async function ensureRunning() {
+    if (ctxStalled) recreateCtx(); // 時計が止まった AudioContext は捨てて作り直す（操作起点で呼ばれる）
     const c = audioCtx();
     if (c.state === 'running') return true;
     let p;
@@ -53,6 +54,39 @@ const Listen = (() => {
       await Promise.race([p, new Promise((r) => setTimeout(r, RESUME_TIMEOUT_MS))]);
     } catch (e) { /* NotAllowedError 等 → 下の state 判定に任せる */ }
     return c.state === 'running';
+  }
+
+  /* 時計停止の検知: iOS では AudioContext が state='running' のまま currentTime が進まず、
+   * 無音になることがある（「⏸表示なのに無音・リング停止」の実機再発。state を見る対策では防げない）。
+   * 再生中に currentTime が STALL_MS 以上動かなければ止まったとみなし、一時停止＋▶を促す。
+   * 次の ▶（ユーザー操作）で AudioContext を作り直す。AudioBuffer はコンテキストに依存しないので
+   * 連結済みトラックやページキャッシュはそのまま使える。 */
+  const STALL_MS = 1500;
+  let ctxStalled = false;
+  let watchCtxTime = 0;   // 最後に観測した ctx.currentTime
+  let watchWallTime = 0;  // それを観測した時刻（performance.now）
+  function resetStallWatch() {
+    watchCtxTime = ctx ? ctx.currentTime : 0;
+    watchWallTime = performance.now();
+  }
+  function checkStall() {
+    const now = performance.now();
+    const ct = ctx.currentTime;
+    if (ct !== watchCtxTime) { watchCtxTime = ct; watchWallTime = now; return false; }
+    if (now - watchWallTime < STALL_MS) return false;
+    console.warn('[Listen] AudioContext clock stalled', ctx.state);
+    pause();
+    ctxStalled = true;
+    ui.onNotice('blocked');
+    return true;
+  }
+  function recreateCtx() {
+    ctxStalled = false;
+    const old = ctx;
+    ctx = null;
+    gainNode = null;
+    if (old) { old.onstatechange = null; try { old.close(); } catch (e) {} }
+    audioCtx(); // ユーザー操作の中で作り直せば running で始まる
   }
 
   /* AudioContext の状態変化に再生状態を合わせる。
@@ -253,6 +287,7 @@ const Listen = (() => {
     };
     startedAtCtxTime = c.currentTime;
     src.start(0, offsetInBuffer);
+    resetStallWatch();
     sourceNode = src;
     isPlaying = true;
     setPlayingUI(true);
@@ -305,6 +340,7 @@ const Listen = (() => {
 
   // ================= 監視ループ（進捗/境界更新） =================
   function tick() {
+    if (isPlaying && checkStall()) return; // 時計停止 → 一時停止にしたので監視ループも終了
     const pos = currentPos();
     updateProgressUI(pos);
     const wi = wordIndexAt(pos);

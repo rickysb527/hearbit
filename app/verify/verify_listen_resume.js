@@ -13,6 +13,8 @@
  *   E) 再生中に interrupted へ遷移: UI が一時停止に合わせられる。
  *   F) トラック構築失敗: onNotice('build-failed', err)。
  *   G) ensureRunning 待機中に stop: 待機明けに鳴り出さない。
+ *   S) state='running' なのに時計(currentTime)が進まない（iOS）: 一時停止＋blocked。
+ *      次の ▶ で AudioContext を作り直して再生できる。
  *
  * 使い方: node app/verify/verify_listen_resume.js
  */
@@ -24,14 +26,20 @@ const ListenBuild = require('../js/listen-build.js');
 const SRC = fs.readFileSync(path.join(__dirname, '../js/listen.js'), 'utf8') + '\n;this.Listen = Listen;';
 
 // resumeMode: 'ok'（running にして解決）| 'hang'（解決しない・状態不変）| 'reject'
-function makeEnv({ initialState = 'running', resumeMode = 'ok', decodeFails = false } = {}) {
-  const log = { started: 0, notices: [], playing: [] };
+// clock: 'static'（currentTime 固定。rAF を回さない既存ケース用）| 'run'（実時間で進む）| 'stuck'（進まない）
+function makeEnv({ initialState = 'running', resumeMode = 'ok', decodeFails = false, clock = 'static', raf = false } = {}) {
+  const log = { started: 0, notices: [], playing: [], ctxCount: 0 };
+  const env = { clock };
   let ctxRef = null;
   class FakeCtx {
     constructor() {
       this.state = initialState; this.sampleRate = 8000; this.currentTime = 0;
       this.destination = {}; this.resumeMode = resumeMode; ctxRef = this;
+      this.t0 = Date.now(); this.clock = env.clock; log.ctxCount++;
     }
+    get currentTime() { return this.clock === 'run' ? (Date.now() - this.t0) / 1000 : 0; }
+    set currentTime(v) {}
+    close() { this.state = 'closed'; return Promise.resolve(); }
     resume() {
       if (this.resumeMode === 'ok') { this.setState('running'); return Promise.resolve(); }
       if (this.resumeMode === 'reject') return Promise.reject(new Error('NotAllowedError'));
@@ -57,8 +65,8 @@ function makeEnv({ initialState = 'running', resumeMode = 'ok', decodeFails = fa
     navigator: {},
     ListenBuild,
     Splitter: { detectSilences: () => [] },
-    requestAnimationFrame: () => 1,
-    cancelAnimationFrame: () => {},
+    requestAnimationFrame: raf ? (cb) => setTimeout(cb, 16) : () => 1,
+    cancelAnimationFrame: raf ? (id) => clearTimeout(id) : () => {},
     performance: { now: () => Date.now() },
     setTimeout, console: { warn() {}, log: console.log },
   };
@@ -76,7 +84,7 @@ function makeEnv({ initialState = 'running', resumeMode = 'ok', decodeFails = fa
       onNotice: (kind, err) => log.notices.push(err ? `${kind}:${err.message}` : kind),
     },
   });
-  return { Listen, log, ctx: () => ctxRef };
+  return { Listen, log, ctx: () => ctxRef, env };
 }
 
 let fails = 0;
@@ -157,6 +165,26 @@ function check(name, cond) {
     ctx().setState('running');
     await new Promise((r) => setTimeout(r, 1700));
     check('G 待機中に stop: 鳴り出さない', log.started === 1 && !Listen.isPlaying() && !Listen.isActive());
+  }
+  { // S
+    const { Listen, log, env } = makeEnv({ clock: 'stuck', raf: true });
+    await Listen.playRange(0, 3, 50);
+    check('S 時計停止: 開始直後は再生中表示', Listen.isPlaying() && log.started === 1);
+    await new Promise((r) => setTimeout(r, 2200));
+    check('S 時計停止を検知: 一時停止＋blocked 通知',
+      !Listen.isPlaying() && log.notices.includes('blocked') && log.playing[log.playing.length - 1] === false);
+    env.clock = 'run'; // 作り直した AudioContext は正常に進む
+    Listen.toggle();   // ▶（ユーザー操作）
+    await new Promise((r) => setTimeout(r, 2200));
+    check('S ▶で AudioContext を作り直して再生継続', log.ctxCount === 2 && log.started === 2 && Listen.isPlaying());
+    Listen.stop();
+  }
+  { // S2: 正常に進む時計では誤検知しない
+    const { Listen, log } = makeEnv({ clock: 'run', raf: true });
+    await Listen.playRange(0, 3, 50);
+    await new Promise((r) => setTimeout(r, 2200));
+    check('S2 正常な時計では誤検知しない', Listen.isPlaying() && !log.notices.includes('blocked') && log.ctxCount === 1);
+    Listen.stop();
   }
   console.log(fails ? `\n${fails} 件 FAIL` : '\nALL PASS');
   process.exit(fails ? 1 : 0);
