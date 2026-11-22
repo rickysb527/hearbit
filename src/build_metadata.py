@@ -36,6 +36,7 @@ SHORT_MERGE_RATIO = 0.45
 # 【修正①】アナウンス切り離し（案①(a)中央値基準・検証済み）:
 # has_announce の先頭セグメント末尾から「本体中央値ぶん」遡った時刻を単語1開始の目安とし、
 # 最も近い内部無音境界(0.4秒以上の中点)にスナップして announce_end を確定する。
+LEAD_EDGE = 0.15          # 冒頭の無音余白とみなす範囲（seg0 開始からこの秒数以内に始まる無音）
 ANNOUNCE_LOW_CONF = 0.5   # アナウンス長がこれ未満なら low_confidence フラグ（実聴確認用）
 
 # 今回のHSK3級は正解データがあるので、それを優先してラベルを確定する。
@@ -152,8 +153,10 @@ def compute_announce_end(seg0_start, seg0_end, body_median, sils):
     末尾から body_median ぶん遡った目安時刻を、最も近い内部無音境界(中点)にスナップ。
     目安が負なら先頭寄りの最初の境界にスナップ。境界候補が無ければ None。
     """
+    # ページ冒頭の無音余白（start≈seg0_start）は境界候補から外す。含めると短いアナウンスで
+    # この余白が選ばれ、アナウンスが単語側に残る（021/034/045/095/097）。
     inner = sorted(round((s + e) / 2, 3) for s, e, d in sils
-                   if seg0_start < (s + e) / 2 < seg0_end)
+                   if s > seg0_start + LEAD_EDGE and seg0_start < (s + e) / 2 < seg0_end)
     if not inner:
         return None
     target = seg0_end - body_median

@@ -28,7 +28,9 @@ const Splitter = (() => {
    *   2: wordonly抽出の冒頭無音余白スキップ・境界不足時end含める修正を反映（訳スキップ修正）。
    *      ※既存データ(v1 or splitVersion無し)は次回オープンで元音声から自動再分割され反映される。
    */
-  const SPLIT_VERSION = 2;
+  const SPLIT_VERSION = 3;
+  // computeAnnounceEnd で冒頭の無音余白とみなす範囲（seg0 開始からこの秒数以内に始まる無音）
+  const LEAD_EDGE = 0.15;
 
   const NOISE_DB = -30;      // dBFS 閾値
   const MIN_SILENCE = 0.4;   // これ以上続けば無音とみなす（秒）
@@ -174,7 +176,11 @@ const Splitter = (() => {
    * silences: detectSilences の全無音区間 [{start,end,dur}]
    */
   function computeAnnounceEnd(seg0Start, seg0End, bodyMedian, silences) {
+    // ページ冒頭の無音余白（start≈seg0Start、実測 約0.45秒）は境界候補から外す。
+    // 含めると短いアナウンス（「形容詞」等）でこの余白が最寄りに選ばれ、アナウンスが単語側に残る
+    // （聞き流しで「形容詞→単語」で切れて訳が落ちていた: 021/034/045/095/097）。
     const inner = silences
+      .filter((s) => s.start > seg0Start + LEAD_EDGE)
       .map((s) => round3((s.start + s.end) / 2))
       .filter((mid) => seg0Start < mid && mid < seg0End)
       .sort((a, b) => a - b);
