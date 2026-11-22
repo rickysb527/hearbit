@@ -128,6 +128,9 @@ const Listen = (() => {
       if (i > 0) totalLen += gapSamples;
       totalLen += clips[i].length;
     }
+    // decode 用 AudioContext はもう不要。タップ中に作られると iOS では running のまま残るので眠らせる
+    // （何も鳴らさない Web Audio が音声セッションに関わる余地を残さない。suspended でも decode はできる）。
+    try { const p = audioCtx().suspend(); if (p && p.catch) p.catch(() => {}); } catch (e) {}
     const outData = new Float32Array(Math.max(1, totalLen));
 
     // 3) 連結しつつ、各単語の先頭秒（境界）を記録
@@ -224,8 +227,7 @@ const Listen = (() => {
     const a = el();
     offsetInBuffer = Math.min(Math.max(offsetSec, 0), track.duration);
     if (!isTrackSrc()) {
-      a.src = track.url;
-      a.load();
+      a.src = track.url; // 代入で読み込みが始まる
       await new Promise((resolve) => {
         if (a.readyState >= 1) { resolve(); return; }
         const done = () => { a.removeEventListener('loadedmetadata', done); a.removeEventListener('error', done); resolve(); };
@@ -233,6 +235,11 @@ const Listen = (() => {
         a.addEventListener('error', done);
       });
       if (myToken !== playToken || !track) return; // 待機中に stop/pause/別の playFrom が入った
+      if (a.error) {
+        // WAV を読めなかった（メモリ不足など）。▶ を促しても同じ失敗を繰り返すだけなので失敗として通知
+        ui.onNotice('build-failed', new Error('audio load error ' + (a.error.code || '')));
+        return;
+      }
     }
     try { a.currentTime = offsetInBuffer; } catch (e) {}
     try {
