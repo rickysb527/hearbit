@@ -103,9 +103,35 @@
   }
   function numChunks(total, size) { return Math.ceil(total / size); }
 
+  /* 連結済みモノラル PCM(Float32) → WAV(16bit PCM モノラル) の ArrayBuffer。
+   * 聞き流しは <audio> 要素で鳴らす（iOS でバックグラウンド/ロック中も止まらない「メディア再生」扱い）
+   * ため、連結1本をファイルにする。音声(話し声)なので 44.1/48kHz は 1/2 に間引いて容量を半分に
+   * （隣り合う2サンプルの平均 = 簡易ローパス）。100語(約5分)で約14MB。
+   * 戻り値: { wav: ArrayBuffer, sampleRate: 出力レート } */
+  function encodeWav(samples, srcRate) {
+    const factor = Math.max(1, Math.floor(srcRate / 22050));
+    const rate = Math.round(srcRate / factor);
+    const n = Math.floor(samples.length / factor);
+    const buf = new ArrayBuffer(44 + n * 2);
+    const v = new DataView(buf);
+    const str = (o, s) => { for (let i = 0; i < s.length; i++) v.setUint8(o + i, s.charCodeAt(i)); };
+    str(0, 'RIFF'); v.setUint32(4, 36 + n * 2, true); str(8, 'WAVE');
+    str(12, 'fmt '); v.setUint32(16, 16, true); v.setUint16(20, 1, true); v.setUint16(22, 1, true);
+    v.setUint32(24, rate, true); v.setUint32(28, rate * 2, true); v.setUint16(32, 2, true); v.setUint16(34, 16, true);
+    str(36, 'data'); v.setUint32(40, n * 2, true);
+    for (let i = 0, o = 44; i < n; i++, o += 2) {
+      let x = 0;
+      for (let k = 0; k < factor; k++) x += samples[i * factor + k];
+      x /= factor;
+      x = x < -1 ? -1 : (x > 1 ? 1 : x);
+      v.setInt16(o, x < 0 ? x * 0x8000 : x * 0x7fff, true);
+    }
+    return { wav: buf, sampleRate: rate };
+  }
+
   const api = {
     GAP_SEC, EDGE_EPS, WORDONLY_BLOCKS,
-    wordPlayRange, wordonlyRange, collectWords, chunkRange, numChunks,
+    wordPlayRange, wordonlyRange, collectWords, chunkRange, numChunks, encodeWav,
   };
 
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
