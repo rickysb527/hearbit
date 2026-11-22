@@ -55,11 +55,19 @@ const Listen = (() => {
     return c.state === 'running';
   }
 
-  /* 再生中に AudioContext が止められた（iOS の割り込み等）ら、UI を一時停止に合わせる。
-   * 止まった時計のまま「再生中」表示を続けないため。▶で再開できる。 */
+  /* AudioContext の状態変化に再生状態を合わせる。
+   * - 再生中に止められた（iOS の着信・Siri 等の割り込み）→ 一時停止にする。
+   *   止まった時計のまま「再生中」表示を続けないため。
+   * - running に戻った → 割り込み/自動再開失敗で止めていた場合だけ、続きから自動で再開する
+   *   （散歩中の着信後に ▶ を押さなくても戻る）。ユーザーが自分で止めた場合は再開しない。 */
+  let pausedByCtx = false;
   function onCtxStateChange() {
-    if (!ctx || ctx.state === 'running' || !isPlaying || !track) return;
-    pause();
+    if (!ctx || !track) return;
+    if (ctx.state === 'running') {
+      if (pausedByCtx && !isPlaying && !pendingPlay) { pausedByCtx = false; playFrom(offsetInBuffer); }
+      return;
+    }
+    if (isPlaying) { pause(); pausedByCtx = true; }
   }
 
   // --- 状態 ---
@@ -75,6 +83,7 @@ const Listen = (() => {
   let gainNode = null;
   let isPlaying = false;
   let playToken = 0;
+  let pendingPlay = false;    // playFrom が AudioContext の再開を待っている間 true
 
   // 再生位置の基準（AudioContext.currentTime ベースで算出）
   let startedAtCtxTime = 0;   // source.start した時の ctx.currentTime
@@ -215,16 +224,21 @@ const Listen = (() => {
     if (!track) return;
     stopSource();
     const myToken = ++playToken;
-    const target = Math.min(Math.max(offsetSec, 0), track.duration);
+    // 待機中は「停止中・開始待ち」として扱う。位置は offsetInBuffer に置き、待機中の
+    // ⏮/⏭（nav）はここを動かすだけ → 待機明けに最新の位置から鳴らす。
+    offsetInBuffer = Math.min(Math.max(offsetSec, 0), track.duration);
+    isPlaying = false;
+    pendingPlay = true;
     // AudioContext が動いていることを確認してから鳴らす（止まっていれば無音になるため）。
     const running = await ensureRunning();
-    if (myToken !== playToken || !track) return; // 待機中に stop/pause/seek された
+    if (myToken !== playToken || !track) return; // 待機中に stop/pause/別の playFrom が入った
+    pendingPlay = false;
     if (!running) {
       // 自動では再開できなかった → 一時停止状態にして ▶ タップ（ユーザー操作）での再開を促す。
-      offsetInBuffer = target;
-      isPlaying = false;
+      // 後から running に戻ったら onCtxStateChange が自動で続きを鳴らす。
+      pausedByCtx = true;
       setPlayingUI(false);
-      updateProgressUI(target);
+      updateProgressUI(offsetInBuffer);
       ui.onNotice('blocked');
       return;
     }
@@ -237,7 +251,6 @@ const Listen = (() => {
       if (myToken !== playToken) return; // stop/seek による差し替えは無視
       onTrackEnded();
     };
-    offsetInBuffer = target;
     startedAtCtxTime = c.currentTime;
     src.start(0, offsetInBuffer);
     sourceNode = src;
@@ -352,9 +365,11 @@ const Listen = (() => {
   }
 
   function pause() {
-    if (!track || !isPlaying) return;
-    offsetInBuffer = currentPos();
+    if (!track || (!isPlaying && !pendingPlay)) return;
+    if (isPlaying) offsetInBuffer = currentPos();
     playToken++; // ensureRunning 待機中の playFrom を無効化
+    pendingPlay = false;
+    pausedByCtx = false; // 利用者の一時停止。割り込み起因なら呼び出し側が立て直す
     isPlaying = false;
     stopSource();
     setPlayingUI(false);
@@ -365,6 +380,7 @@ const Listen = (() => {
     if (!track || isPlaying) return;
     // 末尾で止まっていたら頭から
     if (offsetInBuffer >= track.duration - 0.02) offsetInBuffer = 0;
+    pausedByCtx = false;
     playFrom(offsetInBuffer);
     updateMediaMetadata();
   }
@@ -404,6 +420,8 @@ const Listen = (() => {
     buildToken++;
     stopSource();
     isPlaying = false;
+    pendingPlay = false;
+    pausedByCtx = false;
     offsetInBuffer = 0;
     currentWordInTrack = -1;
     // track は保持しない（メモリ解放）。UI も閉じる。
