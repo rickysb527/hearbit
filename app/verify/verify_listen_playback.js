@@ -12,7 +12,7 @@
  *   C) OS 側の中断（着信等で要素が pause）: UI が一時停止に揃う。▶ で続きから。
  *   D) ⏭: 次の語の先頭へ currentTime を移す。
  *   E) 末尾まで再生: ended で停止、▶ で頭から。
- *   F) トラック構築失敗: build-failed 通知。
+ *   F) トラック構築失敗・WAV の読み込み失敗: build-failed 通知（▶ を促さない）。
  *   G) 新しいトラック開始・stop で前のトラックの blob URL を解放。構築中の stop で鳴り出さない。
  *   H) アンロック用の無音の play/pause/ended イベントで状態が乱れない。
  *
@@ -54,21 +54,29 @@ const tick = (ms = 10) => new Promise((r) => setTimeout(r, ms));
 
 // ---- 再生ロジック用のモック環境 ----
 // playMode: 'ok' | 'reject'（NotAllowedError）
-function makeEnv({ playMode = 'ok', decodeFails = false } = {}) {
+function makeEnv({ playMode = 'ok', decodeFails = false, loadFails = false } = {}) {
   const log = { plays: 0, notices: [], playing: [], revoked: [], created: 0 };
-  const env = { playMode };
+  const env = { playMode, loadFails };
   class FakeAudio {
     constructor() {
       this.listeners = {}; this._src = ''; this.currentTime = 0; this.paused = true; this.ended = false;
       this.readyState = 0; this.duration = NaN; env.audio = this;
     }
     get src() { return this._src; }
-    set src(v) { this._src = v; this.readyState = 0; this.ended = false; this.currentTime = 0; }
+    set src(v) {
+      this._src = v; this.readyState = 0; this.ended = false; this.currentTime = 0; this.error = null;
+      // 代入で読み込み開始（ブラウザと同じ）。env.loadFails ならトラックの読み込みを失敗させる
+      if (v) setTimeout(() => {
+        if (this._src !== v) return;
+        if (env.loadFails && v.startsWith('blob:track')) { this.error = { code: 4 }; this.emit('error'); return; }
+        this.readyState = 1; this.emit('loadedmetadata');
+      }, 1);
+    }
     removeAttribute(k) { if (k === 'src') this._src = ''; }
     addEventListener(t, f) { (this.listeners[t] = this.listeners[t] || []).push(f); }
     removeEventListener(t, f) { this.listeners[t] = (this.listeners[t] || []).filter((x) => x !== f); }
     emit(t) { (this.listeners[t] || []).slice().forEach((f) => f()); }
-    load() { if (this._src) setTimeout(() => { this.readyState = 1; this.emit('loadedmetadata'); }, 1); }
+    load() {}
     play() {
       if (env.playMode === 'reject' && this._src.startsWith('blob:track')) {
         return Promise.reject(Object.assign(new Error('NotAllowedError'), { name: 'NotAllowedError' }));
@@ -167,6 +175,13 @@ const lastPlaying = (log) => log.playing[log.playing.length - 1];
     const { Listen, log } = makeEnv({ decodeFails: true });
     await Listen.playRange(0, 3, 50);
     check('F 構築失敗: build-failed 通知', log.notices.some((n) => n.startsWith('build-failed:EncodingError')) && !Listen.isPlaying());
+  }
+  { // F2
+    const { Listen, log } = makeEnv({ loadFails: true });
+    await Listen.playRange(0, 3, 50);
+    check('F WAV 読み込み失敗: build-failed 通知（blocked ではない）',
+      log.notices.some((n) => n.startsWith('build-failed:audio load error')) && !log.notices.includes('blocked') && !Listen.isPlaying(),
+      JSON.stringify(log.notices));
   }
   { // G, H
     const { Listen, log, audio } = makeEnv();
