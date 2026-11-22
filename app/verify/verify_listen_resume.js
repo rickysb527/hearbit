@@ -48,7 +48,7 @@ function makeEnv({ initialState = 'running', resumeMode = 'ok', decodeFails = fa
       res({ sampleRate: 8000, length: d.length, numberOfChannels: 1, getChannelData: () => d });
     }
     createBufferSource() {
-      return { connect() {}, disconnect() {}, stop() {}, start() { log.started++; } };
+      return { connect() {}, disconnect() {}, stop() {}, start(when, off) { log.started++; log.lastOffset = off; } };
     }
     createGain() { return { connect() {} }; }
   }
@@ -111,6 +111,34 @@ function check(name, cond) {
     // E
     ctx().setState('interrupted');
     check('E 再生中に interrupted: UI を一時停止に', !Listen.isPlaying() && log.playing[log.playing.length - 1] === false);
+    ctx().setState('running');
+    await new Promise((r) => setTimeout(r, 10));
+    check('E 割り込み終了(running)で自動再開', log.started === 2 && Listen.isPlaying());
+    Listen.pause();
+    ctx().setState('suspended');
+    ctx().setState('running');
+    await new Promise((r) => setTimeout(r, 10));
+    check('E 利用者の一時停止は自動再開しない', log.started === 2 && !Listen.isPlaying());
+  }
+  { // H
+    const { Listen, log, ctx } = makeEnv({ initialState: 'interrupted', resumeMode: 'hang' });
+    await Listen.playRange(0, 3, 50);
+    ctx().setState('running');
+    await new Promise((r) => setTimeout(r, 10));
+    check('H blocked 後に running へ戻ると自動で鳴る', log.started === 1 && Listen.isPlaying());
+  }
+  { // I
+    const { Listen, log, ctx } = makeEnv({ initialState: 'running' });
+    await Listen.playRange(0, 3, 50);
+    Listen.pause();
+    ctx().state = 'suspended';
+    ctx().resumeMode = 'hang';
+    Listen.toggle();          // 再開待ち
+    Listen.next();            // 待機中に ⏭（語2の頭 = 2秒 + 0.3秒ギャップ）
+    ctx().state = 'running';  // 待機明けに running（statechange なし）
+    await new Promise((r) => setTimeout(r, 1700));
+    check('I 待機中の ⏭ が反映され次の語から鳴る',
+      log.started === 2 && Listen.isPlaying() && Math.abs(log.lastOffset - 2.3) < 0.01);
   }
   { // F
     const { Listen, log } = makeEnv({ decodeFails: true });
