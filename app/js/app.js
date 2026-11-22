@@ -1477,6 +1477,82 @@
   }
   const sleep = (ms) => new Promise(r => setTimeout(r, ms));
 
+  // ================= 更新のお知らせ（PWA はリロードできないため） =================
+  // いま動いているコードの版（APP_VERSION）と、SW が持っている版を比べる。
+  // SW の方が新しい＝新しい版は届いているが画面は古いコードのまま → バナーを出し、タップで再読み込み。
+  // 再生中に勝手に再読み込みすると音が止まるので、自動ではなくタップ式にする。
+  // おまけ機能なので、ここで例外が出てもアプリ本体（下の起動処理）は止めない。
+  try { setupUpdateNotice(); } catch (e) { console.warn('[Hearbit] update notice disabled', e); }
+  function setupUpdateNotice() {
+    const updateBanner = document.getElementById('update-banner');
+    const updateBannerVer = document.getElementById('update-banner-ver');
+    const updateCheckBtn = document.getElementById('update-check-btn');
+    const versionEl = document.getElementById('app-version');
+    if (typeof APP_VERSION === 'undefined' || !updateBanner || !updateBannerVer || !updateCheckBtn || !versionEl) return;
+    versionEl.textContent = `v${APP_VERSION}`;
+    if (!('serviceWorker' in navigator)) { updateCheckBtn.disabled = true; return; }
+    const sw = navigator.serviceWorker;
+
+    // SW の版を問い合わせる。SW が無い/応答しない時は null。
+    function askSwVersion() {
+      const ctrl = sw.controller;
+      if (!ctrl) return Promise.resolve(null);
+      return new Promise((resolve) => {
+        const ch = new MessageChannel();
+        const timer = setTimeout(() => resolve(null), 2000);
+        ch.port1.onmessage = (e) => { clearTimeout(timer); resolve((e.data && e.data.version) || null); };
+        ctrl.postMessage({ type: 'GET_VERSION' }, [ch.port2]);
+      });
+    }
+    async function checkForUpdate() {
+      const v = await askSwVersion();
+      const newer = v != null && v > APP_VERSION;
+      if (newer) updateBannerVer.textContent = `v${v}`;
+      updateBanner.classList.toggle('hidden', !newer);
+      return newer;
+    }
+    // 新しい SW が install → activate（skipWaiting）→ controller 交代 するのを待つ（最大 timeoutMs）。
+    function waitForController(timeoutMs) {
+      return new Promise((resolve) => {
+        const done = () => { clearTimeout(timer); sw.removeEventListener('controllerchange', done); resolve(); };
+        const timer = setTimeout(done, timeoutMs);
+        sw.addEventListener('controllerchange', done);
+      });
+    }
+    // サーバに新しい sw.js があるか確認する。新しい SW が入り始めたら、それを返す（無ければ null）。
+    async function updateSw() {
+      try {
+        const reg = await sw.getRegistration();
+        if (!reg) return null;
+        await reg.update();
+        return reg.installing || reg.waiting || null;
+      } catch (e) { return null; } // オフライン等
+    }
+
+    updateBanner.addEventListener('click', () => location.reload());
+    updateCheckBtn.addEventListener('click', async () => {
+      updateCheckBtn.disabled = true;
+      // 新しい SW が入り始めたなら、入れ替わる（または失敗して諦める）まで待ってから判定する。
+      // 固定時間だけ待つと、回線が遅い時に「最新です」と誤表示してしまう。
+      if (await updateSw()) await waitForController(15000);
+      const newer = await checkForUpdate();
+      updateCheckBtn.disabled = false;
+      if (!newer) showToast(`最新です（v${APP_VERSION}）`, { type: 'info' });
+    });
+
+    sw.addEventListener('controllerchange', checkForUpdate);
+    // iOS の PWA は閉じても中断→再開になりがち。前面に戻った時に更新を確認する
+    // （ロック解除のたびに通信しないよう、前回から 60 秒以上空いた時だけ）。
+    let lastUpdateAt = Date.now();
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState !== 'visible') return;
+      if (Date.now() - lastUpdateAt < 60000) { checkForUpdate(); return; }
+      lastUpdateAt = Date.now();
+      updateSw().then(checkForUpdate);
+    });
+    sw.ready.then(checkForUpdate);
+  }
+
   // --- 起動 ---
   showView('books');
   renderBooks();

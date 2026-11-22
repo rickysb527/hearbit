@@ -6,7 +6,9 @@
  *   - 同一オリジンの App Shell: cache-first（オフラインで確実に起動）
  *   - それ以外: network-first フォールバック（開発中の外部取得など）
  */
-const CACHE = 'hearbit-v11';
+// js/version.js の APP_VERSION と必ず同じ値にする（デプロイごとに両方 +1。verify_version.js で確認）。
+const VERSION = 12;
+const CACHE = 'hearbit-v' + VERSION;
 
 // スコープ（app/）基準の相対パス。sw.js は app/ 直下に置く前提。
 const ASSETS = [
@@ -22,6 +24,7 @@ const ASSETS = [
   './js/listen.js',
   './js/srs.js',
   './js/typing.js',
+  './js/version.js',
   './js/app.js',
   './icons/icon.svg',
   './icons/icon-192.png',
@@ -34,12 +37,13 @@ const ASSETS = [
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE)
-      .then((cache) => cache.addAll(ASSETS))
+      // cache:'reload' = ブラウザの HTTP キャッシュを通さず必ずサーバから取る。
+      // （GitHub Pages は max-age=600。通すとデプロイ直後に古い JS を新キャッシュへ入れてしまう）
+      .then((cache) => cache.addAll(ASSETS.map((u) => new Request(u, { cache: 'reload' }))))
       .then(() => self.skipWaiting())
-      .catch((err) => {
-        // 一部アセットが欠けていても install 自体は続行（開発時の欠損に強く）
-        console.warn('[SW] precache partial failure', err);
-      })
+      // 失敗（通信断など）は握りつぶさない → install 失敗としてブラウザが次の update で再試行する。
+      // 握りつぶすと空キャッシュの SW が waiting で固まり、更新が届かなくなる。
+      // アセットの欠損は verify_version.js（ASSETS が全て実在する）で事前に防ぐ。
   );
 });
 
@@ -60,8 +64,18 @@ self.addEventListener('activate', (event) => {
  *     裏で fetch して新しければキャッシュを更新 → 次回アクセスから最新になる。
  *   activate 時の旧キャッシュ削除（上）と組み合わせ、CACHE 名を上げれば確実に総入れ替えできる。
  */
+// SW からの取得は HTTP キャッシュを経由せず必ずサーバに再検証させる（cache:'no-cache'）。
+// GitHub Pages は max-age=600 なので、通常の fetch だとデプロイ直後 10 分は古い HTML/JS が返り、
+// それを新しいキャッシュへ put して「新しい JS × 古い HTML」などの食い違いを作ってしまう。
+// navigate モードの Request に init を付けて作り直すのは環境により失敗するので URL で取る。
+// ※ URL で取るとリダイレクトを追う。スコープ内のページ遷移先がリダイレクトされる構成にすると
+//   「リダイレクト済み応答」をナビゲーションに返して失敗するので、URL 構成を変える時は要注意。
+function freshFetch(req) {
+  return fetch(req.url, { cache: 'no-cache', credentials: 'same-origin' });
+}
+
 function networkFirst(req) {
-  return fetch(req)
+  return freshFetch(req)
     .then((res) => {
       if (res && res.status === 200 && res.type === 'basic') {
         const copy = res.clone();
@@ -75,7 +89,7 @@ function networkFirst(req) {
 function staleWhileRevalidate(req) {
   return caches.open(CACHE).then((cache) =>
     cache.match(req).then((cached) => {
-      const network = fetch(req)
+      const network = freshFetch(req)
         .then((res) => {
           if (res && res.status === 200 && res.type === 'basic') cache.put(req, res.clone());
           return res;
@@ -86,6 +100,14 @@ function staleWhileRevalidate(req) {
     })
   );
 }
+
+// ページから「この SW の版は？」を問い合わせる（MessageChannel で返答）。
+// ページ側は自分の APP_VERSION と比べ、SW の方が新しければ「更新があります」を出す。
+self.addEventListener('message', (event) => {
+  if (event.data && event.data.type === 'GET_VERSION' && event.ports[0]) {
+    event.ports[0].postMessage({ type: 'VERSION', version: VERSION });
+  }
+});
 
 self.addEventListener('fetch', (event) => {
   const req = event.request;

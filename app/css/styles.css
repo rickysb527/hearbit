@@ -837,3 +837,19 @@ body.tabbar-open.mini-open .toast-host, body.tabbar-open.listen-mini-open .toast
 .toast-info { background: var(--surface); color: var(--text); border: 1px solid var(--border); }
 .toast-ic { flex-shrink: 0; }
 .toast-msg { min-width: 0; }
+
+/* ===== 更新のお知らせ / バージョン（設定） ===== */
+.update-banner {
+  position: fixed; left: 12px; right: 12px;
+  top: calc(env(safe-area-inset-top) + 8px);
+  z-index: 90; /* トースト(80)・各プレーヤーより上 */
+  padding: 12px 16px; border: none; border-radius: 12px;
+  background: var(--accent); color: var(--accent-on);
+  font-size: 14px; font-weight: 700; text-align: center; cursor: pointer;
+  box-shadow: 0 4px 16px rgba(20,30,40,0.18);
+}
+.settings-btn {
+  background: none; border: 1px solid var(--border); border-radius: 10px;
+  color: var(--accent); font-size: 14px; font-weight: 700; padding: 8px 12px; cursor: pointer;
+}
+.settings-btn:disabled { opacity: 0.5; }
