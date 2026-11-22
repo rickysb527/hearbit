@@ -4,13 +4,19 @@
  *   1) 起動時: 設定に現在の版が出る・バナーは出ない
  *   2) サーバ側を次の版に上げる（version.js / sw.js を +1）→「更新を確認」→ バナーに新しい版
  *   3) バナーをタップ → 再読み込みで新しい版のコードが動く（設定の版が上がり、バナーが消える）
- * を確認する。サーバはこのスクリプトが自分で立てる（python3 http.server）。
+ *   4) さらに再読み込みしても新しい版のまま（古い HTML/JS に戻らない）
+ * を確認する。サーバはこのスクリプトが自分で立てる。GitHub Pages と同じく
+ * Cache-Control: max-age=600 を付けて配信し、HTTP キャッシュが効く条件でも新しい版に
+ * 切り替わることを確認する。
+ * ※ 古い HTML/JS を HTTP キャッシュから掴む経路そのものは、この条件では再現しない
+ *   （precache の cache:'reload' が HTTP キャッシュも新しい版で上書きするため）。
+ *   sw.js の freshFetch（cache:'no-cache'）はその二重の防御。
  *
  * 使い方: node app/verify/verify_update.mjs
  */
 import http from 'http';
 import { spawn } from 'child_process';
-import { rmSync, cpSync, readFileSync, writeFileSync, mkdtempSync } from 'fs';
+import { rmSync, cpSync, readFileSync, writeFileSync, mkdtempSync, existsSync, statSync } from 'fs';
 import { tmpdir } from 'os';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -42,19 +48,34 @@ function bumpServedVersion() {
   const cur = Number(readFileSync(vf, 'utf8').match(/APP_VERSION = (\d+)/)[1]);
   writeFileSync(vf, readFileSync(vf, 'utf8').replace(/APP_VERSION = \d+/, `APP_VERSION = ${cur + 1}`));
   writeFileSync(sf, readFileSync(sf, 'utf8').replace(/const VERSION = \d+;/, `const VERSION = ${cur + 1};`));
+  // HTML も新しい版になったことを見分ける目印を入れる（古い HTML を掴んでいないかの確認用）
+  const hf = path.join(ROOT, 'index.html');
+  writeFileSync(hf, readFileSync(hf, 'utf8').replace('<head>', `<head><meta name="hb-build" content="${cur + 1}">`));
   return cur + 1;
 }
 
+// GitHub Pages 相当の静的サーバ（max-age=600）
+const TYPES = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json',
+  '.png': 'image/png', '.svg': 'image/svg+xml' };
+function startServer() {
+  const srv = http.createServer((req, res) => {
+    let p = decodeURIComponent(new URL(req.url, 'http://x').pathname);
+    if (p.endsWith('/')) p += 'index.html';
+    const f = path.join(ROOT, p);
+    if (!f.startsWith(ROOT) || !existsSync(f) || !statSync(f).isFile()) { res.writeHead(404); res.end(); return; }
+    res.writeHead(200, { 'Content-Type': TYPES[path.extname(f)] || 'application/octet-stream',
+      'Cache-Control': 'max-age=600' });
+    res.end(readFileSync(f));
+  });
+  return new Promise((r) => srv.listen(PORT, () => r(srv)));
+}
+
 async function main() {
-  const server = spawn('python3', ['-m', 'http.server', String(PORT)], { cwd: ROOT, stdio: 'ignore' });
-  await sleep(800);
+  const server = await startServer();
   try { rmSync('/tmp/hb-chrome-update', { recursive: true, force: true }); } catch (e) {}
   const chrome = spawn(CHROME, [
     `--remote-debugging-port=${DBG}`, '--headless=new', '--no-sandbox',
     '--disable-gpu',
-    // headless では range-chip タップがユーザージェスチャ扱いにならず autoplay が
-    // 抑止される。実機ではタップが起点なので再生される。検証環境のみ抑止を解除する。
-    '--autoplay-policy=no-user-gesture-required',
     '--user-data-dir=/tmp/hb-chrome-update', 'about:blank',
   ], { stdio: 'ignore' });
 
@@ -99,7 +120,8 @@ async function main() {
     const state = () => evalP(`({ ver: document.getElementById('app-version').textContent,
       banner: !document.getElementById('update-banner').classList.contains('hidden'),
       bannerVer: document.getElementById('update-banner-ver').textContent,
-      ctrl: !!navigator.serviceWorker.controller })`);
+      ctrl: !!navigator.serviceWorker.controller,
+      build: (document.querySelector('meta[name="hb-build"]') || {}).content || null })`);
     async function waitFor(pred, ms = 10000) {
       let s; for (let i = 0; i < ms / 200; i++) { s = await state().catch(() => null); if (s && pred(s)) return s; await sleep(200); }
       return s;
@@ -124,12 +146,19 @@ async function main() {
     s = await waitFor((x) => x.ver === `v${v1}`);
     check('バナーをタップ → 新しい版のコードで動く', s && s.ver === `v${v1}`, JSON.stringify(s));
     check('更新後はバナーが消える', s && !s.banner, JSON.stringify(s));
+    check('更新後は HTML も新しい版（HTTP キャッシュの古い HTML を掴まない）', s && s.build === String(v1), JSON.stringify(s));
+
+    // さらに 2 回「起動し直し」ても新しい版のまま（裏の再取得が古い JS/HTML でキャッシュを上書きしない）。
+    // reload は HTTP キャッシュを再検証してしまうので、ホーム画面からの起動と同じ通常のナビゲーションで開く。
+    for (let i = 0; i < 2; i++) { await sc('Page.navigate', { url: BASE }); await sleep(1500); }
+    s = await waitFor((x) => x.ctrl);
+    check('再読み込みを繰り返しても新しい版のまま', s && s.ver === `v${v1}` && s.build === String(v1) && !s.banner, JSON.stringify(s));
 
     await send('Target.closeTarget', { targetId });
     ws.close();
   } finally {
     chrome.kill('SIGKILL');
-    server.kill('SIGKILL');
+    server.close();
     rmSync(ROOT, { recursive: true, force: true });
   }
   console.log(`\n=> ${fail === 0 ? '全チェック PASS' : `${fail}件 NG`}  (PASS ${pass} / NG ${fail})`);
