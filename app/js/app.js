@@ -1268,6 +1268,16 @@
       lpTotal.textContent = String(h.wordCount);
     },
     hideFull() { lp.classList.add('hidden'); },
+    onNotice(kind, err) {
+      if (kind === 'blocked') {
+        // iOS が自動再開を許さなかった → ▶ タップ（ユーザー操作）なら再開できる。
+        showToast('▶ をタップして再生してください', { type: 'info' });
+      } else if (kind === 'build-failed') {
+        Listen.stop();
+        alert('聞き流し音声の準備に失敗しました。もう一度お試しください。\n' +
+          `(${(err && (err.name || err.message)) || 'unknown'})`);
+      }
+    },
   };
 
   lpToggle.addEventListener('click', () => Listen.toggle());
